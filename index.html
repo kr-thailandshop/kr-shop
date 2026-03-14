@@ -2390,6 +2390,55 @@ confirmAndDownload = function() {
   if (d) saveOrderToSheet(d);
   originalConfirm();
 };
+
+// เปลี่ยน URL ตรงนี้เป็นตัวล่าสุดที่คุณ Deploy มา
+const scriptURL = 'https://script.google.com/macros/s/AKfycbx6yeSJLQ7v054P8FunEvynT-KMlBbA8g8_rePLf9h46njkvPplmWPeduU0c_YP9vH4/exec';
+
+// ฟังก์ชันดึงสินค้าจาก Google Sheets
+async function loadProductsFromSheet() {
+  try {
+    const response = await fetch(scriptURL);
+    const data = await response.json();
+    if (data && data.length > 0) {
+      // นำข้อมูลจาก Sheet มาทับตัวแปร products ในเว็บ
+      products = data.map(p => ({
+        ...p,
+        w: 5, l: 5, h: 5, status: 'active' // ค่าเริ่มต้นสำหรับขนาด
+      }));
+      renderProducts();
+      renderAdminProducts();
+    }
+  } catch (err) {
+    console.error("Load failed:", err);
+  }
+}
+
+// เรียกใช้งานทันทีที่เปิดเว็บ
+window.addEventListener('load', loadProductsFromSheet);
+
+// ปรับฟังก์ชัน Save ในหน้า Admin ให้ส่งค่าไป Sheet ด้วย
+const originalSaveProduct = saveProduct;
+saveProduct = async function() {
+  await originalSaveProduct(); // บันทึกในเว็บก่อน
+  
+  const id = editingProductId || Date.now();
+  const price = document.getElementById('p-price').value;
+  const stock = document.getElementById('p-stock').value;
+
+  // ส่งไปบันทึกใน Google Sheets
+  fetch(scriptURL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({
+      type: "UpdateProduct",
+      id: id,
+      price: price,
+      stock: stock
+    })
+  });
+  showToast("บันทึกไปที่ Google Sheets แล้ว!");
+};
+
   
 </script>
 </body>
