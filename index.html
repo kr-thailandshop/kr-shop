@@ -2391,53 +2391,71 @@ confirmAndDownload = function() {
   originalConfirm();
 };
 
-// เปลี่ยน URL ตรงนี้เป็นตัวล่าสุดที่คุณ Deploy มา
+// บันทึกและดึงข้อมูลจาก Google Sheets (เวอร์ชันสมบูรณ์)
 const scriptURL = 'https://script.google.com/macros/s/AKfycbx6yeSJLQ7v054P8FunEvynT-KMlBbA8g8_rePLf9h46njkvPplmWPeduU0c_YP9vH4/exec';
 
-// ฟังก์ชันดึงสินค้าจาก Google Sheets
+// 1. ฟังก์ชันโหลดสินค้าจาก Sheet มาโชว์หน้าเว็บ
 async function loadProductsFromSheet() {
   try {
     const response = await fetch(scriptURL);
     const data = await response.json();
     if (data && data.length > 0) {
-      // นำข้อมูลจาก Sheet มาทับตัวแปร products ในเว็บ
       products = data.map(p => ({
         ...p,
-        w: 5, l: 5, h: 5, status: 'active' // ค่าเริ่มต้นสำหรับขนาด
+        w: p.w || 5, l: p.l || 5, h: p.h || 5, status: 'active'
       }));
       renderProducts();
-      renderAdminProducts();
+      if (isAdminLoggedIn) renderAdminProducts();
     }
-  } catch (err) {
-    console.error("Load failed:", err);
-  }
+  } catch (err) { console.error("Load failed:", err); }
 }
 
-// เรียกใช้งานทันทีที่เปิดเว็บ
-window.addEventListener('load', loadProductsFromSheet);
+// 2. ฟังก์ชันส่งออร์เดอร์
+async function saveOrderToSheet(orderData) {
+  const payload = {
+    type: "Orders",
+    orderNum: orderData.orderNum,
+    name: orderData.customer.name,
+    phone: orderData.customer.phone,
+    items: orderData.items.map(i => (i.product.nameEN || i.product.nameTH) + " x" + i.qty).join(", "),
+    total: orderData.total
+  };
+  fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+}
 
-// ปรับฟังก์ชัน Save ในหน้า Admin ให้ส่งค่าไป Sheet ด้วย
-const originalSaveProduct = saveProduct;
-saveProduct = async function() {
-  await originalSaveProduct(); // บันทึกในเว็บก่อน
-  
-  const id = editingProductId || Date.now();
-  const price = document.getElementById('p-price').value;
-  const stock = document.getElementById('p-stock').value;
-
-  // ส่งไปบันทึกใน Google Sheets
+// 3. ฟังก์ชันอัปเดตสต็อก/ราคาจากหน้า Admin
+async function updateProductToSheet(id, price, stock) {
   fetch(scriptURL, {
     method: 'POST',
     mode: 'no-cors',
-    body: JSON.stringify({
-      type: "UpdateProduct",
-      id: id,
-      price: price,
-      stock: stock
-    })
+    body: JSON.stringify({ type: "UpdateProduct", id: id, price: price, stock: stock })
   });
-  showToast("บันทึกไปที่ Google Sheets แล้ว!");
+}
+
+// --- ส่วนการเชื่อมต่อฟังก์ชันเดิม (ห้ามลบอันเก่าทิ้ง) ---
+
+// แก้ไขจุดยืนยันออร์เดอร์
+const originalConfirm = confirmAndDownload;
+confirmAndDownload = function() {
+  const d = window._orderData;
+  if (d) saveOrderToSheet(d);
+  originalConfirm();
 };
+
+// แก้ไขจุดเซฟสินค้าใน Admin
+const originalSaveProduct = saveProduct;
+saveProduct = async function() {
+  const price = document.getElementById('p-price').value;
+  const stock = document.getElementById('p-stock').value;
+  const id = editingProductId || Date.now();
+  
+  updateProductToSheet(id, price, stock); // ส่งไป Sheet
+  originalSaveProduct(); // ทำงานเดิมในหน้าเว็บ
+};
+
+// โหลดข้อมูลเมื่อเปิดเว็บ
+window.addEventListener('DOMContentLoaded', loadProductsFromSheet);
+
 
   
 </script>
