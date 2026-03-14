@@ -2357,26 +2357,38 @@ setLang('en');
 // Update rate display on load
 updateRateDisplay();
 
-// === ส่วนเชื่อมต่อ Google Sheets (วางเพียงชุดเดียว) ===
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxiq2hVTnBKbhdjlfzxBXL9EvXQfwFAfs3noxOlYOpf_kPiLSYIquDRJeDFyDWFdMxM/exec';
+// ==========================================
+// ส่วนเชื่อมต่อ GOOGLE SHEETS (วางแทนที่ของเดิม)
+// ==========================================
 
-// ฟังก์ชันดึงข้อมูลสินค้าจาก Sheet
+// 1. นำ URL ใหม่ที่คุณได้มาวางในเครื่องหมาย ' ' ด้านล่างนี้ครับ
+const scriptURL = 'นำhttps://script.google.com/macros/s/AKfycbw6SFf0UPL6-ofjdTDKltcBDR2gqCshkS4WtTUX0hvAulWzh3uzFGdfJVisEkDTlt6z/exec'; 
+
+// ฟังก์ชันดึงข้อมูลสินค้าจาก Sheet มาโชว์หน้าเว็บ
 async function loadProductsFromSheet() {
     try {
         const response = await fetch(scriptURL);
         const data = await response.json();
         if (data && data.length > 0) {
+            // แมพข้อมูลให้ตรงกับรูปแบบที่หน้าเว็บใช้
             products = data.map(p => ({
-                ...p,
-                w: p.w || 5, l: p.l || 5, h: p.h || 5, status: 'active'
+                id: p.id,
+                nameTH: p.nameTH,
+                nameEN: p.nameEN,
+                price: parseFloat(p.price),
+                weight: parseFloat(p.weight),
+                stock: parseInt(p.stock),
+                category: p.category,
+                emoji: p.emoji,
+                w: 5, l: 5, h: 5, status: 'active' // ค่าเริ่มต้นสำหรับขนาด
             }));
             renderProducts();
-            if (isAdminLoggedIn) renderAdminProducts();
+            if (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn) renderAdminProducts();
         }
-    } catch (err) { console.error("Load failed:", err); }
+    } catch (err) { console.error("โหลดข้อมูลไม่สำเร็จ:", err); }
 }
 
-// ฟังก์ชันส่งออร์เดอร์ใหม่
+// ฟังก์ชันส่งออร์เดอร์เข้า Sheet
 async function saveOrderToSheet(orderData) {
     const payload = {
         type: "Orders",
@@ -2389,42 +2401,59 @@ async function saveOrderToSheet(orderData) {
     fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
 }
 
-// ฟังก์ชันอัปเดตสินค้าจาก Admin
-async function updateProductToSheet(id, price, stock) {
-    fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ type: "UpdateProduct", id: id, price: price, stock: stock })
-    });
+// ฟังก์ชันส่งข้อมูลการอัปเดตสินค้าทั้งหมดจาก Admin เข้า Sheet
+async function updateProductToSheet(product) {
+    const payload = {
+        type: "UpdateProduct",
+        id: product.id,
+        nameTH: product.nameTH,
+        nameEN: product.nameEN,
+        price: product.price,
+        weight: product.weight,
+        stock: product.stock,
+        category: product.category,
+        emoji: product.emoji
+    };
+    fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
 }
 
-// === ส่วนเชื่อมโยงกับปุ่มในหน้าเว็บ (Override) ===
+// --- การเชื่อมโยงกับระบบเดิมของเว็บไซต์ ---
 
 // เชื่อมปุ่มยืนยันออร์เดอร์
-const originalConfirm = confirmAndDownload;
-confirmAndDownload = function() {
-    const d = window._orderData;
-    if (d) saveOrderToSheet(d);
-    originalConfirm();
-};
+if (typeof confirmAndDownload !== 'undefined') {
+    const originalConfirm = confirmAndDownload;
+    confirmAndDownload = function() {
+        const d = window._orderData;
+        if (d) saveOrderToSheet(d);
+        originalConfirm();
+    };
+}
 
-// เชื่อมปุ่มบันทึกใน Admin
-const originalSaveProduct = saveProduct;
-saveProduct = async function() {
-    const price = document.getElementById('p-price').value;
-    const stock = document.getElementById('p-stock').value;
-    const id = editingProductId || Date.now();
-    
-    updateProductToSheet(id, price, stock); // ส่งข้อมูลไป Sheet
-    originalSaveProduct(); // บันทึกในระบบหน้าเว็บ
-};
+// เชื่อมปุ่มเซฟในหน้า Admin
+if (typeof saveProduct !== 'undefined') {
+    const originalSaveProduct = saveProduct;
+    saveProduct = async function() {
+        // ดึงค่าล่าสุดจากฟอร์ม Admin
+        const productData = {
+            id: editingProductId || Date.now(),
+            nameTH: document.getElementById('p-nameTH').value,
+            nameEN: document.getElementById('p-nameEN').value,
+            price: document.getElementById('p-price').value,
+            weight: document.getElementById('p-weight').value,
+            stock: document.getElementById('p-stock').value,
+            category: document.getElementById('p-category').value,
+            emoji: document.getElementById('p-emoji').value
+        };
+        
+        updateProductToSheet(productData); // ส่งไปสะพานเชื่อม (Google Sheets)
+        originalSaveProduct(); // บันทึกในระบบเว็บปกติ
+        alert("บันทึกและอัปเดตข้อมูลไปยังคลังสินค้าเรียบร้อยแล้ว!");
+    };
+}
 
-// เริ่มทำงานเมื่อเปิดหน้าเว็บ
-window.addEventListener('DOMContentLoaded', loadProductsFromSheet);
-
-
-
-  
+// สั่งให้โหลดข้อมูลจาก Sheet ทันทีที่เปิดเว็บ
+window.addEventListener('load', loadProductsFromSheet);
+ 
 </script>
 </body>
 </html>
