@@ -907,6 +907,3236 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:var(--white)
         <label class="form-label" data-th="เบอร์โทรศัพท์" data-en="Phone Number">Phone Number</label>
         <input type="tel" id="loginPhone" class="form-input" placeholder="+66 xxx xxx xxxx">
       </div>
+      <button class="submit-btn" onclick="doLogin()">
+        <span data-th="เข้าสู่ระบบ" data-en="Continue to Shop">Continue to Shop</span>
+      </button>
+      <div class="back-link" onclick="showPage('landing')">← <span data-th="กลับหน้าแรก" data-en="Back to home">Back to home</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SHOP PAGE ===== -->
+<div id="shop-page" class="page">
+  <div class="shop-header">
+    <div class="shop-header-top">
+      <div class="shop-title" data-th="เลือกสินค้า" data-en="Browse Products">Browse Products</div>
+      <div class="user-badge">
+        <span>👤</span>
+        <span id="userBadge">Guest</span>
+        <span style="cursor:pointer;color:var(--accent)" onclick="logout()">✕</span>
+      </div>
+    </div>
+    <div class="search-bar" style="margin-top:12px">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" oninput="onSearch(this.value)" placeholder="Search products... (type 3+ chars)">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </div>
+
+  <!-- DESTINATION COUNTRY BAR -->
+  <div style="display:flex;align-items:center;gap:10px;padding:8px 20px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);flex-wrap:wrap">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap">🌍 Ship to:</div>
+    <button onclick="openDestCountryPicker()" id="destCountryBtn"
+      style="display:flex;align-items:center;gap:8px;padding:6px 16px;
+      background:rgba(0,180,216,0.15);border:1px solid var(--teal);
+      border-radius:20px;color:var(--teal);cursor:pointer;font-size:13px;
+      font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s">
+      <span id="destCountryFlag">🌏</span>
+      <span id="destCountryLabel">Select Destination Country</span>
+    </button>
+    <div id="destZoneBadge" style="display:none;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700"></div>
+  </div>
+
+  <!-- CURRENCY BAR -->
+  <div class="currency-bar" id="currencyBar">
+    <div class="currency-rate-info" id="rateInfo">
+      <span class="rate-loading">⟳ กำลังดึงอัตราแลกเปลี่ยน...</span>
+    </div>
+    <div class="currency-toggle">
+      <button class="curr-btn active" id="btnTHB" onclick="setCurrency('THB')">฿ THB</button>
+      <button class="curr-btn" id="btnUSD" onclick="setCurrency('USD')">$ USD</button>
+    </div>
+  </div>
+
+  <div class="box-mode-toggle">
+    <button class="mode-btn active" id="modeAuto" onclick="setMode('auto')" data-th="เลือกสินค้าก่อน (แนะนำกล่องอัตโนมัติ)" data-en="Pick Products First (auto box)">Pick Products First (auto box)</button>
+    <button class="mode-btn" id="modeManual" onclick="setMode('manual')" data-th="เลือกกล่องก่อน" data-en="Pick Box First">Pick Box First</button>
+  </div>
+
+  <div class="box-picker" id="boxPicker" style="display:none">
+    <div class="box-picker-label" data-th="เลือกกล่อง DHL ที่ต้องการ" data-en="Select DHL Box">Select DHL Box</div>
+    <div class="box-grid" id="boxGrid"></div>
+  </div>
+
+  <div class="cat-scroll" id="catScroll"></div>
+
+  <div class="shop-layout">
+    <div class="products-area">
+      <div class="products-grid" id="productsGrid"></div>
+    </div>
+    <div class="cart-panel" id="cartPanel">
+      <div class="cart-header">
+        <div class="cart-title">🛒 <span data-th="ตะกร้าสินค้า" data-en="Your Cart">Your Cart</span></div>
+      </div>
+
+      <!-- BOX VISUAL INDICATOR -->
+      <div class="box-visual-panel" id="boxVisualPanel" style="display:none">
+        <div class="box-visual-title">📦 Box Status</div>
+        <div class="box-visual-wrap">
+          <div class="box-icon-wrap">
+            <svg class="box-svg" width="56" height="56" viewBox="0 0 56 56" id="boxSVG">
+              <!-- Box body -->
+              <rect x="6" y="20" width="44" height="30" rx="3" fill="none" stroke="#f5a623" stroke-width="2"/>
+              <!-- Box top flaps -->
+              <path d="M6 20 L28 14 L50 20" fill="none" stroke="#f5a623" stroke-width="2"/>
+              <line x1="28" y1="14" x2="28" y2="20" stroke="#f5a623" stroke-width="2"/>
+              <!-- Fill indicator inside box -->
+              <rect id="boxFillRect" x="8" y="22" width="40" height="0" rx="1" fill="#00b4d8" opacity="0.5"/>
+              <!-- Fill from bottom -->
+            </svg>
+          </div>
+          <div class="box-visual-info">
+            <div class="box-visual-name" id="boxVisualName">— Select Box —</div>
+            <div class="progress-row">
+              <div class="progress-label">
+                <span>⚖ Weight</span>
+                <span id="weightPct">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="weightBar" style="width:0%;background:var(--teal)"></div>
+              </div>
+            </div>
+            <div class="progress-row">
+              <div class="progress-label">
+                <span>📐 Volume</span>
+                <span id="volumePct">0%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="volumeBar" style="width:0%;background:var(--gold)"></div>
+              </div>
+            </div>
+            <div class="box-alert" id="boxAlert"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty" data-th="ยังไม่มีสินค้า" data-en="No items yet">No items yet</div>
+      </div>
+      <div id="packingStatus"></div>
+      <div class="cart-summary" id="cartSummary" style="display:none">
+        <div class="sum-row">
+          <span data-th="น้ำหนักรวม" data-en="Total Weight">Total Weight</span>
+          <span id="sumWeight">-</span>
+        </div>
+        <div class="sum-row">
+          <span data-th="ปริมาตรใช้" data-en="Volume Used">Volume Used</span>
+          <span id="sumVolume">-</span>
+        </div>
+        <div class="sum-row">
+          <span data-th="กล่อง DHL" data-en="DHL Box">DHL Box</span>
+          <span id="sumBox" style="color:var(--teal)">-</span>
+        </div>
+        <div class="sum-row">
+          <span data-th="ราคาสินค้า" data-en="Products">Products</span>
+          <span id="sumProducts">฿0</span>
+        </div>
+        <div class="sum-row">
+          <span data-th="ค่าขนส่ง" data-en="Shipping">Shipping</span>
+          <span id="sumShipping">฿0</span>
+        </div>
+        <div class="sum-row grand">
+          <span data-th="ยอดรวม" data-en="Grand Total">Grand Total</span>
+          <span id="sumTotal">฿0</span>
+        </div>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="openOrderModal()" disabled>
+        🧾 ดูรายการสั่งซื้อ / View Order
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ORDER PAGE ===== -->
+<div id="order-page" class="page">
+  <div class="order-container">
+    <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center">
+      <button onclick="showPage('shop')" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:20px;cursor:pointer;font-size:13px">← <span data-th="แก้ไขสินค้า" data-en="Edit Cart">Edit Cart</span></button>
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:var(--gold)" data-th="ใบสั่งซื้อ" data-en="Order Summary">Order Summary</div>
+    </div>
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-shop" id="orderShopName">K&R Thailand Shop</div>
+        <div class="order-num" id="orderNum">-</div>
+      </div>
+      <div class="order-body">
+        <div class="order-customer">
+          <div class="order-field">
+            <label data-th="ชื่อลูกค้า" data-en="Customer">Customer</label>
+            <p id="orderCustomer">-</p>
+          </div>
+          <div class="order-field">
+            <label data-th="วันที่" data-en="Date">Date</label>
+            <p id="orderDate">-</p>
+          </div>
+          <div class="order-field">
+            <label data-th="เบอร์โทร" data-en="Phone">Phone</label>
+            <p id="orderPhone">-</p>
+          </div>
+          <div class="order-field">
+            <label data-th="กล่อง DHL" data-en="DHL Box">DHL Box</label>
+            <p id="orderBox" style="color:var(--teal)">-</p>
+          </div>
+        </div>
+        <table class="order-table">
+          <thead>
+            <tr>
+              <th data-th="สินค้า" data-en="Product">Product</th>
+              <th data-th="จำนวน" data-en="Qty">Qty</th>
+              <th data-th="ขนาด" data-en="Size">Size (cm)</th>
+              <th data-th="น้ำหนัก" data-en="Weight">Weight</th>
+              <th data-th="ราคา" data-en="Price">Price</th>
+            </tr>
+          </thead>
+          <tbody id="orderItems"></tbody>
+        </table>
+        <div class="dhl-info-box">
+          <div class="dhl-info-title">📦 DHL Shipping Info</div>
+          <div id="orderDHLInfo"></div>
+        </div>
+        <div class="packing-result" id="orderPackingResult"></div>
+        <div class="order-totals">
+          <div class="total-row"><span data-th="น้ำหนักรวม" data-en="Total Weight">Total Weight</span><span id="orderWeight">-</span></div>
+          <div class="total-row"><span data-th="ราคาสินค้า" data-en="Products Total">Products Total</span><span id="orderProductTotal">-</span></div>
+          <div class="total-row"><span data-th="ค่าขนส่ง" data-en="Shipping Cost">Shipping Cost</span><span id="orderShippingCost">-</span></div>
+          <div class="total-row grand-total"><span data-th="ยอดรวมทั้งหมด" data-en="Grand Total">Grand Total</span><span id="orderGrandTotal">-</span></div>
+        </div>
+        <div class="order-actions" id="orderActions">
+          <button class="confirm-btn" onclick="confirmOrder()">
+            ✓ <span data-th="ยืนยันออร์เดอร์ (โอนเงินแล้ว)" data-en="Confirm Order (Payment Sent)">Confirm Order (Payment Sent)</span>
+          </button>
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:4px" data-th="กรุณาส่งสลิปการโอนเงินผ่าน Line หรือ WhatsApp" data-en="Please send payment slip via Line or WhatsApp">
+            Please send payment slip via Line or WhatsApp
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN LOGIN PAGE ===== -->
+<div id="admin-login-page" class="page">
+  <div id="admin-login-page" style="min-height:100vh;background:linear-gradient(135deg,var(--g1) 0%,#0a0a1a 50%,var(--g3) 100%);display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(245,166,35,0.2);border-radius:24px;padding:40px 36px;width:100%;max-width:420px;text-align:center;box-shadow:0 0 60px rgba(245,166,35,0.08)">
+    <div style="font-size:48px;margin-bottom:12px">🔐</div>
+    <div style="font-family:Playfair Display,serif;font-size:26px;color:var(--gold);margin-bottom:4px">Admin Access</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:28px">Shop owner only — restricted access</div>
+    <div id="adminLoginError" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:var(--danger);border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none">❌ Incorrect username or password</div>
+    <div class="form-group" style="text-align:left"><label class="form-label">Username</label><input type="text" id="adminUsername" class="form-input" placeholder="Username" autocomplete="off"></div>
+    <div class="form-group" style="text-align:left"><label class="form-label">Password</label><div style="position:relative"><input type="password" id="adminPassword" class="form-input" placeholder="Password" onkeydown="if(event.key==='Enter')doAdminLogin()" style="padding-right:44px"><button onclick="togglePassVisibility()" type="button" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px" id="togglePassBtn">👁</button></div></div>
+    <button class="submit-btn" onclick="doAdminLogin()" style="margin-top:8px">Login to Admin</button>
+    <div onclick="showPage('landing')" style="color:var(--muted);font-size:13px;margin-top:16px;cursor:pointer;display:block">← Back to home</div>
+  </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div id="admin-page" class="page">
+  <div class="admin-container">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div style="font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)">⚙ Admin Panel</div>
+    <button onclick="adminLogout()" style="padding:8px 20px;background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:var(--danger);border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--danger)';this.style.color='white'" onmouseout="this.style.background='rgba(231,76,60,0.2)';this.style.color='var(--danger)'">🔓 Logout Admin</button>
+  </div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="showAdminSection('products')" data-th="สินค้า" data-en="Products">Products</button>
+      <button class="admin-tab" onclick="showAdminSection('shipping')" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping">DHL Shipping</button>
+      <button class="admin-tab" onclick="showAdminSection('orders')" data-th="คำสั่งซื้อ" data-en="Orders">Orders</button>
+      <button class="admin-tab" onclick="showAdminSection('settings')" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</button>
+    </div>
+
+    <!-- Products Section -->
+    <div id="admin-products" class="admin-section active">
+      <div class="admin-header">
+        <div class="admin-title" data-th="จัดการสินค้า" data-en="Manage Products">Manage Products</div>
+        <button class="add-btn-admin" onclick="openProductModal()">+ <span data-th="เพิ่มสินค้า" data-en="Add Product">Add Product</span></button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Icon</th>
+              <th data-th="ชื่อสินค้า" data-en="Product">Product</th>
+              <th data-th="หมวดหมู่" data-en="Category">Category</th>
+              <th data-th="ราคา" data-en="Price">Price</th>
+              <th data-th="น้ำหนัก(g)" data-en="Weight(g)">Weight(g)</th>
+              <th data-th="ขนาด(cm)" data-en="Size(cm)">Size W×L×H</th>
+              <th data-th="สต็อก" data-en="Stock">Stock</th>
+              <th data-th="จัดการ" data-en="Actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminProductsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Shipping Section -->
+    <div id="admin-shipping" class="admin-section">
+      <div class="admin-header">
+        <div class="admin-title" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping Rates">DHL Shipping Rates</div>
+      </div>
+      <div class="shipping-grid" id="shippingGrid"></div>
+      <button class="save-settings-btn" style="max-width:300px;margin-top:20px" onclick="saveShipping()">
+        <span data-th="บันทึกค่าขนส่ง" data-en="Save Shipping Rates">Save Shipping Rates</span>
+      </button>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="admin-orders" class="admin-section">
+      <div class="admin-header">
+        <div class="admin-title" data-th="คำสั่งซื้อทั้งหมด" data-en="All Orders">All Orders</div>
+      </div>
+      <div id="adminOrdersList"></div>
+    </div>
+
+    <!-- Settings Section -->
+    <div id="admin-settings" class="admin-section">
+      <div class="admin-header">
+        <div class="admin-title" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</div>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>🔑 <span data-th="เปลี่ยนรหัสผ่าน Admin" data-en="Change Admin Password">Change Admin Password</span></h3>
+          <div class="form-group"><label class="form-label" data-th="Username ปัจจุบัน" data-en="Current Username">Current Username</label><input type="text" id="newAdminUser" class="form-input" placeholder="New username"></div>
+          <div class="form-group"><label class="form-label" data-th="Password ใหม่" data-en="New Password">New Password</label><input type="password" id="newAdminPass" class="form-input" placeholder="New password"></div>
+          <div class="form-group"><label class="form-label" data-th="ยืนยัน Password" data-en="Confirm Password">Confirm Password</label><input type="password" id="confirmAdminPass" class="form-input" placeholder="Confirm password"></div>
+          <button class="save-settings-btn" onclick="changeAdminPassword()"><span data-th="เปลี่ยนรหัสผ่าน" data-en="Change Password">Change Password</span></button>
+        </div>
+        <div class="settings-card" style="grid-column:1/-1">
+          <h3>🏪 <span data-th="สถานะร้าน" data-en="Shop Status">Shop Status</span></h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:15px;font-weight:700" id="shopStatusLabel">🔴 ร้านปิดอยู่ · Shop is CLOSED</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">ลูกค้าจะเห็นหน้า "ระหว่างปรับปรุงร้าน" จนกว่าจะเปิดร้าน</div>
+            </div>
+            <button id="shopToggleBtn" onclick="toggleShop()" style="padding:12px 28px;background:rgba(46,204,113,0.2);border:2px solid var(--success);color:var(--success);border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s;min-width:160px">
+              🟢 เปิดร้าน
+            </button>
+          </div>
+          <div style="background:rgba(255,255,255,0.03);border-radius:10px;padding:12px;font-size:13px;color:var(--muted)">
+            💡 <strong style="color:white">แนะนำ:</strong> ใส่ข้อมูลสินค้าให้ครบก่อน แล้วจึงกดเปิดร้าน เพื่อให้ลูกค้าเห็นสินค้าที่สมบูรณ์
+          </div>
+        </div>
+        <div class="settings-card">
+          <h3>💱 <span data-th="อัตราแลกเปลี่ยน USD" data-en="USD Exchange Rate">USD Exchange Rate</span></h3>
+          <div style="background:rgba(0,180,216,0.08);border:1px solid rgba(0,180,216,0.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:13px">
+            <div style="color:var(--teal);font-weight:700;margin-bottom:4px">📋 วิธีเช็คเรท กสิกรไทย</div>
+            <div style="color:var(--muted);line-height:1.7;font-size:12px">
+              1. เปิด <strong style="color:white">www.kasikornbank.com</strong><br>
+              2. ไปที่ อัตราแลกเปลี่ยน → USD<br>
+              3. ดูราคา <strong style="color:white">ขาย (Selling)</strong> ช่วง $50–$100<br>
+              4. กรอกตัวเลขด้านล่างแล้วกด บันทึก
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">1 USD = ฿ (ราคาขาย กสิกรไทย)</label>
+            <div style="display:flex;gap:10px;align-items:center">
+              <input type="number" id="usdRateInput" class="form-input" step="0.01" min="25" max="50" placeholder="เช่น 35.85" style="max-width:180px">
+              <button class="save-settings-btn" style="margin:0;padding:10px 20px;white-space:nowrap" onclick="saveUsdRate()">💾 บันทึก</button>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:8px" id="currentRateDisplay">
+            เรทปัจจุบัน: <strong style="color:var(--gold)">1 USD = ฿${usdRate.toFixed(2)}</strong>
+            <span style="color:var(--muted);font-size:11px" id="rateUpdatedAt"></span>
+          </div>
+        </div>
+
+        <div class="settings-card">
+          <h3>🏪 <span data-th="ข้อมูลร้าน" data-en="Shop Info">Shop Info</span></h3>
+          <div class="form-group"><label class="form-label" data-th="ชื่อร้าน" data-en="Shop Name">Shop Name</label><input type="text" id="settingName" class="form-input" value="K&R Thailand Shop"></div>
+          <div class="form-group"><label class="form-label">Line ID</label><input type="text" id="settingLine" class="form-input" value="@krthailandshop"></div>
+          <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" id="settingWA" class="form-input" value="+66638068809"></div>
+          <button class="save-settings-btn" onclick="saveSettings()"><span data-th="บันทึก" data-en="Save">Save</span></button>
+        </div>
+        <div class="settings-card">
+          <h3>🎨 <span data-th="สี Gradient หน้าแรก" data-en="Landing Gradient Colors">Landing Gradient Colors</span></h3>
+          <div class="color-row">
+            <span class="color-label" data-th="สีที่ 1" data-en="Color 1">Color 1</span>
+            <input type="color" class="color-picker" id="color1" value="#667eea">
+          </div>
+          <div class="color-row">
+            <span class="color-label" data-th="สีที่ 2" data-en="Color 2">Color 2</span>
+            <input type="color" class="color-picker" id="color2" value="#764ba2">
+          </div>
+          <div class="color-row">
+            <span class="color-label" data-th="สีที่ 3 (Accent)" data-en="Color 3 (Accent)">Color 3</span>
+            <input type="color" class="color-picker" id="color3" value="#e94560">
+          </div>
+          <button class="save-settings-btn" onclick="applyColors()"><span data-th="ใช้สีนี้" data-en="Apply Colors">Apply Colors</span></button>
+          <div class="landing-preview">
+            <div class="preview-hero" id="colorPreview" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+              <div class="preview-name">K&R Thailand Shop</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px">Preview</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ORDER REVIEW MODAL ===== -->
+<div class="order-modal-overlay" id="orderReviewModal">
+  <div class="order-modal">
+    <div class="order-modal-header">
+      <div class="order-modal-shop" id="omShopName">K&R Thailand Shop</div>
+      <div class="order-modal-num" id="omOrderNum">Order #-</div>
+    </div>
+    <div class="order-modal-body">
+      <div class="order-modal-customer">
+        <div class="ocf"><label>👤 ชื่อลูกค้า / Customer</label><p id="omCustomer">-</p></div>
+        <div class="ocf"><label>📱 เบอร์โทร / Phone</label><p id="omPhone">-</p></div>
+        <div class="ocf"><label>📅 วันที่ / Date</label><p id="omDate">-</p></div>
+        <div class="ocf"><label>📦 กล่อง DHL / Box</label><p id="omBox" style="color:var(--teal)">-</p></div>
+        <div class="ocf" style="grid-column:1/-1"><label>🌍 Country</label><p id="omCountry" style="color:var(--teal)">-</p></div>
+        <div class="ocf" style="grid-column:1/-1"><label>📫 Shipping Address / ที่อยู่จัดส่ง</label><p id="omAddress" style="line-height:1.7;white-space:pre-wrap;font-size:13px">-</p></div>
+      </div>
+
+      <table class="order-items-table">
+        <thead>
+          <tr>
+            <th style="width:32px">#</th>
+            <th>สินค้า / Product</th>
+            <th style="text-align:center">จำนวน</th>
+            <th style="text-align:right">ราคา/ชิ้น</th>
+            <th style="text-align:right">รวม</th>
+          </tr>
+        </thead>
+        <tbody id="omItemsList"></tbody>
+      </table>
+
+      <div class="order-dhl-info">
+        <strong>📦 ข้อมูลกล่อง DHL / Shipping Info</strong>
+        <div id="omDHLDetail"></div>
+      </div>
+
+      <div class="order-packing-status" id="omPackingStatus"></div>
+
+      <!-- ADDRESS SECTION IN ORDER MODAL -->
+      <div id="omAddrSection" style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:700;color:var(--teal)">📫 ที่อยู่จัดส่ง / Shipping Address</div>
+          <button onclick="openAddrModal()" id="omAddrEditBtn" style="padding:5px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">✏️ แก้ไข</button>
+        </div>
+        <div id="omAddrDisplay" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:13px;line-height:1.8">
+          <div id="omAddrEmpty" style="color:var(--muted);text-align:center;padding:8px 0">
+            <div style="font-size:24px;margin-bottom:6px">📍</div>
+            <div>ยังไม่ได้กรอกที่อยู่</div>
+            <button onclick="openAddrModal()" style="margin-top:8px;padding:8px 20px;background:var(--teal);border:none;border-radius:8px;color:white;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif">+ กรอกที่อยู่จัดส่ง</button>
+          </div>
+          <div id="omAddrFilled" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+              <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Country</div><div style="font-weight:700;color:var(--teal);margin-top:2px" id="omAddrCountry">-</div></div>
+              <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Postal Code</div><div style="font-weight:600;margin-top:2px" id="omAddrPostal">-</div></div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Full Address</div>
+            <div id="omAddrFull" style="white-space:pre-wrap;color:rgba(255,255,255,0.85);line-height:1.7">-</div>
+          </div>
+        </div>
+        <div id="omAddrWarning" style="display:none;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--danger);margin-top:8px;font-weight:600">
+          ⚠️ กรุณากรอกที่อยู่จัดส่งก่อนยืนยันออร์เดอร์
+        </div>
+      </div>
+
+      <div class="order-totals-box">
+        <div class="ot-row"><span>รายการสินค้า / Products</span><span id="omProductTotal">-</span></div>
+        <div class="ot-row"><span>น้ำหนักรวม / Total Weight</span><span id="omTotalWeight">-</span></div>
+        <div class="ot-row divider"><span>ค่าขนส่ง DHL / Shipping</span><span id="omShipping" style="color:var(--teal)">-</span></div>
+        <div class="ot-row grand"><span>ยอดรวมทั้งหมด / Grand Total</span><span id="omGrandTotal">-</span></div>
+      </div>
+
+      <div class="order-modal-actions" id="omActions">
+        <button class="btn-confirm-dl" onclick="confirmAndDownload()">
+          ✓ ยืนยัน &amp; ดาวน์โหลด Invoice PDF
+        </button>
+        <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.5">
+          กรุณาส่งสลิปโอนเงินผ่าน Line: <strong style="color:white">@krthailandshop</strong> หรือ WhatsApp: <strong style="color:white">+66638068809</strong>
+        </div>
+        <button class="btn-cancel-order" onclick="closeOrderModal()">← แก้ไขรายการสินค้า</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal">
+    <div class="modal-title" id="productModalTitle">Add Product</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" data-th="ชื่อ (ไทย)" data-en="Name (TH)">Name (TH)</label><input type="text" id="p-nameTH" class="form-input"></div>
+      <div class="form-group"><label class="form-label" data-th="ชื่อ (อังกฤษ)" data-en="Name (EN)">Name (EN)</label><input type="text" id="p-nameEN" class="form-input"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label" data-th="ราคา (฿)" data-en="Price (฿)">Price (฿)</label><input type="number" id="p-price" class="form-input"></div>
+      <div class="form-group"><label class="form-label" data-th="น้ำหนัก (g)" data-en="Weight (g)">Weight (g)</label><input type="number" id="p-weight" class="form-input"></div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px" data-th="ขนาดสินค้า (เซนติเมตร)" data-en="Product Dimensions (cm)">Dimensions (cm)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="form-group"><label class="form-label" data-th="กว้าง" data-en="Width">Width</label><input type="number" id="p-w" class="form-input" placeholder="cm"></div>
+      <div class="form-group"><label class="form-label" data-th="ยาว" data-en="Length">Length</label><input type="number" id="p-l" class="form-input" placeholder="cm"></div>
+      <div class="form-group"><label class="form-label" data-th="สูง" data-en="Height">Height</label><input type="number" id="p-h" class="form-input" placeholder="cm"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" data-th="หมวดหมู่" data-en="Category">Category</label>
+        <select id="p-category" class="form-input">
+          <option>Skincare</option><option>Makeup</option><option>Haircare</option>
+          <option>Body</option><option>Fragrance</option><option>Tools</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label" data-th="สต็อก" data-en="Stock">Stock</label><input type="number" id="p-stock" class="form-input"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Emoji (fallback)</label><input type="text" id="p-emoji" class="form-input" maxlength="2" placeholder="🧴"></div>
+      <div class="form-group">
+        <label class="form-label" data-th="สถานะ" data-en="Status">Status</label>
+        <select id="p-status" class="form-input"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">📝 <span data-th="คำอธิบาย (ไทย)" data-en="Description (TH)">Description (TH)</span></label>
+      <input type="text" id="p-descTH" class="form-input" placeholder="บรรยายสินค้าภาษาไทย (ไม่บังคับ)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">📝 <span data-th="คำอธิบาย (อังกฤษ)" data-en="Description (EN)">Description (EN)</span></label>
+      <input type="text" id="p-descEN" class="form-input" placeholder="Short product description (optional)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">🖼 <span data-th="รูปภาพสินค้า" data-en="Product Image">Product Image</span> <span style="color:var(--muted);font-weight:400;font-size:11px">(JPG/PNG · แนะนำ 800×800px · ไม่เกิน 5MB)</span></label>
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;position:relative" id="imageDropZone" onclick="document.getElementById('p-image').click()" ondragover="event.preventDefault();this.style.borderColor='var(--teal)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImageDrop(event)">
+        <input type="file" id="p-image" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleImageUpload(this)">
+        <div id="imagePreviewWrap">
+          <div style="font-size:32px;margin-bottom:8px">📷</div>
+          <div style="font-size:13px;color:var(--muted)">คลิกเพื่อเลือกรูป หรือลากรูปมาวาง</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px">Click to select or drag & drop</div>
+        </div>
+        <div id="imagePreviewImg" style="display:none">
+          <img id="previewImg" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:contain">
+          <div style="margin-top:8px;font-size:12px;color:var(--success)" id="imageFileName"></div>
+          <button onclick="clearImage(event)" style="margin-top:6px;background:rgba(231,76,60,0.2);border:1px solid var(--danger);color:var(--danger);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:12px">✕ ลบรูป</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeProductModal()">Cancel</button>
+      <button class="save-btn" onclick="saveProduct()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADDRESS POPUP ===== -->
+<!-- ===== DESTINATION COUNTRY PICKER ===== -->
+<div id="destPickerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:8500;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)">
+  <div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.5)">
+    <div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:18px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--gold)">🌍 Destination Country</div>
+      <button onclick="closeDestPicker()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">✕</button>
+    </div>
+    <div style="padding:20px">
+      <input type="text" id="destCountrySearch" oninput="renderDestCountries(this.value)"
+        placeholder="🔍 Search country..."
+        style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:10px;color:white;font-family:'Nunito',sans-serif;font-size:13px;outline:none;margin-bottom:14px">
+
+      <!-- Zone tabs -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="destZoneTabs"></div>
+
+      <div id="destCountryList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto"></div>
+
+      <div style="margin-top:14px;padding:12px;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:10px;font-size:12px;color:var(--warning)">
+        💡 ถ้าประเทศของคุณไม่อยู่ใน list กรุณาติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="addr-overlay" id="addrOverlay">
+  <div class="addr-modal">
+    <div class="addr-header">
+      <div class="addr-header-title">📫 ที่อยู่จัดส่ง</div>
+      <button onclick="closeAddrModal()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">✕</button>
+    </div>
+    <div class="addr-body">
+      <div class="addr-progress">
+        <div class="addr-dot active" id="adot1"></div>
+        <div class="addr-dot" id="adot2"></div>
+        <div class="addr-dot" id="adot3"></div>
+        <div class="addr-dot" id="adot4"></div>
+      </div>
+
+      <!-- Step 1: Country -->
+      <div class="addr-step active" id="astep1">
+        <div class="addr-step-label">Step 1 / 4 — เลือกประเทศ / Select Country</div>
+        <input type="text" class="country-search" id="countrySearch" oninput="filterCountries(this.value)" placeholder="🔍 Search country...">
+        <div class="country-grid" id="countryGrid"></div>
+      </div>
+
+      <!-- Step 2: Postal Code -->
+      <div class="addr-step" id="astep2">
+        <div class="addr-step-label">Step 2 / 4 — รหัสไปรษณีย์ / Postal Code</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:12px">ประเทศที่เลือก: <strong style="color:var(--teal)" id="selectedCountryLabel">-</strong></div>
+        <div class="form-group">
+          <label class="form-label">Postal / ZIP Code</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="postalInput" class="form-input" placeholder="e.g. 10110, SW1A 1AA, 100-0001" style="flex:1">
+            <button onclick="lookupPostal()" style="padding:10px 16px;background:var(--teal);border:none;border-radius:10px;color:white;cursor:pointer;font-weight:700;font-family:'Nunito',sans-serif;white-space:nowrap">🔍 ค้นหา</button>
+          </div>
+        </div>
+        <div class="postal-result" id="postalResult">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:700">เลือกเมือง / Select City or District:</div>
+          <div id="cityList"></div>
+        </div>
+        <div id="postalError" style="color:var(--danger);font-size:12px;margin-top:8px;display:none">ไม่พบรหัสไปรษณีย์นี้ กรุณากรอกเมืองเองในขั้นตอนถัดไป</div>
+      </div>
+
+      <!-- Step 3: District / Area -->
+      <div class="addr-step" id="astep3">
+        <div class="addr-step-label">Step 3 / 4 — เมือง / District / Area</div>
+        <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--muted)">
+          <strong style="color:white">District</strong> = เขต / อำเภอ / Borough / Arrondissement ขึ้นอยู่กับแต่ละประเทศ
+        </div>
+        <div class="form-group">
+          <label class="form-label">City / Town</label>
+          <input type="text" id="addrCity" class="form-input" placeholder="e.g. Bangkok, London, Tokyo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">District / Area / State</label>
+          <input type="text" id="addrDistrict" class="form-input" placeholder="e.g. Sukhumvit, Westminster, Shibuya">
+        </div>
+      </div>
+
+      <!-- Step 4: House / Unit No. -->
+      <div class="addr-step" id="astep4">
+        <div class="addr-step-label">Step 4 / 4 — บ้านเลขที่ / House Details</div>
+        <div class="form-group">
+          <label class="form-label">House / Unit / Room No.</label>
+          <input type="text" id="addrHouseNo" class="form-input" placeholder="e.g. 123/45, Apt 6B, Unit 7">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Street / Road / Building (optional)</label>
+          <input type="text" id="addrStreet" class="form-input" placeholder="e.g. Sukhumvit Rd, Baker Street">
+        </div>
+        <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:10px;padding:12px;margin-top:4px;font-size:12px">
+          <div style="color:var(--gold);font-weight:700;margin-bottom:6px">📋 ตัวอย่างที่อยู่ที่จะได้:</div>
+          <div id="addrPreview" style="color:rgba(255,255,255,0.8);line-height:1.7;font-size:13px">-</div>
+        </div>
+      </div>
+
+      <div class="addr-nav" id="addrNav"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+let lang = 'en';
+let currentUser = null;
+let cart = {};
+let orderMode = 'auto';
+let selectedBox = null;
+let editingProductId = null;
+let orders = [];
+
+// ===== ADMIN AUTH =====
+let adminCredentials = { username: 'krthailandshop', password: 'Kr_admin2626' };
+let isAdminLoggedIn = false;
+let shopIsOpen = false;
+let displayCurrency = 'THB';
+let usdRate = 35.50; // Admin ตั้งเองในหลังบ้าน
+let usdRateUpdated = null; // ปิดร้านไว้ก่อน จนกว่า Admin จะเปิด
+
+function requireAdmin() {
+  if(isAdminLoggedIn) showPage('admin');
+  else showPage('admin-login');
+}
+
+function doAdminLogin() {
+  const u = document.getElementById('adminUsername').value.trim();
+  const p = document.getElementById('adminPassword').value;
+  const errEl = document.getElementById('adminLoginError');
+  if(u === adminCredentials.username && p === adminCredentials.password) {
+    isAdminLoggedIn = true;
+    errEl.style.display = 'none';
+    document.getElementById('adminUsername').value = '';
+    document.getElementById('adminPassword').value = '';
+    showPage('admin');
+    showToast('Welcome, Admin! 🔐');
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('adminPassword').value = '';
+  }
+}
+
+function saveUsdRate() {
+  const val = parseFloat(document.getElementById('usdRateInput').value);
+  if(!val || val < 25 || val > 50) {
+    showToast('กรุณาใส่เรทที่ถูกต้อง (25–50 บาท/USD)');
+    return;
+  }
+  usdRate = val;
+  usdRateUpdated = new Date().toISOString();
+  document.getElementById('usdRateInput').value = '';
+  const updStr = new Date().toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('currentRateDisplay').innerHTML =
+    `เรทปัจจุบัน: <strong style="color:var(--gold)">1 USD = ฿${usdRate.toFixed(2)}</strong> <span style="color:var(--muted);font-size:11px">· อัปเดต ${updStr}</span>`;
+  updateRateDisplay();
+  // Re-render if customer is viewing shop
+  renderProducts();
+  renderCart();
+  showToast(`💱 บันทึกเรทแล้ว: 1 USD = ฿${usdRate.toFixed(2)}`);
+}
+
+function toggleShop() {
+  shopIsOpen = !shopIsOpen;
+  const btn = document.getElementById('shopToggleBtn');
+  const label = document.getElementById('shopStatusLabel');
+  if(shopIsOpen) {
+    btn.textContent = '🔴 ปิดร้าน';
+    btn.style.background = 'rgba(231,76,60,0.2)';
+    btn.style.borderColor = 'var(--danger)';
+    btn.style.color = 'var(--danger)';
+    label.textContent = '🟢 ร้านเปิดอยู่ · Shop is OPEN';
+    label.style.color = 'var(--success)';
+    showToast('🟢 เปิดร้านแล้ว! ลูกค้าสั่งซื้อได้แล้ว');
+  } else {
+    btn.textContent = '🟢 เปิดร้าน';
+    btn.style.background = 'rgba(46,204,113,0.2)';
+    btn.style.borderColor = 'var(--success)';
+    btn.style.color = 'var(--success)';
+    label.textContent = '🔴 ร้านปิดอยู่ · Shop is CLOSED';
+    label.style.color = 'var(--danger)';
+    showToast('🔴 ปิดร้านแล้ว ลูกค้าเห็นหน้าปรับปรุง');
+  }
+}
+
+function changeAdminPassword() {
+  const u = document.getElementById('newAdminUser').value.trim();
+  const p = document.getElementById('newAdminPass').value;
+  const c = document.getElementById('confirmAdminPass').value;
+  if(!u || !p) { showToast('Please fill all fields'); return; }
+  if(p !== c) { showToast('Passwords do not match ❌'); return; }
+  if(p.length < 6) { showToast('Password must be at least 6 characters'); return; }
+  adminCredentials = { username: u, password: p };
+  document.getElementById('newAdminUser').value='';
+  document.getElementById('newAdminPass').value='';
+  document.getElementById('confirmAdminPass').value='';
+  showToast('Password changed successfully ✓');
+}
+
+function adminLogout() {
+  isAdminLoggedIn = false;
+  showPage('landing');
+  showToast('Logged out');
+}
+
+function togglePassVisibility() {
+  const input = document.getElementById('adminPassword');
+  const btn = document.getElementById('togglePassBtn');
+  if(input.type === 'password') { input.type='text'; btn.textContent='🙈'; }
+  else { input.type='password'; btn.textContent='👁'; }
+}
+
+// ===== DHL BOXES =====
+const DHL_BOXES = [
+  { num:2, maxKg:1.5,  w:33, l:18, h:10, dims:'33×18×10' },
+  { num:3, maxKg:2.5,  w:33, l:32, h:10, dims:'33×32×10' },
+  { num:4, maxKg:5,    w:33, l:32, h:18, dims:'33×32×18' },
+  { num:5, maxKg:10,   w:33, l:32, h:34, dims:'33×32×34' },
+  { num:6, maxKg:15,   w:41, l:35, h:36, dims:'41×35×36' },
+  { num:7, maxKg:20,   w:48, l:40, h:38, dims:'48×40×38' },
+  { num:8, maxKg:25,   w:54, l:44, h:40, dims:'54×44×40' },
+];
+
+// ===== DHL ZONE SHIPPING =====
+const DHL_ZONES = {
+  A: { name:'Zone A', color:'#1a3a6e', countries:['HK','MO','MY','SG'], label:'Hong Kong · Macau · Malaysia · Singapore' },
+  B: { name:'Zone B', color:'#2980b9', countries:['BD','BT','BN','KH','CN','IN','ID','JP','KR','LA','MM','NP','PK','PH','LK','TW','VN'], label:'Japan · Korea · Taiwan · Vietnam · Indonesia · India · Philippines · etc.' },
+  C: { name:'Zone C', color:'#c8a400', countries:['US','CA','MX','FR','GB','DE','IT','DK','AT','NL','NO','SE','FI','BE','CH','ES'], label:'USA · Canada · UK · France · Germany · Italy · Netherlands · etc.' },
+  D: { name:'Zone D', color:'#c0392b', countries:['AL','BA','GI','IS','IL','MK','MD','ME','RS','NA'], label:'Albania · Bosnia · Gibraltar · Israel · Serbia · Namibia · etc.' },
+  E: { name:'Zone E', color:'#e67e22', countries:['AU','NZ'], label:'Australia · New Zealand' },
+};
+
+// Country code → Zone mapping
+const COUNTRY_ZONE_MAP = {};
+Object.entries(DHL_ZONES).forEach(([zone, data]) => {
+  data.countries.forEach(cc => { COUNTRY_ZONE_MAP[cc] = zone; });
+});
+
+// Country name → code mapping (for display)
+const COUNTRY_CODE_MAP = {
+  'Australia':'AU','New Zealand':'NZ',
+  'Hong Kong':'HK','Macau':'MO','Malaysia':'MY','Singapore':'SG',
+  'Bangladesh':'BD','Bhutan':'BT','Brunei':'BN','Cambodia':'KH',
+  'China':'CN','India':'IN','Indonesia':'ID','Japan':'JP',
+  'South Korea':'KR','Laos':'LA','Myanmar':'MM','Nepal':'NP',
+  'Pakistan':'PK','Philippines':'PH','Sri Lanka':'LK','Taiwan':'TW','Vietnam':'VN',
+  'United States':'US','Canada':'CA','Mexico':'MX','France':'FR',
+  'United Kingdom':'GB','Germany':'DE','Italy':'IT','Denmark':'DK',
+  'Austria':'AT','Netherlands':'NL','Norway':'NO','Sweden':'SE',
+  'Finland':'FI','Belgium':'BE','Switzerland':'CH','Spain':'ES',
+};
+
+// Zone rates per box: { zone: { boxNum: price } }
+let zoneShippingRates = {
+  A: { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+  B: { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+  C: { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+  D: { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+  E: { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 },
+};
+
+// Selected destination zone for current customer session
+let selectedDestZone = null;   // 'A','B','C','D','E' or null
+let selectedDestCountry = null; // country name string
+
+// Get shipping rate for current zone + box
+function getShippingRate(boxNum) {
+  if(!selectedDestZone) return 0;
+  return (zoneShippingRates[selectedDestZone] || {})[boxNum] || 0;
+}
+
+function getShippingDisplay(boxNum) {
+  if(!selectedDestCountry) return { rate: 0, text: null, contactShop: false };
+  if(!selectedDestZone) return { rate: 0, text: 'Contact shop for rate', contactShop: true };
+  const rate = getShippingRate(boxNum);
+  return { rate, text: null, contactShop: false };
+}
+
+// Fallback for old code
+let shippingRates = { 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0 };
+
+// ===== PRODUCTS =====
+let products = [
+  { id:1, nameTH:'ครีมบำรุงผิวหน้า', nameEN:'Face Moisturizer', price:890, weight:150, w:7,l:7,h:5, category:'Skincare', stock:30, emoji:'🧴', status:'active' },
+  { id:2, nameTH:'เซรั่มวิตามินซี', nameEN:'Vitamin C Serum', price:1290, weight:80, w:4,l:4,h:12, category:'Skincare', stock:25, emoji:'✨', status:'active' },
+  { id:3, nameTH:'ลิปสติก', nameEN:'Lipstick', price:450, weight:35, w:2,l:2,h:10, category:'Makeup', stock:50, emoji:'💄', status:'active' },
+  { id:4, nameTH:'แป้งฝุ่น', nameEN:'Setting Powder', price:650, weight:120, w:10,l:10,h:3, category:'Makeup', stock:20, emoji:'⭐', status:'active' },
+  { id:5, nameTH:'ทรีทเม้นท์ผม', nameEN:'Hair Treatment', price:590, weight:200, w:6,l:6,h:16, category:'Haircare', stock:15, emoji:'💆', status:'active' },
+  { id:6, nameTH:'โลชั่นบำรุงผิวกาย', nameEN:'Body Lotion', price:490, weight:250, w:7,l:7,h:20, category:'Body', stock:40, emoji:'🌿', status:'active' },
+  { id:7, nameTH:'น้ำหอม', nameEN:'Perfume', price:2500, weight:100, w:6,l:6,h:12, category:'Fragrance', stock:10, emoji:'🌸', status:'active' },
+  { id:8, nameTH:'แปรงแต่งหน้า', nameEN:'Makeup Brush Set', price:750, weight:180, w:5,l:5,h:22, category:'Tools', stock:0, emoji:'🖌', status:'active' },
+];
+
+// ===== SETTINGS =====
+let shopSettings = { name:'K&R Thailand Shop', line:'@krthailandshop', wa:'+66638068809' };
+
+// ===== LANG =====
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&l==='th')||(i===1&&l==='en')));
+  document.querySelectorAll('[data-th]').forEach(el => { el.textContent = l==='th' ? el.dataset.th : el.dataset.en; });
+  renderProducts(); renderCart();
+}
+
+// ===== PAGES =====
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.getElementById(p+'-page').classList.add('active');
+  const nav = document.getElementById('mainNav');
+  nav.style.display = (p === 'landing' || p === 'admin-login' || p === 'closed') ? 'none' : 'flex';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if(p==='admin') { renderAdminProducts(); renderShippingGrid(); renderAdminOrders(); }
+  window.scrollTo(0,0);
+}
+
+function requireLogin() {
+  if(!shopIsOpen) { showPage('closed'); return; }
+  if(currentUser) showPage('shop');
+  else showPage('login');
+}
+function logout() { currentUser=null; showPage('landing'); }
+
+function doLogin() {
+  const name = document.getElementById('loginName').value.trim();
+  const phone = document.getElementById('loginPhone').value.trim();
+  if(!name || !phone) { showToast('Please fill in all fields'); return; }
+  currentUser = { name, phone, country:'', address:'' };
+  document.getElementById('userBadge').textContent = name;
+  cart = {};
+  renderProducts();
+  renderCart();
+  showPage('shop');
+  updateAddressBadge();
+  showToast(`Welcome, ${name}! 👋`);
+}
+
+// ===== SEARCH =====
+function onSearch(val) {
+  const box = document.getElementById('searchResults');
+  if(val.length < 3) { box.style.display='none'; return; }
+  const q = val.toLowerCase();
+  const results = products.filter(p => p.status==='active' && (
+    p.nameEN.toLowerCase().includes(q) || p.nameTH.includes(val)
+  ));
+  if(!results.length) { box.style.display='none'; return; }
+  box.innerHTML = results.map(p => `
+    <div class="search-result-item" onclick="addToCart(${p.id});document.getElementById('searchInput').value='';document.getElementById('searchResults').style.display='none'">
+      <span class="search-result-name">${p.emoji} ${lang==='th'?p.nameTH:p.nameEN}</span>
+      <span class="search-result-price">฿${p.price.toLocaleString()} · ${p.weight}g</span>
+    </div>`).join('');
+  box.style.display = 'block';
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('.search-bar')) document.getElementById('searchResults').style.display='none';
+});
+
+// ===== BOX MODE =====
+function setMode(m) {
+  orderMode = m;
+  document.getElementById('modeAuto').classList.toggle('active', m==='auto');
+  document.getElementById('modeManual').classList.toggle('active', m==='manual');
+  document.getElementById('boxPicker').style.display = m==='manual' ? 'block' : 'none';
+  if(m==='auto') selectedBox=null;
+  renderCart();
+}
+
+function renderBoxGrid() {
+  document.getElementById('boxGrid').innerHTML = DHL_BOXES.map(b => `
+    <div class="box-option ${selectedBox===b.num?'selected':''}" onclick="selectBox(${b.num})">
+      <div class="box-num">Box ${b.num}</div>
+      <div class="box-kg">${b.maxKg}kg</div>
+    </div>`).join('');
+}
+
+function selectBox(num) {
+  selectedBox = num;
+  renderBoxGrid();
+  renderCart();
+}
+
+// ===== CATEGORIES =====
+let activeCategory = 'All';
+function renderCategories() {
+  const cats = ['All', ...new Set(products.filter(p=>p.status==='active').map(p=>p.category))];
+  document.getElementById('catScroll').innerHTML = cats.map(c =>
+    `<div class="cat-chip ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</div>`
+  ).join('');
+}
+function setCategory(c) { activeCategory=c; renderProducts(); }
+
+
+// ===== CURRENCY =====
+function updateRateDisplay() {
+  const el = document.getElementById('rateInfo');
+  if(!el) return;
+  const updStr = usdRateUpdated ? ' · อัปเดต ' + new Date(usdRateUpdated).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
+  el.innerHTML = `อัตราแลกเปลี่ยน USD (กสิกร ขาย): <span>฿${usdRate.toFixed(2)}</span><span style="color:var(--muted);font-size:10px">${updStr}</span>`;
+}
+
+function setCurrency(curr) {
+  displayCurrency = curr;
+  document.getElementById('btnTHB').classList.toggle('active', curr==='THB');
+  document.getElementById('btnUSD').classList.toggle('active', curr==='USD');
+  renderProducts();
+  renderCart();
+  updateRateDisplay();
+}
+
+function fmtPrice(thbAmount) {
+  if(displayCurrency === 'USD' && usdRate) {
+    const usd = thbAmount / usdRate;
+    return `$${usd.toFixed(2)}`;
+  }
+  return `฿${thbAmount.toLocaleString()}`;
+}
+
+function fmtPriceDetail(thbAmount) {
+  if(displayCurrency === 'USD' && usdRate) {
+    const usd = thbAmount / usdRate;
+    return { main: `$${usd.toFixed(2)}`, sub: `฿${thbAmount.toLocaleString()}` };
+  }
+  return { main: `฿${thbAmount.toLocaleString()}`, sub: null };
+}
+
+
+// ===== PRODUCTS =====
+function renderProducts() {
+  renderCategories();
+  renderBoxGrid();
+  const filtered = products.filter(p => p.status==='active' && (activeCategory==='All'||p.category===activeCategory));
+  document.getElementById('productsGrid').innerHTML = filtered.map(p => {
+    const name = lang==='th' ? p.nameTH : p.nameEN;
+    const inStock = p.stock > 0;
+    const imgHTML = p.imageData
+      ? `<img src="${p.imageData}" alt="${name}" style="width:100%;height:110px;object-fit:cover;">`
+      : `<div class="prod-img-placeholder">${p.emoji}</div>`;
+    return `
+    <div class="product-card ${!inStock?'out-of-stock':''}">
+      <div class="prod-img-wrap">${imgHTML}</div>
+      <div class="prod-body">
+        <div class="prod-top">
+          <span class="stock-tag ${inStock?'in':'out'}">${inStock?(lang==='th'?'มีสินค้า':'In Stock'):(lang==='th'?'หมด':'Out of Stock')}</span>
+          <div class="prod-name">${name}</div>
+          ${p.descTH||p.descEN ? `<div class="prod-desc">${lang==='th'?(p.descTH||p.descEN):(p.descEN||p.descTH)}</div>` : ''}
+          <div class="prod-dims">📐 ${p.w}×${p.l}×${p.h} cm</div>
+          <div class="prod-weight">⚖ ${p.weight}g</div>
+        </div>
+        <div class="prod-bottom">
+          <div class="prod-price">
+            ${fmtPrice(p.price)}
+            ${(displayCurrency==='USD'&&usdRate)?`<span style="font-size:11px;color:var(--muted)">฿${p.price.toLocaleString()}</span>`:''}
+            <span>/ ${lang==='th'?'ชิ้น':'pc'}</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(${p.id})" ${!inStock?'disabled':''}>
+            ${lang==='th'?'+ เพิ่ม':'+ Add'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<p style="color:var(--muted);font-size:13px;padding:20px">No products in this category</p>`;
+}
+
+// ===== CART =====
+// ===== BOX VISUAL INDICATOR =====
+function updateBoxVisual(items, boxNum) {
+  const panel = document.getElementById('boxVisualPanel');
+  if(!items.length || !boxNum) { panel.style.display='none'; return; }
+  panel.style.display='block';
+
+  const box = DHL_BOXES.find(b=>b.num===boxNum);
+  if(!box) return;
+
+  const totalWeight = items.reduce((s,i)=>s+i.product.weight*i.qty, 0);
+  const usedVol = items.reduce((s,i)=>s+i.product.w*i.product.l*(i.product.h*i.qty), 0);
+  const boxVol = box.w * box.l * box.h;
+  const maxWeightG = box.maxKg * 1000;
+
+  const wPct = Math.min(Math.round(totalWeight / maxWeightG * 100), 100);
+  const vPct = Math.min(Math.round(usedVol * 1.15 / boxVol * 100), 100);
+  const highPct = Math.max(wPct, vPct);
+
+  // Colors based on fill level
+  let wColor = '#00b4d8', vColor = '#f5a623', alertClass = '', alertMsg = '';
+  if(highPct >= 100) {
+    wColor = '#e74c3c'; vColor = '#e74c3c'; alertClass = 'danger';
+  } else if(highPct >= 85) {
+    wColor = '#f39c12'; vColor = '#f39c12'; alertClass = 'warn';
+  } else if(highPct >= 50) {
+    alertClass = 'ok';
+  } else {
+    alertClass = 'ok';
+  }
+
+  // Update progress bars
+  document.getElementById('weightBar').style.width = wPct+'%';
+  document.getElementById('weightBar').style.background = wColor;
+  document.getElementById('volumeBar').style.width = vPct+'%';
+  document.getElementById('volumeBar').style.background = vColor;
+  document.getElementById('weightPct').textContent = wPct+'%';
+  document.getElementById('volumePct').textContent = vPct+'%';
+
+  // Box name
+  const wKg = (totalWeight/1000).toFixed(2);
+  document.getElementById('boxVisualName').innerHTML =
+    `<span style="color:var(--gold)">Box ${box.num}</span> <span style="font-size:11px;color:var(--muted);font-weight:400">(${wKg}kg / ${box.maxKg}kg)</span>`;
+
+  // SVG fill animation - fill rect from bottom
+  const fillRect = document.getElementById('boxFillRect');
+  const maxFillH = 24; // max height inside box svg
+  const fillH = Math.min(Math.round(highPct / 100 * maxFillH), maxFillH);
+  fillRect.setAttribute('y', String(22 + (maxFillH - fillH)));
+  fillRect.setAttribute('height', String(fillH));
+  fillRect.setAttribute('fill', highPct>=100?'#e74c3c':highPct>=85?'#f39c12':'#00b4d8');
+
+  // Alert message
+  const alertEl = document.getElementById('boxAlert');
+  alertEl.className = 'box-alert show ' + alertClass;
+  if(wPct >= 100) {
+    alertMsg = `⚠️ น้ำหนักเกิน! ${wKg}kg > ${box.maxKg}kg — จะคิดราคา Box ${box.num+1 <= 8 ? box.num+1 : box.num}`;
+  } else if(vPct >= 100) {
+    alertMsg = `❌ ปริมาตรเกิน! ของใส่ไม่หมด — เพิ่มกล่องใหญ่ขึ้น`;
+  } else if(highPct >= 85) {
+    alertMsg = `⚡ ใกล้เต็มแล้ว! เหลือพื้นที่ ${100-highPct}%`;
+  } else {
+    alertMsg = `✅ ใส่ได้ เหลือพื้นที่ ${100-highPct}%`;
+  }
+  alertEl.textContent = alertMsg;
+}
+
+function addToCart(id) {
+  const p = products.find(x=>x.id===id);
+  if(!p||p.stock===0) return;
+  cart[id] = (cart[id]||0)+1;
+  renderCart();
+  showToast(lang==='th'?'เพิ่มแล้ว ✓':'Added to cart ✓');
+}
+function updateCartQty(id,d) {
+  cart[id]=(cart[id]||0)+d;
+  if(cart[id]<=0) delete cart[id];
+  renderCart();
+}
+function setCartQty(id, val) {
+  const n = parseInt(val);
+  if(!n || n < 1) { cart[id]=1; }
+  else if(n > 999) { cart[id]=999; }
+  else { cart[id]=n; }
+  renderCart();
+}
+
+// ===== 3D PACKING LOGIC =====
+function calcPacking(items, boxNum) {
+  const box = DHL_BOXES.find(b=>b.num===boxNum);
+  if(!box) return { fits:false, msg:'No box selected' };
+
+  // Total weight check
+  const totalWeight = items.reduce((s,i) => s + i.product.weight * i.qty, 0);
+  const maxWeightG = box.maxKg * 1000;
+
+  // Volume-based packing:
+  // For same product stacked: multiply height by qty, keep W and L same
+  // For different products: sum up volumes, compare to box volume with 80% efficiency
+  let usedVolume = 0;
+  const boxVolume = box.w * box.l * box.h;
+
+  items.forEach(item => {
+    const p = item.product;
+    const vol = p.w * p.l * (p.h * item.qty); // stack same items (multiply height)
+    usedVolume += vol;
+  });
+
+  const usedVolumeEffective = usedVolume * 1.15; // 15% packing overhead
+  const fitsVolume = usedVolumeEffective <= boxVolume;
+  const fitsWeight = totalWeight <= maxWeightG;
+  const usedPct = Math.round(usedVolumeEffective / boxVolume * 100);
+
+  return { fits: fitsVolume && fitsWeight, fitsVolume, fitsWeight, totalWeight, usedVolume, usedVolumeEffective, boxVolume, usedPct, box };
+}
+
+function getAutoBox(items) {
+  const totalWeight = items.reduce((s,i) => s + i.product.weight*i.qty, 0);
+  for(const box of DHL_BOXES) {
+    const result = calcPacking(items, box.num);
+    if(result.fits) return box.num;
+  }
+  return null; // exceeds all
+}
+
+function renderCart() {
+  const ids = Object.keys(cart);
+  const cartEl = document.getElementById('cartItems');
+  const summaryEl = document.getElementById('cartSummary');
+  const packingEl = document.getElementById('packingStatus');
+
+  if(!ids.length) {
+    cartEl.innerHTML = `<div class="cart-empty">${lang==='th'?'ยังไม่มีสินค้า':'No items yet'}</div>`;
+    summaryEl.style.display='none';
+    packingEl.innerHTML='';
+    document.getElementById('checkoutBtn').disabled=true;
+    document.getElementById('boxVisualPanel').style.display='none';
+    return;
+  }
+
+  const items = ids.map(id => ({ product: products.find(p=>p.id==id), qty: cart[id] }));
+  let totalProduct = 0, totalWeight = 0;
+  cartEl.innerHTML = items.map(({product:p, qty}) => {
+    const name = lang==='th'?p.nameTH:p.nameEN;
+    totalProduct += p.price*qty;
+    totalWeight += p.weight*qty;
+    return `
+    <div class="cart-item">
+      <span class="cart-emoji">${p.emoji}</span>
+      <div class="cart-info">
+        <div class="cart-name">${name}</div>
+        <div class="cart-sub">${p.weight}g · ${p.w}×${p.l}×${p.h}cm</div>
+      </div>
+      <div class="cart-qty-ctrl">
+        <button class="qty-btn" onclick="updateCartQty(${p.id},-1)">−</button>
+        <input type="number" min="1" max="999" value="${qty}"
+          style="width:42px;text-align:center;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:6px;color:white;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;padding:2px 4px;outline:none;"
+          onchange="setCartQty(${p.id}, this.value)"
+          onclick="this.select()">
+        <button class="qty-btn" onclick="updateCartQty(${p.id},1)">+</button>
+      </div>
+      <div class="cart-price">${fmtPrice(p.price*qty)}</div>
+    </div>`;
+  }).join('');
+
+  // Determine box
+  let boxNum = orderMode==='manual' ? selectedBox : getAutoBox(items);
+  let shipping = boxNum ? getShippingRate(boxNum) : 0;
+  let shippingInfo = boxNum ? getShippingDisplay(boxNum) : {rate:0,text:null,contactShop:false};
+
+  // Packing check
+  let packingHTML = '';
+  if(boxNum) {
+    const pack = calcPacking(items, boxNum);
+    if(pack.fits) {
+      packingHTML = `<div class="packing-status packing-ok">
+        <div class="packing-title">✅ ${lang==='th'?'ใส่กล่องได้':'Fits in Box'} ${boxNum}</div>
+        <div class="packing-detail">${lang==='th'?'ปริมาตรใช้':'Volume used'}: ${pack.usedPct}% · ${lang==='th'?'น้ำหนัก':'Weight'}: ${(pack.totalWeight/1000).toFixed(2)}kg / ${pack.box.maxKg}kg</div>
+      </div>`;
+    } else if(!pack.fitsWeight) {
+      // weight exceeds this box, find next box
+      const nextBox = DHL_BOXES.find(b => b.num > boxNum && b.maxKg*1000 >= pack.totalWeight);
+      packingHTML = `<div class="packing-status packing-warn">
+        <div class="packing-title">⚠️ ${lang==='th'?'น้ำหนักเกิน':'Weight Exceeds'} Box ${boxNum}</div>
+        <div class="packing-detail">${lang==='th'?'น้ำหนัก':'Weight'}: ${(pack.totalWeight/1000).toFixed(2)}kg > ${pack.box.maxKg}kg${nextBox?`\n${lang==='th'?'แนะนำใช้':'Upgrade to'} Box ${nextBox.num}`:''}. ${lang==='th'?'จะคิดราคา Box ที่ใหญ่กว่า':'Will be charged at higher box rate'}</div>
+      </div>`;
+      if(nextBox) { boxNum=nextBox.num; shipping=getShippingRate(nextBox.num); }
+    } else {
+      packingHTML = `<div class="packing-status packing-error">
+        <div class="packing-title">❌ ${lang==='th'?'ปริมาตรเกิน ใส่ไม่หมด':'Volume Exceeds — Items Won\'t Fit'}</div>
+        <div class="packing-detail">${lang==='th'?'ปริมาตรใช้':'Volume used'}: ${pack.usedPct}% ${lang==='th'?'กรุณาเลือกกล่องที่ใหญ่กว่า หรือลดสินค้า':'Please select a larger box or reduce items'}</div>
+      </div>`;
+    }
+  } else if(orderMode==='auto') {
+    packingHTML = `<div class="packing-status packing-error">
+      <div class="packing-title">❌ ${lang==='th'?'สินค้าเกินกล่องสูงสุด':'Exceeds max DHL box'}</div>
+      <div class="packing-detail">${lang==='th'?'กรุณาลดจำนวนสินค้า':'Please reduce items'}</div>
+    </div>`;
+  }
+  packingEl.innerHTML = packingHTML;
+
+  summaryEl.style.display='block';
+  const wKg = totalWeight/1000;
+  document.getElementById('sumWeight').textContent = wKg>=1?`${wKg.toFixed(2)} kg`:`${totalWeight} g`;
+  const usedVol = items.reduce((s,i)=>s+i.product.w*i.product.l*(i.product.h*i.qty),0);
+  document.getElementById('sumVolume').textContent = `${Math.round(usedVol)} cm³`;
+  document.getElementById('sumBox').textContent = boxNum ? `Box ${boxNum} (${DHL_BOXES.find(b=>b.num===boxNum).maxKg}kg)` : '-';
+  document.getElementById('sumProducts').textContent = fmtPrice(totalProduct);
+  const shipDisp = getShippingDisplay(boxNum);
+  if(shipDisp.contactShop) {
+    document.getElementById('sumShipping').textContent = '📞 ติดต่อร้านค้า';
+    document.getElementById('sumShipping').style.color = 'var(--warning)';
+  } else {
+    document.getElementById('sumShipping').textContent = selectedDestCountry ? fmtPrice(shipping) : '— เลือกประเทศก่อน';
+    document.getElementById('sumShipping').style.color = '';
+  }
+  document.getElementById('sumTotal').textContent = fmtPrice(totalProduct+shipping);
+
+  // Update box visual indicator
+  updateBoxVisual(items, boxNum);
+
+  const canCheckout = boxNum && Object.keys(cart).length > 0;
+  document.getElementById('checkoutBtn').disabled = !canCheckout;
+}
+
+// ===== ORDER =====
+function openOrderModal() {
+  const ids = Object.keys(cart);
+  if(!ids.length) return;
+  const items = ids.map(id=>({ product:products.find(p=>p.id==id), qty:cart[id] }));
+  let totalProduct=0, totalWeight=0;
+  let boxNum = orderMode==='manual' ? selectedBox : getAutoBox(items);
+  // weight upgrade
+  if(boxNum) {
+    const pack = calcPacking(items, boxNum);
+    if(!pack.fitsWeight) {
+      const next = DHL_BOXES.find(b=>b.num>boxNum && b.maxKg*1000>=pack.totalWeight);
+      if(next) boxNum=next.num;
+    }
+  }
+  const box = boxNum ? DHL_BOXES.find(b=>b.num===boxNum) : null;
+  const shipping = boxNum ? getShippingRate(boxNum) : 0;
+  const shippingContactShop = selectedDestCountry && !selectedDestZone;
+  const now = new Date();
+  const orderNum = 'KR-'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'-'+Math.floor(Math.random()*900+100);
+
+  document.getElementById('omShopName').textContent = shopSettings.name;
+  document.getElementById('omOrderNum').textContent = 'Order #' + orderNum;
+  document.getElementById('omCustomer').textContent = currentUser.name;
+  document.getElementById('omPhone').textContent = currentUser.phone;
+  document.getElementById('omDate').textContent = now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  // Show dest country in omCountry if not set via address
+  if(selectedDestCountry && !document.getElementById('omCountry').textContent.trim()) {
+    document.getElementById('omCountry').textContent = selectedDestCountry + (selectedDestZone ? ' (Zone '+selectedDestZone+')' : ' — ติดต่อร้านค้า');
+  }
+  document.getElementById('omBox').textContent = box ? `Box ${box.num} — ${box.dims} cm · Max ${box.maxKg}kg` : '-';
+  document.getElementById('omCountry').textContent = currentUser.country || '-';
+  document.getElementById('omAddress').textContent = currentUser.address || '-';
+
+  // Items table
+  let itemsHTML = '';
+  items.forEach(({product:p, qty}, idx) => {
+    const name = lang==='th'?p.nameTH:p.nameEN;
+    const subtotal = p.price * qty;
+    totalProduct += subtotal;
+    totalWeight += p.weight * qty;
+    itemsHTML += `<tr>
+      <td class="item-num">${idx+1}</td>
+      <td>
+        <span class="item-name">${p.emoji} ${name}</span><br>
+        <span class="item-unit" style="font-size:11px;color:var(--muted)">${fmtPrice(p.price)} × ${qty} ชิ้น</span>
+      </td>
+      <td class="item-qty">${qty}</td>
+      <td style="text-align:right;color:var(--muted)">${fmtPrice(p.price)}</td>
+      <td class="item-subtotal">${fmtPrice(subtotal)}</td>
+    </tr>`;
+  });
+  document.getElementById('omItemsList').innerHTML = itemsHTML;
+
+  // DHL info
+  if(box) {
+    const pack = calcPacking(items, boxNum);
+    document.getElementById('omDHLDetail').innerHTML = `
+      <div class="dhl-detail-row"><span>กล่อง / Box</span><span>DHL Easy Box ${box.num} (${box.dims} cm)</span></div>
+      <div class="dhl-detail-row"><span>น้ำหนักสูงสุด / Max Weight</span><span>${box.maxKg} kg</span></div>
+      <div class="dhl-detail-row"><span>น้ำหนักสินค้า / Package Weight</span><span>${(totalWeight/1000).toFixed(3)} kg</span></div>
+      <div class="dhl-detail-row"><span>ปริมาตรที่ใช้ / Volume Used</span><span>${pack.usedPct}%</span></div>`;
+    const ps = document.getElementById('omPackingStatus');
+    if(pack.fits) {
+      ps.style.cssText='background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);color:var(--success)';
+      ps.textContent='✅ สินค้าใส่กล่องได้หมด — All items fit in the selected box';
+    } else if(!pack.fitsWeight) {
+      ps.style.cssText='background:rgba(243,156,18,0.12);border:1px solid rgba(243,156,18,0.3);color:var(--warning)';
+      ps.textContent='⚠️ น้ำหนักเกินกล่องที่เลือก จะถูกคิดราคากล่องที่ใหญ่กว่า';
+    } else {
+      ps.style.cssText='background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:var(--danger)';
+      ps.textContent='❌ ปริมาตรสินค้าเกินกล่อง กรุณาลดสินค้าหรือเปลี่ยนกล่อง';
+    }
+  }
+
+  const wKg = (totalWeight/1000).toFixed(3);
+  document.getElementById('omProductTotal').textContent = fmtPrice(totalProduct) + (displayCurrency==='USD'&&usdRate?` (฿${totalProduct.toLocaleString()})`:``);
+  document.getElementById('omTotalWeight').textContent = `${wKg} kg`;
+  if(shippingContactShop) {
+    document.getElementById('omShipping').textContent = '📞 ติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง';
+    document.getElementById('omShipping').style.color = 'var(--warning)';
+  } else {
+    document.getElementById('omShipping').textContent = selectedDestCountry ? fmtPrice(shipping) : '— กรุณาเลือกประเทศปลายทาง';
+    document.getElementById('omShipping').style.color = 'var(--teal)';
+  }
+  const omGrandVal = shippingContactShop ? totalProduct : totalProduct+shipping;
+  document.getElementById('omGrandTotal').textContent = shippingContactShop
+    ? fmtPrice(totalProduct) + ' + ค่าขนส่งตามจริง'
+    : fmtPrice(omGrandVal) + (displayCurrency==='USD'&&usdRate?' (฿'+omGrandVal.toLocaleString()+')':'');
+
+  // Store for PDF
+  window._orderData = { orderNum, items, box, totalProduct, shipping, total:totalProduct+shipping, totalWeight, customer:currentUser };
+
+  refreshOrderModalAddr();
+  document.getElementById('omActions').innerHTML = `
+    <button class="btn-confirm-dl" id="omConfirmBtn" onclick="tryConfirmAndDownload()" style="opacity:${currentUser&&currentUser.address?1:0.4};cursor:${currentUser&&currentUser.address?'pointer':'not-allowed'}">✓ ยืนยัน &amp; ดาวน์โหลด Invoice PDF</button>
+    <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.5">
+      ส่งสลิปผ่าน Line: <strong style="color:white">@krthailandshop</strong> หรือ WhatsApp: <strong style="color:white">+66638068809</strong>
+    </div>
+    <button class="btn-cancel-order" onclick="closeOrderModal()">← แก้ไขรายการสินค้า</button>`;
+
+  document.getElementById('orderReviewModal').classList.add('open');
+}
+
+function closeOrderModal() {
+  document.getElementById('orderReviewModal').classList.remove('open');
+}
+
+function confirmAndDownload() {
+  const d = window._orderData;
+  if(!d) return;
+  orders.push({ num:d.orderNum, customer:d.customer.name, phone:d.customer.phone,
+    country:d.customer.country||'', address:d.customer.address||'',
+    items:d.items, box:d.box?.num, totalProduct:d.totalProduct, shipping:d.shipping,
+    total:d.total, status:'confirmed', date:new Date().toLocaleDateString() });
+
+  // Generate and download PDF as printable HTML
+  generateInvoicePDF(d);
+
+  document.getElementById('omActions').innerHTML = `
+    <div class="confirmed-dl-box">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px">ยืนยันออร์เดอร์แล้ว!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:12px">Order #${d.orderNum}</div>
+      <div style="font-size:13px;margin-bottom:8px">กรุณาส่งสลิปผ่าน:</div>
+      <div style="font-size:13px">💬 Line: <strong>@krthailandshop</strong></div>
+      <div style="font-size:13px;margin-bottom:12px">📱 WhatsApp: <strong>+66638068809</strong></div>
+    </div>
+    <button class="btn-cancel-order" onclick="closeOrderModal();cart={};renderCart();">✕ ปิดและล้างตะกร้า</button>`;
+  cart = {};
+  renderCart();
+  showToast('✅ ยืนยันแล้ว! Invoice กำลังดาวน์โหลด...');
+}
+
+function generateInvoicePDF(d) {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const box = d.box;
+  let itemRows = '';
+  d.items.forEach(({product:p, qty}, idx) => {
+    const name = p.nameEN;
+    itemRows += `<tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;color:#666">${idx+1}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px">${p.emoji} ${name}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:center">${qty} pcs</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right">฿${p.price.toLocaleString()}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:700;color:#c0392b">฿${(p.price*qty).toLocaleString()}</td>
+    </tr>`;
+  });
+
+  const htmlContent = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>Invoice ${d.orderNum}</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5}
+  .page{max-width:720px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
+  @media print{body{background:white}.page{margin:0;border-radius:0;box-shadow:none}}
+</style>
+</head><body>
+<div class="page">
+  <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);color:white;padding:32px;text-align:center">
+    <div style="font-size:32px;font-weight:900;color:#f5a623;letter-spacing:2px">${shopSettings.name}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;letter-spacing:1px">INVOICE / ใบแจ้งหนี้</div>
+  </div>
+  <div style="padding:28px 32px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Invoice No.</div>
+        <div style="font-size:18px;font-weight:700;color:#1a1a2e">${d.orderNum}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Date</div>
+        <div style="font-size:14px;font-weight:600">${dateStr}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f9f9f9;border-radius:10px;padding:16px">
+      <div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Customer</div><div style="font-size:15px;font-weight:700;margin-top:3px">${d.customer.name}</div></div>
+      <div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Phone</div><div style="font-size:15px;font-weight:700;margin-top:3px">${d.customer.phone}</div></div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+      <thead><tr style="background:#1a1a2e;color:white">
+        <th style="padding:10px 12px;font-size:11px;text-align:left;letter-spacing:1px">#</th>
+        <th style="padding:10px 12px;font-size:11px;text-align:left;letter-spacing:1px">PRODUCT</th>
+        <th style="padding:10px 12px;font-size:11px;text-align:center;letter-spacing:1px">QTY</th>
+        <th style="padding:10px 12px;font-size:11px;text-align:right;letter-spacing:1px">UNIT PRICE</th>
+        <th style="padding:10px 12px;font-size:11px;text-align:right;letter-spacing:1px">TOTAL</th>
+      </tr></thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+    ${box ? `<div style="background:#e8f4fd;border:1px solid #bee3f8;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px">
+      <strong style="color:#2980b9;display:block;margin-bottom:6px">📦 DHL Shipping Info</strong>
+      <div style="display:flex;justify-content:space-between"><span>Box</span><span><strong>DHL Easy Box ${box.num} (${box.dims} cm)</strong></span></div>
+      <div style="display:flex;justify-content:space-between"><span>Max Weight</span><span>${box.maxKg} kg</span></div>
+      <div style="display:flex;justify-content:space-between"><span>Package Weight</span><span>${(d.totalWeight/1000).toFixed(3)} kg</span></div>
+    </div>` : ''}
+    <div style="background:#1a1a2e;border-radius:10px;padding:16px;color:white">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span style="color:rgba(255,255,255,0.6)">Products Total</span><span>฿${d.totalProduct.toLocaleString()}${usdRate?' / $'+(d.totalProduct/usdRate).toFixed(2):''}</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px"><span style="color:rgba(255,255,255,0.6)">DHL Shipping (Box ${box?.num||'-'}${selectedDestCountry?' · '+selectedDestCountry:''}${selectedDestZone?' · Zone '+selectedDestZone:''})</span><span style="color:#00b4d8">${d.shipping>0?'฿'+d.shipping.toLocaleString()+(usdRate?' / $'+(d.shipping/usdRate).toFixed(2):''):'ติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง'}</span></div>
+      ${usdRate?`<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px"><span style="color:rgba(255,255,255,0.4)">Exchange Rate (Kasikorn sell)</span><span style="color:rgba(255,255,255,0.4)">1 USD = ฿${usdRate.toFixed(2)}</span></div>`:''}
+      <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;display:flex;justify-content:space-between;font-size:20px;font-weight:700"><span style="color:#f5a623">GRAND TOTAL</span><span style="color:#f5a623">฿${d.total.toLocaleString()}${usdRate?'<br><span style=\"font-size:14px;color:#00b4d8\">≈ $'+(d.total/usdRate).toFixed(2)+'</span>':''}</span></div>
+    </div>
+    <!-- PAYMENT SECTION -->
+    <div style="margin-top:28px;border:2px solid #1a1a2e;border-radius:12px;overflow:hidden">
+      <div style="background:#1a1a2e;color:white;padding:12px 20px;text-align:center">
+        <div style="font-size:15px;font-weight:900;letter-spacing:2px">MODE OF PAYMENT</div>
+      </div>
+      <div style="padding:20px 24px;background:#fafafa">
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333;width:45%">Bank Name</td>
+            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">KASIKORN BANK</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Bank Account Name</td>
+            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">KHONGKHA BUMRUNGKHET</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Bank Account No.</td>
+            <td style="padding:10px 0;font-size:15px;color:#c0392b;font-weight:900;letter-spacing:1px">564-24-553-05</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Swift Code</td>
+            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:700;letter-spacing:1px">KASITHBKXXX</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee">
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Address</td>
+            <td style="padding:10px 0;font-size:12px;color:#555;line-height:1.5">199/84 Moo 4 Bang Phli Yai,<br>Bang Phli Samut Prakan Thailand 10540</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Telephone No.</td>
+            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">+66(638068809)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding:14px 16px;border:1px dashed #ddd;border-radius:10px;font-size:12px;color:#666;text-align:center;line-height:1.8">
+      <strong style="color:#333">ส่งสลิปหลังโอนเงิน / Send payment slip after transfer</strong><br>
+      💬 Line: <strong style="color:#00b900">${shopSettings.line}</strong> &nbsp;|&nbsp; 📱 WhatsApp: <strong style="color:#25d366">${shopSettings.wa}</strong>
+    </div>
+  </div>
+</div>
+<div style="text-align:center;padding:16px">
+  <button onclick="window.print()" style="padding:12px 32px;background:#1a1a2e;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;margin-right:8px">🖨 Print / Save as PDF</button>
+  <button onclick="window.close()" style="padding:12px 24px;background:#eee;color:#333;border:none;border-radius:8px;cursor:pointer;font-size:14px">✕ Close</button>
+</div>
+</body></html>`;
+
+  const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if(win) setTimeout(()=>URL.revokeObjectURL(url), 10000);
+}
+
+function goToOrder() {
+  const ids = Object.keys(cart);
+  if(!ids.length) return;
+  const items = ids.map(id=>({ product:products.find(p=>p.id==id), qty:cart[id] }));
+  const totalProduct = items.reduce((s,i)=>s+i.product.price*i.qty,0);
+  const totalWeight = items.reduce((s,i)=>s+i.product.weight*i.qty,0);
+  let boxNum = orderMode==='manual' ? selectedBox : getAutoBox(items);
+  // check weight upgrade
+  if(boxNum) {
+    const pack = calcPacking(items, boxNum);
+    if(!pack.fitsWeight) {
+      const next = DHL_BOXES.find(b=>b.num>boxNum&&b.maxKg*1000>=pack.totalWeight);
+      if(next) boxNum = next.num;
+    }
+  }
+  const box = boxNum ? DHL_BOXES.find(b=>b.num===boxNum) : null;
+  const shipping = boxNum ? getShippingRate(boxNum) : 0;
+  const shippingContactShop = selectedDestCountry && !selectedDestZone;
+  const now = new Date();
+  const orderNum = 'KR-'+now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0')+'-'+Math.floor(Math.random()*900+100);
+
+  document.getElementById('orderShopName').textContent = shopSettings.name;
+  document.getElementById('orderNum').textContent = orderNum;
+  document.getElementById('orderCustomer').textContent = currentUser.name;
+  document.getElementById('orderPhone').textContent = currentUser.phone;
+  document.getElementById('orderDate').textContent = now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('orderBox').textContent = box ? `Box ${box.num} (${box.dims} cm · ${box.maxKg}kg)` : '-';
+
+  document.getElementById('orderItems').innerHTML = items.map(({product:p,qty}) => {
+    const name = lang==='th'?p.nameTH:p.nameEN;
+    return `<tr>
+      <td>${p.emoji} ${name}</td>
+      <td>${qty}</td>
+      <td style="color:var(--muted);font-size:12px">${p.w}×${p.l}×${p.h}</td>
+      <td>${p.weight*qty}g</td>
+      <td style="color:var(--gold)">฿${(p.price*qty).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+
+  if(box) {
+    const pack = calcPacking(items, boxNum);
+    document.getElementById('orderDHLInfo').innerHTML = `
+      <div class="dhl-row"><span>Box</span><span>DHL Easy Box ${box.num} (${box.dims} cm)</span></div>
+      <div class="dhl-row"><span>${lang==='th'?'น้ำหนักสูงสุด':'Max Weight'}</span><span>${box.maxKg} kg</span></div>
+      <div class="dhl-row"><span>${lang==='th'?'น้ำหนักสินค้า':'Package Weight'}</span><span>${(totalWeight/1000).toFixed(3)} kg</span></div>
+      <div class="dhl-row"><span>${lang==='th'?'ปริมาตรใช้':'Volume Used'}</span><span>${pack.usedPct}%</span></div>`;
+    const pr = document.getElementById('orderPackingResult');
+    if(pack.fits) {
+      pr.className='packing-result packing-ok';
+      pr.innerHTML=`✅ ${lang==='th'?'สินค้าใส่กล่องได้หมด':'All items fit in selected box'}`;
+    } else {
+      pr.className='packing-result packing-warn';
+      pr.innerHTML=`⚠️ ${lang==='th'?'กรุณาตรวจสอบการจัดเรียงสินค้า':'Please verify items can physically fit'}`;
+    }
+  }
+
+  document.getElementById('orderWeight').textContent = `${(totalWeight/1000).toFixed(3)} kg`;
+  document.getElementById('orderProductTotal').textContent = `฿${totalProduct.toLocaleString()}`;
+  document.getElementById('orderShippingCost').textContent = `฿${shipping.toLocaleString()}`;
+  document.getElementById('orderGrandTotal').textContent = `฿${(totalProduct+shipping).toLocaleString()}`;
+
+  // Store pending order
+  window._pendingOrder = { num:orderNum, customer:currentUser.name, phone:currentUser.phone, items, box:boxNum, totalProduct, shipping, total:totalProduct+shipping, status:'pending', date:now.toLocaleDateString() };
+  document.getElementById('orderActions').innerHTML = `
+    <button class="confirm-btn" onclick="confirmOrder()">✓ <span data-th="ยืนยันออร์เดอร์ (โอนเงินแล้ว)" data-en="Confirm Order (Payment Sent)">Confirm Order</span></button>
+    <div style="font-size:12px;color:var(--muted);text-align:center;padding:4px">
+      ${lang==='th'?'ส่งสลิปผ่าน Line: @krthailandshop หรือ WhatsApp: +66638068809':'Send payment slip via Line: @krthailandshop or WhatsApp: +66638068809'}
+    </div>`;
+  showPage('order');
+}
+
+function confirmOrder() {
+  if(window._pendingOrder) {
+    orders.push({...window._pendingOrder, status:'confirmed'});
+    cart={};
+    renderCart();
+  }
+  document.getElementById('orderActions').innerHTML = `
+    <div class="confirmed-badge">
+      ✅ ${lang==='th'?'ยืนยันออร์เดอร์แล้ว! กรุณาส่งสลิปการโอนเงิน':'Order Confirmed! Please send your payment slip'}<br>
+      <span style="font-weight:400;font-size:13px">Line: @krthailandshop · WhatsApp: +66638068809</span>
+    </div>
+    <button onclick="showPage('landing')" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:12px;border-radius:12px;cursor:pointer;font-size:13px;font-family:'Nunito',sans-serif">
+      ${lang==='th'?'กลับหน้าแรก':'Back to Home'}
+    </button>`;
+  showToast(lang==='th'?'ยืนยันออร์เดอร์สำเร็จ ✓':'Order confirmed ✓');
+}
+
+// ===== ADMIN =====
+function showAdminSection(s) {
+  document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('admin-'+s).classList.add('active');
+  event.target.classList.add('active');
+  if(s==='orders') renderAdminOrders();
+}
+
+function renderAdminProducts() {
+  document.getElementById('adminProductsTable').innerHTML = products.map(p => {
+    const name = lang==='th'?p.nameTH:p.nameEN;
+    return `<tr>
+      <td style="width:50px">${p.imageData ? `<img src="${p.imageData}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">` : `<span style="font-size:24px">${p.emoji}</span>`}</td>
+      <td><div style="font-weight:600">${name}</div><div style="font-size:11px;color:var(--muted)">${p.nameTH}</div></td>
+      <td><span style="background:rgba(0,180,216,0.15);color:var(--teal);padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700">${p.category}</span></td>
+      <td style="color:var(--gold);font-weight:700">฿${p.price.toLocaleString()}</td>
+      <td>${p.weight}g</td>
+      <td style="font-size:12px;color:var(--muted)">${p.w}×${p.l}×${p.h}</td>
+      <td><span class="${p.stock>0?'stock-tag in':'stock-tag out'}">${p.stock}</span></td>
+      <td>
+        <button class="edit-btn-sm" onclick="openProductModal(${p.id})">Edit</button>
+        <button class="del-btn-sm" onclick="deleteProduct(${p.id})">Del</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let activeShipZone = 'A';
+
+function renderShippingGrid() {
+  const zonesHTML = Object.entries(DHL_ZONES).map(([z, data]) => `
+    <button onclick="setShipZone('${z}')" id="shipZoneBtn${z}"
+      style="padding:8px 16px;border:2px solid ${data.color};border-radius:20px;cursor:pointer;
+      font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;transition:all 0.2s;
+      background:${activeShipZone===z?data.color:'transparent'};
+      color:${activeShipZone===z?'white':data.color}">
+      ${data.name}
+    </button>`).join('');
+
+  const activeZone = DHL_ZONES[activeShipZone];
+  const boxesHTML = DHL_BOXES.map(b => `
+    <div class="shipping-card">
+      <div class="shipping-box-num">Box ${b.num}</div>
+      <div class="shipping-dims">${b.dims} cm</div>
+      <div class="shipping-kg">⚖ Max ${b.maxKg} kg</div>
+      <label class="shipping-label">ค่าขนส่ง (฿)</label>
+      <input type="number" class="shipping-price-input" id="ship-${activeShipZone}-${b.num}"
+        value="${(zoneShippingRates[activeShipZone]||{})[b.num]||0}" placeholder="0">
+    </div>`).join('');
+
+  document.getElementById('shippingGrid').innerHTML = `
+    <div style="grid-column:1/-1;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:12px">เลือก Zone ที่ต้องการตั้งค่า:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">${zonesHTML}</div>
+      <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted)">
+        <strong style="color:${activeZone.color}">${activeZone.name}:</strong> ${activeZone.label}
+      </div>
+    </div>
+    ${boxesHTML}`;
+}
+
+function setShipZone(z) {
+  activeShipZone = z;
+  renderShippingGrid();
+}
+
+function saveShipping() {
+  DHL_BOXES.forEach(b => {
+    const el = document.getElementById('ship-'+activeShipZone+'-'+b.num);
+    if(el) {
+      if(!zoneShippingRates[activeShipZone]) zoneShippingRates[activeShipZone] = {};
+      zoneShippingRates[activeShipZone][b.num] = parseInt(el.value)||0;
+    }
+  });
+  // Also sync legacy shippingRates for current session zone
+  if(selectedDestZone && zoneShippingRates[selectedDestZone]) {
+    shippingRates = {...zoneShippingRates[selectedDestZone]};
+  }
+  renderCart();
+  showToast('บันทึก '+DHL_ZONES[activeShipZone].name+' แล้ว ✓');
+}
+
+function renderAdminOrders() {
+  const el = document.getElementById('adminOrdersList');
+  if(!orders.length) { el.innerHTML=`<p style="color:var(--muted);text-align:center;padding:40px">No orders yet</p>`; return; }
+  el.innerHTML = orders.map((o,i) => `
+    <div class="order-admin-card">
+      <div class="order-admin-header">
+        <div>
+          <div style="font-weight:700">${o.num}</div>
+          <div style="font-size:12px;color:var(--muted)">${o.customer} · ${o.phone} · ${o.date}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="order-status status-${o.status}">${o.status==='confirmed'?'✓ Confirmed':'⏳ Pending'}</span>
+          <button onclick="viewOrderDetail(${i})" style="padding:6px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
+          ${o.status==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${i})">Confirm</button>`:''}
+        </div>
+      </div>
+      <div style="font-size:13px">
+        Box ${o.box} · ${o.items.length} items · ฿${o.total.toLocaleString()} (Products: ฿${o.totalProduct.toLocaleString()} + Shipping: ฿${o.shipping.toLocaleString()})
+      </div>
+    </div>`).join('');
+}
+
+function confirmAdminOrder(i) {
+  orders[i].status = 'confirmed';
+  renderAdminOrders();
+  showToast('Order confirmed ✓');
+}
+
+// ===== PRODUCT MODAL =====
+function openProductModal(id=null) {
+  editingProductId = id;
+  document.getElementById('productModalTitle').textContent = id ? (lang==='th'?'แก้ไขสินค้า':'Edit Product') : (lang==='th'?'เพิ่มสินค้า':'Add Product');
+  if(id) {
+    const p = products.find(x=>x.id===id);
+    document.getElementById('p-nameTH').value=p.nameTH;
+    document.getElementById('p-nameEN').value=p.nameEN;
+    document.getElementById('p-price').value=p.price;
+    document.getElementById('p-weight').value=p.weight;
+    document.getElementById('p-w').value=p.w;
+    document.getElementById('p-l').value=p.l;
+    document.getElementById('p-h').value=p.h;
+    document.getElementById('p-category').value=p.category;
+    document.getElementById('p-stock').value=p.stock;
+    document.getElementById('p-emoji').value=p.emoji;
+    document.getElementById('p-status').value=p.status;
+    document.getElementById('p-descTH').value=p.descTH||'';
+    document.getElementById('p-descEN').value=p.descEN||'';
+    if(p.imageData) { currentImageData=p.imageData; showImagePreview(p.imageData,'current image'); }
+    else { resetImageUpload(); }
+  } else {
+    ['p-nameTH','p-nameEN','p-price','p-weight','p-w','p-l','p-h','p-stock','p-emoji','p-descTH','p-descEN'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('p-category').value='Skincare';
+    document.getElementById('p-status').value='active';
+    resetImageUpload();
+  }
+  document.getElementById('productModal').classList.add('open');
+}
+function closeProductModal() { document.getElementById('productModal').classList.remove('open'); resetImageUpload(); }
+
+// ===== IMAGE UPLOAD =====
+let currentImageData = null;
+
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5 * 1024 * 1024) { showToast('รูปภาพใหญ่เกิน 5MB กรุณาลดขนาดก่อน'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImageData = e.target.result;
+    showImagePreview(currentImageData, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleImageDrop(e) {
+  e.preventDefault();
+  document.getElementById('imageDropZone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if(!file || !file.type.startsWith('image/')) { showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น'); return; }
+  if(file.size > 5 * 1024 * 1024) { showToast('รูปภาพใหญ่เกิน 5MB'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    currentImageData = e.target.result;
+    showImagePreview(currentImageData, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showImagePreview(dataUrl, name) {
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  document.getElementById('imagePreviewImg').style.display = 'block';
+  document.getElementById('previewImg').src = dataUrl;
+  document.getElementById('imageFileName').textContent = '✓ ' + (name || 'image');
+}
+
+function clearImage(e) {
+  e.stopPropagation();
+  currentImageData = null;
+  document.getElementById('imagePreviewWrap').style.display = 'block';
+  document.getElementById('imagePreviewImg').style.display = 'none';
+  document.getElementById('p-image').value = '';
+  document.getElementById('previewImg').src = '';
+}
+
+function resetImageUpload() {
+  currentImageData = null;
+  document.getElementById('imagePreviewWrap').style.display = 'block';
+  document.getElementById('imagePreviewImg').style.display = 'none';
+  document.getElementById('p-image').value = '';
+  if(document.getElementById('previewImg')) document.getElementById('previewImg').src = '';
+}
+
+function saveProduct() {
+  const data = {
+    nameTH: document.getElementById('p-nameTH').value.trim(),
+    nameEN: document.getElementById('p-nameEN').value.trim(),
+    price: parseInt(document.getElementById('p-price').value)||0,
+    weight: parseInt(document.getElementById('p-weight').value)||0,
+    w: parseFloat(document.getElementById('p-w').value)||1,
+    l: parseFloat(document.getElementById('p-l').value)||1,
+    h: parseFloat(document.getElementById('p-h').value)||1,
+    category: document.getElementById('p-category').value,
+    stock: parseInt(document.getElementById('p-stock').value)||0,
+    emoji: document.getElementById('p-emoji').value||'📦',
+    status: document.getElementById('p-status').value,
+    descTH: document.getElementById('p-descTH').value.trim(),
+    descEN: document.getElementById('p-descEN').value.trim(),
+    imageData: currentImageData !== null ? currentImageData : (editingProductId ? (products.find(p=>p.id===editingProductId)||{}).imageData||null : null),
+  };
+  if(!data.nameTH||!data.nameEN||!data.price||!data.weight) { showToast('Please fill all required fields'); return; }
+  if(editingProductId) {
+    const idx = products.findIndex(p=>p.id===editingProductId);
+    products[idx] = {...products[idx],...data};
+    showToast(lang==='th'?'แก้ไขแล้ว ✓':'Updated ✓');
+  } else {
+    products.push({id:Date.now(),...data});
+    showToast(lang==='th'?'เพิ่มสินค้าแล้ว ✓':'Product added ✓');
+  }
+  closeProductModal();
+  renderAdminProducts();
+  renderProducts();
+}
+
+function deleteProduct(id) {
+  if(!confirm(lang==='th'?'ยืนยันลบสินค้า?':'Delete this product?')) return;
+  products = products.filter(p=>p.id!==id);
+  delete cart[id];
+  renderAdminProducts();
+  renderProducts();
+  renderCart();
+  showToast(lang==='th'?'ลบแล้ว':'Deleted');
+}
+
+// ===== SETTINGS =====
+function saveSettings() {
+  shopSettings.name = document.getElementById('settingName').value.trim()||'K&R Thailand Shop';
+  shopSettings.line = document.getElementById('settingLine').value.trim();
+  shopSettings.wa = document.getElementById('settingWA').value.trim();
+  document.getElementById('heroLogo').textContent = shopSettings.name.split(' ')[0]||'K&R';
+  document.getElementById('navBrand').textContent = shopSettings.name;
+  document.getElementById('orderShopName').textContent = shopSettings.name;
+  showToast(lang==='th'?'บันทึกแล้ว ✓':'Settings saved ✓');
+}
+
+function applyColors() {
+  const c1 = document.getElementById('color1').value;
+  const c2 = document.getElementById('color2').value;
+  const c3 = document.getElementById('color3').value;
+  document.documentElement.style.setProperty('--grad1', c1);
+  document.documentElement.style.setProperty('--grad2', c2);
+  document.documentElement.style.setProperty('--accent', c3);
+  document.getElementById('colorPreview').style.background = `linear-gradient(135deg,${c1},${c2})`;
+  showToast(lang==='th'?'ใช้สีแล้ว ✓':'Colors applied ✓');
+}
+['color1','color2','color3'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const c1=document.getElementById('color1').value, c2=document.getElementById('color2').value;
+    document.getElementById('colorPreview').style.background=`linear-gradient(135deg,${c1},${c2})`;
+  });
+});
+
+// ===== PARTICLES =====
+function createParticles() {
+  const container = document.getElementById('particles');
+  for(let i=0;i<12;i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*60+20;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*6}s;animation-duration:${Math.random()*4+6}s`;
+    container.appendChild(p);
+  }
+}
+
+
+// ===== ADDRESS POPUP =====
+const COUNTRIES = [
+  {code:'AU',flag:'🇦🇺',name:'Australia',api:'au'},
+  {code:'AT',flag:'🇦🇹',name:'Austria',api:'at'},
+  {code:'BE',flag:'🇧🇪',name:'Belgium',api:'be'},
+  {code:'CA',flag:'🇨🇦',name:'Canada',api:'ca'},
+  {code:'DK',flag:'🇩🇰',name:'Denmark',api:'dk'},
+  {code:'FI',flag:'🇫🇮',name:'Finland',api:'fi'},
+  {code:'FR',flag:'🇫🇷',name:'France',api:'fr'},
+  {code:'DE',flag:'🇩🇪',name:'Germany',api:'de'},
+  {code:'HK',flag:'🇭🇰',name:'Hong Kong',api:null},
+  {code:'IN',flag:'🇮🇳',name:'India',api:'in'},
+  {code:'ID',flag:'🇮🇩',name:'Indonesia',api:'id'},
+  {code:'IT',flag:'🇮🇹',name:'Italy',api:'it'},
+  {code:'JP',flag:'🇯🇵',name:'Japan',api:'jp'},
+  {code:'MY',flag:'🇲🇾',name:'Malaysia',api:'my'},
+  {code:'NL',flag:'🇳🇱',name:'Netherlands',api:'nl'},
+  {code:'NZ',flag:'🇳🇿',name:'New Zealand',api:'nz'},
+  {code:'NO',flag:'🇳🇴',name:'Norway',api:'no'},
+  {code:'PH',flag:'🇵🇭',name:'Philippines',api:'ph'},
+  {code:'SG',flag:'🇸🇬',name:'Singapore',api:'sg'},
+  {code:'KR',flag:'🇰🇷',name:'South Korea',api:'kr'},
+  {code:'ES',flag:'🇪🇸',name:'Spain',api:'es'},
+  {code:'SE',flag:'🇸🇪',name:'Sweden',api:'se'},
+  {code:'CH',flag:'🇨🇭',name:'Switzerland',api:'ch'},
+  {code:'TW',flag:'🇹🇼',name:'Taiwan',api:null},
+  {code:'TH',flag:'🇹🇭',name:'Thailand',api:null},
+  {code:'GB',flag:'🇬🇧',name:'United Kingdom',api:'gb'},
+  {code:'US',flag:'🇺🇸',name:'United States',api:'us'},
+  {code:'VN',flag:'🇻🇳',name:'Vietnam',api:null},
+  {code:'CN',flag:'🇨🇳',name:'China',api:null},
+  {code:'OTHER',flag:'🌍',name:'Other',api:null},
+];
+
+let addrStep = 1;
+let addrData = { country:null, countryCode:null, postal:'', city:'', district:'', houseNo:'', street:'' };
+
+function openAddrModal() {
+  addrStep = 1;
+  addrData = { country:null, countryCode:null, postal:'', city:'', district:'', houseNo:'', street:'' };
+  // Pre-fill if user already has address
+  if(currentUser && currentUser.country) {
+    const found = COUNTRIES.find(c=>c.name===currentUser.country);
+    if(found) { addrData.country=found.name; addrData.countryCode=found.api; }
+  }
+  renderCountryGrid('');
+  showAddrStep(1);
+  document.getElementById('addrOverlay').classList.add('open');
+}
+
+function closeAddrModal() {
+  document.getElementById('addrOverlay').classList.remove('open');
+}
+
+function filterCountries(q) {
+  renderCountryGrid(q.toLowerCase());
+}
+
+function renderCountryGrid(q) {
+  const grid = document.getElementById('countryGrid');
+  const filtered = q ? COUNTRIES.filter(c=>c.name.toLowerCase().includes(q)) : COUNTRIES;
+  grid.innerHTML = filtered.map(c => `
+    <div class="country-option ${addrData.country===c.name?'selected':''}" onclick="selectCountry('${c.name}','${c.api||''}','${c.flag}')">
+      <span style="font-size:18px">${c.flag}</span>
+      <span>${c.name}</span>
+    </div>`).join('');
+}
+
+function selectCountry(name, api, flag) {
+  addrData.country = name;
+  addrData.countryCode = api || null;
+  renderCountryGrid(document.getElementById('countrySearch').value.toLowerCase());
+  document.getElementById('selectedCountryLabel').textContent = flag + ' ' + name;
+  setTimeout(()=>showAddrStep(2), 250);
+}
+
+async function lookupPostal() {
+  const postal = document.getElementById('postalInput').value.trim();
+  const errEl = document.getElementById('postalError');
+  const resultEl = document.getElementById('postalResult');
+  const cityList = document.getElementById('cityList');
+  errEl.style.display = 'none';
+  resultEl.classList.remove('show');
+  if(!postal) { showToast('กรุณากรอก Postal Code'); return; }
+  addrData.postal = postal;
+
+  if(!addrData.countryCode) {
+    // No API support for this country - skip to next step
+    document.getElementById('addrCity').value = '';
+    showAddrStep(3);
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://api.zippopotam.us/${addrData.countryCode}/${encodeURIComponent(postal)}`);
+    if(!res.ok) throw new Error('not found');
+    const data = await res.json();
+    const places = data.places || [];
+    if(places.length === 0) throw new Error('no places');
+
+    cityList.innerHTML = places.map((p,i) => `
+      <div class="city-option ${i===0?'selected':''}" onclick="selectCity(this,'${p['place name'].replace(/'/g,"\'")}','${(p['state']||p['state abbreviation']||'').replace(/'/g,"\'")}')">
+        📍 ${p['place name']}${p['state']?' · '+p['state']:''}
+      </div>`).join('');
+    resultEl.classList.add('show');
+
+    // Auto-select first
+    if(places[0]) {
+      addrData.city = places[0]['place name'];
+      addrData.district = places[0]['state'] || places[0]['state abbreviation'] || '';
+    }
+  } catch(e) {
+    errEl.style.display = 'block';
+    cityList.innerHTML = '';
+  }
+}
+
+function selectCity(el, city, state) {
+  document.querySelectorAll('.city-option').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');
+  addrData.city = city;
+  addrData.district = state;
+  setTimeout(()=>showAddrStep(3), 250);
+}
+
+function showAddrStep(step) {
+  addrStep = step;
+  document.querySelectorAll('.addr-step').forEach((el,i)=>el.classList.toggle('active', i+1===step));
+  const dots = document.querySelectorAll('.addr-dot');
+  dots.forEach((d,i) => {
+    d.classList.remove('active','done');
+    if(i+1 < step) d.classList.add('done');
+    else if(i+1 === step) d.classList.add('active');
+  });
+
+  // Pre-fill step 3 fields if we have data
+  if(step===3) {
+    if(addrData.city) document.getElementById('addrCity').value = addrData.city;
+    if(addrData.district) document.getElementById('addrDistrict').value = addrData.district;
+  }
+
+  // Update preview in step 4
+  if(step===4) updateAddrPreview();
+
+  // Render nav buttons
+  const nav = document.getElementById('addrNav');
+  if(step===1) {
+    nav.innerHTML = '';
+  } else if(step===4) {
+    nav.innerHTML = `
+      <button class="addr-back-btn" onclick="showAddrStep(3)">← Back</button>
+      <button class="addr-save-btn" onclick="saveAddress()">✓ บันทึกที่อยู่</button>`;
+  } else {
+    nav.innerHTML = `
+      <button class="addr-back-btn" onclick="showAddrStep(${step-1})">← Back</button>
+      <button class="addr-next-btn" onclick="addrNext(${step})">ถัดไป →</button>`;
+  }
+}
+
+function addrNext(step) {
+  if(step===2) {
+    const city = document.getElementById('addrCity')?.value?.trim();
+    addrData.postal = document.getElementById('postalInput').value.trim();
+    if(!addrData.postal) { showToast('กรุณากรอก Postal Code'); return; }
+  }
+  if(step===3) {
+    const city = document.getElementById('addrCity').value.trim();
+    const dist = document.getElementById('addrDistrict').value.trim();
+    if(!city) { showToast('กรุณากรอกชื่อเมือง'); return; }
+    addrData.city = city;
+    addrData.district = dist;
+    updateAddrPreview();
+  }
+  showAddrStep(step+1);
+}
+
+function updateAddrPreview() {
+  const city = document.getElementById('addrCity')?.value?.trim() || addrData.city || '';
+  const dist = document.getElementById('addrDistrict')?.value?.trim() || addrData.district || '';
+  const house = document.getElementById('addrHouseNo')?.value?.trim() || '';
+  const street = document.getElementById('addrStreet')?.value?.trim() || '';
+  const parts = [house, street, dist, city, addrData.postal, addrData.country].filter(Boolean);
+  document.getElementById('addrPreview').textContent = parts.join('\n');
+
+  // Update live preview as user types
+  document.getElementById('addrHouseNo')?.addEventListener('input', updateAddrPreview);
+  document.getElementById('addrStreet')?.addEventListener('input', updateAddrPreview);
+}
+
+function saveAddress() {
+  const house = document.getElementById('addrHouseNo').value.trim();
+  const street = document.getElementById('addrStreet').value.trim();
+  const city = document.getElementById('addrCity').value.trim() || addrData.city;
+  const dist = document.getElementById('addrDistrict').value.trim() || addrData.district;
+  if(!house) { showToast('กรุณากรอกบ้านเลขที่'); return; }
+
+  addrData.houseNo = house;
+  addrData.street = street;
+  addrData.city = city;
+  addrData.district = dist;
+
+  const fullAddress = [house, street, dist, city, addrData.postal].filter(Boolean).join(', ');
+
+  if(currentUser) {
+    currentUser.country = addrData.country;
+    currentUser.address = fullAddress;
+    // Update badge
+    updateAddressBadge();
+  }
+  closeAddrModal();
+  // Refresh order modal address display if open
+  refreshOrderModalAddr();
+  // Update _orderData if open
+  if(window._orderData && window._orderData.customer) {
+    window._orderData.customer.country = currentUser.country;
+    window._orderData.customer.address = currentUser.address;
+    document.getElementById('omCountry').textContent = currentUser.country || '-';
+    document.getElementById('omAddress').textContent = currentUser.address || '-';
+  }
+  showToast('บันทึกที่อยู่แล้ว ✓');
+}
+
+function updateAddressBadge() {
+  const badge = document.getElementById('addrBadge');
+  if(!badge) return; // badge removed - address now in order modal
+  if(currentUser && currentUser.address) {
+    badge.innerHTML = '📫 ' + (currentUser.country||'') + ' · ' + currentUser.address.substring(0,30) + (currentUser.address.length>30?'...':'');
+    badge.style.borderColor = 'var(--success)';
+    badge.style.color = 'var(--success)';
+    badge.style.background = 'rgba(46,204,113,0.1)';
+  } else {
+    badge.innerHTML = '📫 เพิ่มที่อยู่จัดส่ง';
+    badge.style.borderColor = 'rgba(0,180,216,0.3)';
+    badge.style.color = 'var(--teal)';
+    badge.style.background = 'rgba(0,180,216,0.15)';
+  }
+}
+
+
+
+// ===== DESTINATION COUNTRY PICKER =====
+let destFilterZone = 'ALL';
+
+const DEST_COUNTRIES = [
+  // Zone A
+  {name:'Hong Kong', flag:'🇭🇰', code:'HK', zone:'A'},
+  {name:'Macau', flag:'🇲🇴', code:'MO', zone:'A'},
+  {name:'Malaysia', flag:'🇲🇾', code:'MY', zone:'A'},
+  {name:'Singapore', flag:'🇸🇬', code:'SG', zone:'A'},
+  // Zone B
+  {name:'Bangladesh', flag:'🇧🇩', code:'BD', zone:'B'},
+  {name:'Brunei', flag:'🇧🇳', code:'BN', zone:'B'},
+  {name:'Cambodia', flag:'🇰🇭', code:'KH', zone:'B'},
+  {name:'China', flag:'🇨🇳', code:'CN', zone:'B'},
+  {name:'India', flag:'🇮🇳', code:'IN', zone:'B'},
+  {name:'Indonesia', flag:'🇮🇩', code:'ID', zone:'B'},
+  {name:'Japan', flag:'🇯🇵', code:'JP', zone:'B'},
+  {name:'South Korea', flag:'🇰🇷', code:'KR', zone:'B'},
+  {name:'Laos', flag:'🇱🇦', code:'LA', zone:'B'},
+  {name:'Myanmar', flag:'🇲🇲', code:'MM', zone:'B'},
+  {name:'Nepal', flag:'🇳🇵', code:'NP', zone:'B'},
+  {name:'Pakistan', flag:'🇵🇰', code:'PK', zone:'B'},
+  {name:'Philippines', flag:'🇵🇭', code:'PH', zone:'B'},
+  {name:'Sri Lanka', flag:'🇱🇰', code:'LK', zone:'B'},
+  {name:'Taiwan', flag:'🇹🇼', code:'TW', zone:'B'},
+  {name:'Vietnam', flag:'🇻🇳', code:'VN', zone:'B'},
+  // Zone C
+  {name:'Austria', flag:'🇦🇹', code:'AT', zone:'C'},
+  {name:'Belgium', flag:'🇧🇪', code:'BE', zone:'C'},
+  {name:'Canada', flag:'🇨🇦', code:'CA', zone:'C'},
+  {name:'Denmark', flag:'🇩🇰', code:'DK', zone:'C'},
+  {name:'Finland', flag:'🇫🇮', code:'FI', zone:'C'},
+  {name:'France', flag:'🇫🇷', code:'FR', zone:'C'},
+  {name:'Germany', flag:'🇩🇪', code:'DE', zone:'C'},
+  {name:'Italy', flag:'🇮🇹', code:'IT', zone:'C'},
+  {name:'Mexico', flag:'🇲🇽', code:'MX', zone:'C'},
+  {name:'Netherlands', flag:'🇳🇱', code:'NL', zone:'C'},
+  {name:'Norway', flag:'🇳🇴', code:'NO', zone:'C'},
+  {name:'Spain', flag:'🇪🇸', code:'ES', zone:'C'},
+  {name:'Sweden', flag:'🇸🇪', code:'SE', zone:'C'},
+  {name:'Switzerland', flag:'🇨🇭', code:'CH', zone:'C'},
+  {name:'United Kingdom', flag:'🇬🇧', code:'GB', zone:'C'},
+  {name:'United States', flag:'🇺🇸', code:'US', zone:'C'},
+  // Zone D
+  {name:'Israel', flag:'🇮🇱', code:'IL', zone:'D'},
+  {name:'Namibia', flag:'🇳🇦', code:'NA', zone:'D'},
+  {name:'Serbia', flag:'🇷🇸', code:'RS', zone:'D'},
+  // Zone E
+  {name:'Australia', flag:'🇦🇺', code:'AU', zone:'E'},
+  {name:'New Zealand', flag:'🇳🇿', code:'NZ', zone:'E'},
+];
+
+function openDestCountryPicker() {
+  destFilterZone = 'ALL';
+  document.getElementById('destCountrySearch').value = '';
+  renderDestZoneTabs();
+  renderDestCountries('');
+  document.getElementById('destPickerOverlay').style.display = 'flex';
+}
+
+function closeDestPicker() {
+  document.getElementById('destPickerOverlay').style.display = 'none';
+}
+
+function renderDestZoneTabs() {
+  const tabs = document.getElementById('destZoneTabs');
+  const allZones = ['ALL', 'A', 'B', 'C', 'D', 'E'];
+  tabs.innerHTML = allZones.map(z => {
+    const isAll = z === 'ALL';
+    const zd = isAll ? null : DHL_ZONES[z];
+    const active = destFilterZone === z;
+    const bg = active ? (isAll ? 'var(--teal)' : zd.color) : 'transparent';
+    const border = isAll ? 'var(--teal)' : (zd ? zd.color : 'var(--border)');
+    const color = active ? 'white' : (isAll ? 'var(--teal)' : (zd ? zd.color : 'var(--muted)'));
+    return `<button onclick="filterDestZone('${z}')"
+      style="padding:5px 14px;border:2px solid ${border};border-radius:20px;background:${bg};
+      color:${color};cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s">
+      ${isAll ? 'All Zones' : z+' · '+zd.name}
+    </button>`;
+  }).join('');
+}
+
+function filterDestZone(z) {
+  destFilterZone = z;
+  renderDestZoneTabs();
+  renderDestCountries(document.getElementById('destCountrySearch').value);
+}
+
+function renderDestCountries(q) {
+  const list = document.getElementById('destCountryList');
+  let filtered = DEST_COUNTRIES;
+  if(destFilterZone !== 'ALL') filtered = filtered.filter(c => c.zone === destFilterZone);
+  if(q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
+
+  if(!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">ไม่พบประเทศนี้ใน list<br><span style="color:var(--warning);font-size:12px">กรุณาติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง</span></div>';
+    return;
+  }
+
+  // Group by zone
+  const byZone = {};
+  filtered.forEach(c => { if(!byZone[c.zone]) byZone[c.zone] = []; byZone[c.zone].push(c); });
+
+  list.innerHTML = Object.entries(byZone).map(([z, countries]) => {
+    const zd = DHL_ZONES[z];
+    const countryItems = countries.map(c => `
+      <div onclick="selectDestCountry('${c.name}','${c.flag}','${c.code}','${c.zone}')"
+        style="display:flex;align-items:center;gap:10px;padding:10px 12px;
+        border:1px solid ${selectedDestCountry===c.name?zd.color:'var(--border)'};
+        border-radius:10px;cursor:pointer;transition:all 0.2s;
+        background:${selectedDestCountry===c.name?'rgba('+hexToRgb(zd.color)+',0.15)':'rgba(255,255,255,0.03)'};
+        font-size:13px;font-weight:600">
+        <span style="font-size:20px">${c.flag}</span>
+        <span style="flex:1">${c.name}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;background:${zd.color};color:white">${z}</span>
+      </div>`).join('');
+    return `<div style="margin-bottom:10px">
+      <div style="font-size:11px;color:${zd.color};font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;padding-left:4px">${zd.name}</div>
+      ${countryItems}
+    </div>`;
+  }).join('');
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return r+','+g+','+b;
+}
+
+function selectDestCountry(name, flag, code, zone) {
+  selectedDestCountry = name;
+  selectedDestZone = zone || null;
+
+  // Update button
+  document.getElementById('destCountryFlag').textContent = flag;
+  document.getElementById('destCountryLabel').textContent = name;
+  const btn = document.getElementById('destCountryBtn');
+  const zd = zone ? DHL_ZONES[zone] : null;
+  btn.style.borderColor = zd ? zd.color : 'var(--warning)';
+  btn.style.color = zd ? zd.color : 'var(--warning)';
+  btn.style.background = zd ? 'rgba('+hexToRgb(zd.color)+',0.12)' : 'rgba(243,156,18,0.12)';
+
+  // Show zone badge
+  const badge = document.getElementById('destZoneBadge');
+  if(zd) {
+    badge.style.display = 'inline-block';
+    badge.style.background = zd.color;
+    badge.style.color = 'white';
+    badge.textContent = zone + ' · ' + zd.name;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  closeDestPicker();
+  renderCart();
+  showToast(flag + ' ' + name + (zd?' · '+zd.name+' ✓':' — ติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง'));
+}
+
+// Handle "not in list" case
+function selectDestCountryNotInList() {
+  selectedDestCountry = 'Other (contact shop)';
+  selectedDestZone = null;
+  document.getElementById('destCountryFlag').textContent = '🌍';
+  document.getElementById('destCountryLabel').textContent = 'Other — Contact Shop for Rate';
+  const btn = document.getElementById('destCountryBtn');
+  btn.style.borderColor = 'var(--warning)';
+  btn.style.color = 'var(--warning)';
+  btn.style.background = 'rgba(243,156,18,0.12)';
+  document.getElementById('destZoneBadge').style.display = 'none';
+  closeDestPicker();
+  renderCart();
+}
+
+// ===== ORDER MODAL ADDRESS HELPERS =====
+function refreshOrderModalAddr() {
+  const emptyEl = document.getElementById('omAddrEmpty');
+  const filledEl = document.getElementById('omAddrFilled');
+  const warnEl = document.getElementById('omAddrWarning');
+  const confirmBtn = document.getElementById('omConfirmBtn');
+  if(!emptyEl) return;
+
+  const hasAddr = currentUser && currentUser.address && currentUser.address.trim();
+  emptyEl.style.display = hasAddr ? 'none' : 'block';
+  filledEl.style.display = hasAddr ? 'block' : 'none';
+
+  if(hasAddr) {
+    document.getElementById('omAddrCountry').textContent = currentUser.country || '-';
+    document.getElementById('omAddrPostal').textContent = addrData.postal || '-';
+    document.getElementById('omAddrFull').textContent = currentUser.address;
+    if(warnEl) warnEl.style.display = 'none';
+  } else {
+    if(warnEl) warnEl.style.display = 'none';
+  }
+
+  if(confirmBtn) {
+    confirmBtn.style.opacity = hasAddr ? '1' : '0.4';
+    confirmBtn.style.cursor = hasAddr ? 'pointer' : 'not-allowed';
+  }
+}
+
+function tryConfirmAndDownload() {
+  if(!currentUser || !currentUser.address || !currentUser.address.trim()) {
+    document.getElementById('omAddrWarning').style.display = 'block';
+    document.getElementById('omAddrSection').scrollIntoView({behavior:'smooth', block:'center'});
+    showToast('⚠️ กรุณากรอกที่อยู่จัดส่งก่อน');
+    return;
+  }
+  confirmAndDownload();
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function scrollToHow() {
+  document.getElementById('howSection').scrollIntoView({behavior:'smooth'});
+}
+
+// ===== INIT =====
+createParticles();
+renderProducts();
+renderAdminProducts();
+renderShippingGrid();
+setLang('en');
+// Update rate display on load
+updateRateDisplay();
+
+// GOOGLE SHEETS INTEGRATION
+const scriptURL = 'https://script.google.com/macros/s/AKfycbw6SFf0UPL6-ofjdTDKltcBDR2gqCshkS4WtTUX0hvAulWzh3uzFGdfJVisEkDTlt6z/exec';
+
+async function loadProductsFromSheet() {
+  try {
+    const resp = await fetch(scriptURL);
+    const data = await resp.json();
+    if (data && data.length > 0) {
+      products = data.map(p => ({
+        id: p.id, nameTH: p.nameTH, nameEN: p.nameEN,
+        price: parseFloat(p.price)||0, weight: parseFloat(p.weight)||0,
+        stock: parseInt(p.stock)||0, category: p.category||'Other',
+        emoji: p.emoji||'📦', w: parseFloat(p.w)||5, l: parseFloat(p.l)||5,
+        h: parseFloat(p.h)||5, status: p.status||'active',
+        descTH: p.descTH||'', descEN: p.descEN||''
+      }));
+      renderProducts();
+      if (isAdminLoggedIn) renderAdminProducts();
+    }
+  } catch (e) { console.error('Sheet load failed:', e); }
+}
+
+async function saveOrderToSheet(d) {
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+    type:'Orders', orderNum:d.orderNum, name:d.customer.name, phone:d.customer.phone,
+    country:d.customer.country||'', address:d.customer.address||'',
+    items:d.items.map(i=>(i.product.nameEN||i.product.nameTH)+' x'+i.qty).join(', '),
+    total:d.total, shipping:d.shipping
+  })});
+}
+
+async function updateProductToSheet(p) {
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'UpdateProduct', ...p }) });
+}
+
+const _origConfirmDL = confirmAndDownload;
+confirmAndDownload = function() {
+  const d = window._orderData;
+  if (d) saveOrderToSheet(d);
+  _origConfirmDL();
+};
+
+const _origSaveProd = saveProduct;
+saveProduct = async function() {
+  const id = editingProductId;
+  _origSaveProd();
+  if(id) { const p = products.find(x=>x.id===id); if(p) updateProductToSheet(p); }
+};
+
+window.addEventListener('load', loadProductsFromSheet);
+
+// Admin Order Detail Popup
+function closeOrderDetail() {
+  const el = document.getElementById('orderDetailOverlay');
+  if(el) el.remove();
+}
+function viewOrderDetail(i) {
+  const o = orders[i];
+  const box = o.box ? DHL_BOXES.find(b=>b.num===o.box) : null;
+  const rows = (o.items||[]).map(({product:p,qty},idx) => {
+    const nm = p?(p.nameEN||p.nameTH):'?';
+    const em = p?(p.emoji||''):'';
+    const pr = p?p.price:0;
+    return '<tr><td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--muted);font-size:13px">'+(idx+1)+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;font-weight:600">'+em+' '+nm+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:var(--teal);font-weight:700;font-size:13px">'+qty+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--muted);font-size:13px">'+pr.toLocaleString()+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--gold);font-weight:700;font-size:13px">'+(pr*qty).toLocaleString()+'</td></tr>';
+  }).join('');
+
+  const ov = document.createElement('div');
+  ov.id = 'orderDetailOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  ov.onclick = e => { if(e.target===ov) closeOrderDetail(); };
+  ov.innerHTML =
+    '<div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6)">'
+      +'<div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">'
+        +'<div><div style="font-family:Playfair Display,serif;font-size:18px;color:var(--gold)">'+o.num+'</div>'
+        +'<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px">'+o.date+'</div></div>'
+        +'<div style="display:flex;gap:10px;align-items:center">'
+          +'<span class="order-status status-'+o.status+'">'+(o.status==='confirmed'?'Confirmed':'Pending')+'</span>'
+          +'<button onclick="closeOrderDetail()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">X</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="padding:24px">'
+        +'<div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Customer</div><div style="font-size:14px;font-weight:700">'+o.customer+'</div></div>'
+          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Phone</div><div style="font-size:14px;font-weight:700">'+o.phone+'</div></div>'
+          +(o.country?'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Country</div><div style="font-size:14px;font-weight:700;color:var(--teal)">'+o.country+'</div></div>':'')
+          +(o.address?'<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Shipping Address</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+o.address+'</div></div>':'')
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Order Items ('+(o.items?o.items.length:0)+')</div>'
+        +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden">'
+          +'<thead><tr style="background:rgba(255,255,255,0.06)">'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">#</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">Product</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:center;color:var(--muted);letter-spacing:1px">Qty</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Price</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Total</th>'
+          +'</tr></thead>'
+          +'<tbody>'+rows+'</tbody>'
+        +'</table>'
+        +(box?'<div style="background:rgba(0,180,216,0.08);border:1px solid rgba(0,180,216,0.25);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px">'
+          +'<div style="color:var(--teal);font-weight:700;margin-bottom:8px">DHL Box '+box.num+' ('+box.dims+' cm · Max '+box.maxKg+'kg)</div>'
+        +'</div>':'')
+        +'<div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">'
+          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Products</span><span style="font-weight:600">'+o.totalProduct.toLocaleString()+'</span></div>'
+          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Shipping</span><span style="color:var(--teal);font-weight:600">'+o.shipping.toLocaleString()+'</span></div>'
+          +'<div style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;display:flex;justify-content:space-between;font-size:18px;color:var(--gold);font-weight:700"><span>Grand Total</span><span>'+o.total.toLocaleString()+'</span></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:8px">'
+          +(o.status==='pending'?'<button onclick="confirmAdminOrder('+i+');renderAdminOrders();closeOrderDetail();" style="flex:1;padding:12px;background:var(--success);border:none;border-radius:10px;color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:Nunito,sans-serif">Confirm Order</button>':'')
+          +'<button onclick="closeOrderDetail()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px">Close</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
+
+</script>
+</body>
+</html>  background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.25); border-radius:25px;
+  padding:8px 18px; font-size:13px; color:white; text-decoration:none;
+  transition:all 0.2s; font-weight:600;
+}
+.contact-chip:hover { background:rgba(255,255,255,0.25); transform:translateY(-2px); }
+.contact-icon { font-size:16px; }
+
+.landing-actions { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; animation:slideDown 0.8s ease 0.6s both; }
+.action-card {
+  background:rgba(255,255,255,0.1); backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.2); border-radius:20px;
+  padding:28px 36px; cursor:pointer; transition:all 0.3s; text-align:center;
+  min-width:200px;
+}
+.action-card:hover { background:rgba(255,255,255,0.2); transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.3); }
+.action-icon { font-size:40px; margin-bottom:12px; display:block; }
+.action-title { font-size:18px; font-weight:700; margin-bottom:4px; }
+.action-sub { font-size:12px; color:rgba(255,255,255,0.7); }
+
+.how-section {
+  position:relative; z-index:1;
+  max-width:700px; margin:0 auto; padding:48px 24px;
+  animation:slideDown 0.8s ease 0.8s both;
+}
+.how-title { font-family:'Playfair Display',serif; font-size:28px; text-align:center; margin-bottom:32px; color:var(--gold); }
+.how-steps { display:flex; flex-direction:column; gap:16px; }
+.how-step {
+  display:flex; align-items:flex-start; gap:16px;
+  background:rgba(255,255,255,0.08); border-radius:16px; padding:16px 20px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.step-num {
+  width:36px; height:36px; border-radius:50%; background:var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:16px; flex-shrink:0;
+}
+.step-text h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+.step-text p { font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5; }
+
+/* ===== LOGIN PAGE ===== */
+#login-page {
+  min-height:100vh;
+  background:linear-gradient(135deg, var(--g1), var(--g2), var(--g3));
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.login-card {
+  background:rgba(255,255,255,0.05); backdrop-filter:blur(20px);
+  border:1px solid var(--border); border-radius:24px;
+  padding:40px 36px; width:100%; max-width:420px;
+  text-align:center;
+}
+.login-logo { font-family:'Playfair Display',serif; font-size:36px; color:var(--gold); margin-bottom:8px; }
+.login-sub { color:var(--muted); font-size:14px; margin-bottom:32px; }
+.form-group { margin-bottom:16px; text-align:left; }
+.form-label { display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; font-weight:700; }
+.form-input {
+  width:100%; padding:12px 16px;
+  background:rgba(255,255,255,0.08); border:1px solid var(--border);
+  border-radius:12px; color:white; font-family:'Nunito',sans-serif; font-size:14px;
+  outline:none; transition:border-color 0.2s;
+}
+.form-input:focus { border-color:var(--teal); }
+.form-input::placeholder { color:var(--muted); }
+.submit-btn {
+  width:100%; padding:14px; margin-top:8px;
+  background:linear-gradient(135deg, var(--accent), var(--grad2));
+  border:none; border-radius:12px; color:white;
+  font-family:'Nunito',sans-serif; font-size:16px; font-weight:700;
+  cursor:pointer; transition:all 0.2s; letter-spacing:0.5px;
+}
+.submit-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.back-link { color:var(--muted); font-size:13px; margin-top:16px; cursor:pointer; display:inline-block; }
+.back-link:hover { color:var(--teal); }
+
+/* ===== SHOP PAGE ===== */
+#shop-page { background:var(--g1); padding-top:56px; }
+.shop-header {
+  background:linear-gradient(135deg, var(--g2), var(--g3));
+  padding:24px 20px; border-bottom:1px solid var(--border);
+}
+.shop-header-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.shop-title { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); }
+.user-badge {
+  background:rgba(255,255,255,0.08); border:1px solid var(--border);
+  border-radius:20px; padding:6px 14px; font-size:13px; color:var(--muted);
+  display:flex; align-items:center; gap:6px;
+}
+
+/* Search */
+.search-bar { position:relative; margin-top:16px; }
+.search-input {
+  width:100%; padding:12px 16px 12px 42px;
+  background:rgba(255,255,255,0.08); border:1px solid var(--border);
+  border-radius:12px; color:white; font-family:'Nunito',sans-serif; font-size:14px;
+  outline:none; transition:border-color 0.2s;
+}
+.search-input:focus { border-color:var(--teal); }
+.search-input::placeholder { color:var(--muted); }
+.search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:16px; }
+.search-results {
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:50;
+  background:var(--g2); border:1px solid var(--border); border-radius:12px;
+  overflow:hidden; max-height:300px; overflow-y:auto; display:none;
+}
+.search-result-item {
+  padding:10px 16px; cursor:pointer; transition:background 0.2s;
+  display:flex; justify-content:space-between; align-items:center; font-size:13px;
+}
+.search-result-item:hover { background:rgba(255,255,255,0.08); }
+.search-result-name { font-weight:600; }
+.search-result-price { color:var(--gold); font-size:12px; }
+
+/* Categories */
+.cat-scroll { display:flex; gap:8px; overflow-x:auto; padding:16px 20px; scrollbar-width:none; }
+.cat-scroll::-webkit-scrollbar { display:none; }
+.cat-chip {
+  flex-shrink:0; padding:7px 16px;
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  border-radius:20px; color:var(--muted); cursor:pointer; font-size:13px;
+  transition:all 0.2s; font-weight:600; white-space:nowrap;
+}
+.cat-chip.active, .cat-chip:hover { background:var(--accent); color:white; border-color:var(--accent); }
+
+/* Shop layout */
+.shop-layout { display:grid; grid-template-columns:1fr 320px; gap:0; height:calc(100vh - 56px); }
+@media(max-width:768px) { .shop-layout { grid-template-columns:1fr; height:auto; } }
+
+.products-area { overflow-y:auto; padding:16px 20px; }
+.products-grid { display:flex; flex-direction:column; gap:12px; }
+
+.product-card {
+  background:var(--card); border:1px solid var(--border); border-radius:16px;
+  overflow:hidden; transition:all 0.25s; display:flex; align-items:stretch;
+}
+.product-card:hover { border-color:var(--teal); box-shadow:0 6px 24px rgba(0,180,216,0.12); transform:translateX(2px); }
+.product-card.out-of-stock { opacity:0.55; }
+
+/* Product image - left side */
+.prod-img-wrap {
+  width:110px; min-width:110px; background:rgba(255,255,255,0.04);
+  display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
+}
+.prod-img-wrap img {
+  width:100%; height:100%; object-fit:cover;
+}
+.prod-img-placeholder {
+  font-size:40px; display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; min-height:100px;
+}
+
+/* Product body - right side */
+.prod-body { padding:12px 14px; flex:1; display:flex; flex-direction:column; justify-content:space-between; }
+.prod-top { flex:1; }
+.prod-name { font-size:14px; font-weight:700; margin-bottom:3px; line-height:1.3; }
+.prod-dims { font-size:11px; color:var(--muted); margin-bottom:2px; }
+.prod-weight { font-size:11px; color:var(--teal); margin-bottom:4px; }
+.prod-desc { font-size:11px; color:rgba(255,255,255,0.5); margin-bottom:6px; line-height:1.4; }
+.prod-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
+.prod-price { font-size:16px; color:var(--gold); font-weight:700; }
+.prod-price span { font-size:11px; color:var(--muted); font-weight:400; }
+
+.stock-tag { display:inline-block; font-size:10px; padding:2px 7px; border-radius:8px; margin-bottom:4px; font-weight:700; }
+.stock-tag.in { background:rgba(46,204,113,0.2); color:var(--success); }
+.stock-tag.out { background:rgba(231,76,60,0.2); color:var(--danger); }
+
+.add-btn {
+  padding:8px 16px; flex-shrink:0;
+  background:linear-gradient(135deg, var(--accent), var(--grad2));
+  border:none; border-radius:8px; color:white; cursor:pointer;
+  font-size:12px; font-weight:700; transition:all 0.2s;
+  font-family:'Nunito',sans-serif; white-space:nowrap;
+}
+.add-btn:hover { opacity:0.85; transform:scale(1.02); }
+.add-btn:disabled { background:rgba(255,255,255,0.1); color:var(--muted); cursor:not-allowed; transform:none; }
+
+
+
+/* ===== CURRENCY TOGGLE ===== */
+.currency-bar {
+  display:flex; align-items:center; gap:8px; padding:8px 20px;
+  background:rgba(255,255,255,0.02); border-bottom:1px solid var(--border);
+  justify-content:flex-end; font-size:12px;
+}
+.currency-rate-info { color:var(--muted); font-size:11px; }
+.currency-rate-info span { color:var(--teal); font-weight:700; }
+.currency-toggle {
+  display:flex; border:1px solid var(--border); border-radius:20px; overflow:hidden;
+}
+.curr-btn {
+  padding:5px 14px; border:none; background:transparent; color:var(--muted);
+  cursor:pointer; font-size:12px; font-weight:700; transition:all 0.2s;
+  font-family:'Nunito',sans-serif;
+}
+.curr-btn.active { background:var(--gold); color:var(--g1); }
+.rate-loading { color:var(--muted); font-size:11px; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+/* ===== BOX VISUAL INDICATOR ===== */
+.box-visual-panel {
+  padding:14px 16px; border-top:1px solid var(--border);
+  background:rgba(255,255,255,0.02);
+}
+.box-visual-title {
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; font-weight:700; margin-bottom:10px;
+}
+.box-visual-wrap {
+  display:flex; align-items:center; gap:12px;
+}
+.box-icon-wrap {
+  position:relative; flex-shrink:0;
+}
+.box-svg { transition:all 0.3s; }
+.box-fill-bar {
+  position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+  width:36px; border-radius:2px; transition:all 0.4s ease;
+}
+.box-visual-info { flex:1; min-width:0; }
+.box-visual-name {
+  font-size:13px; font-weight:700; margin-bottom:6px;
+  display:flex; align-items:center; gap:6px;
+}
+.progress-row { margin-bottom:5px; }
+.progress-label {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:var(--muted); margin-bottom:3px;
+}
+.progress-track {
+  height:6px; background:rgba(255,255,255,0.08);
+  border-radius:3px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; border-radius:3px; transition:width 0.4s ease, background 0.3s;
+}
+.box-alert {
+  margin-top:8px; padding:8px 10px; border-radius:8px;
+  font-size:12px; font-weight:600; line-height:1.4;
+  display:none;
+}
+.box-alert.show { display:block; }
+.box-alert.ok { background:rgba(46,204,113,0.15); color:var(--success); border:1px solid rgba(46,204,113,0.3); }
+.box-alert.warn { background:rgba(243,156,18,0.15); color:var(--warning); border:1px solid rgba(243,156,18,0.3); }
+.box-alert.danger { background:rgba(231,76,60,0.15); color:var(--danger); border:1px solid rgba(231,76,60,0.3); }
+/* ===== BOX SELECTOR ===== */
+.box-mode-toggle {
+  display:flex; gap:8px; padding:12px 20px;
+  background:rgba(255,255,255,0.03); border-bottom:1px solid var(--border);
+}
+.mode-btn {
+  flex:1; padding:10px; border:1px solid var(--border);
+  background:transparent; color:var(--muted); border-radius:10px;
+  cursor:pointer; font-family:'Nunito',sans-serif; font-size:13px; font-weight:700;
+  transition:all 0.2s;
+}
+.mode-btn.active { background:var(--teal); color:white; border-color:var(--teal); }
+
+.box-picker { padding:12px 20px; border-bottom:1px solid var(--border); }
+.box-picker-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:700; }
+.box-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.box-option {
+  padding:8px 4px; border:1px solid var(--border); border-radius:10px;
+  text-align:center; cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.03);
+}
+.box-option:hover { border-color:var(--teal); }
+.box-option.selected { background:var(--teal); border-color:var(--teal); }
+.box-option .box-num { font-size:14px; font-weight:700; }
+.box-option .box-kg { font-size:10px; color:var(--muted); }
+.box-option.selected .box-kg { color:rgba(255,255,255,0.8); }
+
+/* ===== CART PANEL ===== */
+.cart-panel {
+  background:var(--g2); border-left:1px solid var(--border);
+  display:flex; flex-direction:column; height:calc(100vh - 56px);
+  position:sticky; top:56px;
+}
+.cart-header { padding:16px 20px; border-bottom:1px solid var(--border); }
+.cart-title { font-family:'Playfair Display',serif; font-size:18px; color:var(--gold); }
+
+.cart-items { flex:1; overflow-y:auto; padding:12px; }
+.cart-empty { text-align:center; color:var(--muted); padding:40px 0; font-size:13px; }
+.cart-item {
+  display:flex; align-items:center; gap:8px;
+  padding:10px; background:rgba(255,255,255,0.04); border-radius:12px;
+  margin-bottom:8px; border:1px solid var(--border);
+}
+.cart-emoji { font-size:24px; }
+.cart-info { flex:1; min-width:0; }
+.cart-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cart-sub { font-size:11px; color:var(--muted); }
+.cart-qty-ctrl { display:flex; align-items:center; gap:4px; }
+.qty-btn {
+  width:22px; height:22px; border:1px solid var(--border);
+  background:rgba(255,255,255,0.05); color:white; border-radius:6px;
+  cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s;
+}
+.qty-btn:hover { background:var(--accent); border-color:var(--accent); }
+.cart-price { font-size:12px; color:var(--gold); font-weight:700; text-align:right; }
+
+/* Summary */
+.cart-summary { padding:16px; border-top:1px solid var(--border); }
+.sum-row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; color:var(--muted); }
+.sum-row span:last-child { color:white; font-weight:600; }
+.sum-row.grand { font-size:16px; color:var(--gold); font-weight:700; border-top:1px solid var(--border); padding-top:8px; margin-top:4px; }
+.sum-row.grand span:last-child { color:var(--gold); }
+
+/* Packing Status */
+.packing-status {
+  margin:12px 16px; padding:12px; border-radius:12px; font-size:12px;
+}
+.packing-ok { background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.3); color:var(--success); }
+.packing-warn { background:rgba(243,156,18,0.15); border:1px solid rgba(243,156,18,0.3); color:var(--warning); }
+.packing-error { background:rgba(231,76,60,0.15); border:1px solid rgba(231,76,60,0.3); color:var(--danger); }
+.packing-title { font-weight:700; margin-bottom:4px; font-size:13px; }
+.packing-detail { line-height:1.5; }
+
+.checkout-btn {
+  width:100%; padding:14px;
+  background:linear-gradient(135deg, var(--accent), var(--grad2));
+  border:none; border-radius:12px; color:white;
+  font-family:'Nunito',sans-serif; font-size:15px; font-weight:700;
+  cursor:pointer; transition:all 0.2s; margin:0 16px 16px; width:calc(100% - 32px);
+}
+.checkout-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.checkout-btn:disabled { background:rgba(255,255,255,0.1); color:var(--muted); cursor:not-allowed; transform:none; }
+
+/* ===== ORDER SUMMARY PAGE ===== */
+#order-page { background:var(--g1); padding-top:56px; min-height:100vh; }
+.order-container { max-width:700px; margin:0 auto; padding:24px 20px; }
+.order-card {
+  background:var(--g2); border:1px solid var(--border); border-radius:20px; overflow:hidden;
+}
+.order-header { background:linear-gradient(135deg, var(--grad1), var(--grad2)); padding:28px 28px; }
+.order-shop { font-family:'Playfair Display',serif; font-size:24px; color:var(--gold); margin-bottom:4px; }
+.order-num { font-size:13px; color:rgba(255,255,255,0.7); }
+.order-body { padding:28px; }
+.order-customer { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+.order-field label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+.order-field p { font-size:14px; font-weight:600; margin-top:2px; }
+
+.order-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.order-table th { background:rgba(255,255,255,0.05); padding:10px 12px; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); text-align:left; }
+.order-table td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+
+.order-totals { background:rgba(255,255,255,0.03); border-radius:12px; padding:16px; margin-bottom:20px; }
+.total-row { display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; }
+.total-row span:last-child { font-weight:600; }
+.total-row.grand-total { font-size:18px; color:var(--gold); font-weight:700; border-top:1px solid var(--border); padding-top:10px; margin-top:4px; }
+
+.dhl-info-box {
+  background:rgba(0,180,216,0.1); border:1px solid rgba(0,180,216,0.3);
+  border-radius:12px; padding:16px; margin-bottom:20px; font-size:13px;
+}
+.dhl-info-title { font-weight:700; color:var(--teal); margin-bottom:8px; }
+.dhl-row { display:flex; justify-content:space-between; margin-bottom:4px; }
+.dhl-row span:last-child { font-weight:600; }
+
+.packing-result {
+  border-radius:12px; padding:14px; margin-bottom:20px; font-size:13px;
+}
+.order-actions { display:flex; flex-direction:column; gap:8px; }
+.confirm-btn {
+  width:100%; padding:14px; background:linear-gradient(135deg, var(--success), #27ae60);
+  border:none; border-radius:12px; color:white; font-family:'Nunito',sans-serif;
+  font-size:15px; font-weight:700; cursor:pointer; transition:all 0.2s;
+}
+.edit-order-btn {
+  width:100%; padding:12px; background:transparent;
+  border:1px solid var(--border); border-radius:12px; color:var(--muted);
+  font-family:'Nunito',sans-serif; font-size:14px; cursor:pointer;
+}
+.confirmed-badge {
+  text-align:center; padding:16px; font-size:14px; color:var(--success); font-weight:700;
+  background:rgba(46,204,113,0.1); border-radius:12px; border:1px solid rgba(46,204,113,0.3);
+}
+
+/* ===== ADMIN PAGE ===== */
+#admin-page { background:var(--g1); padding-top:56px; min-height:100vh; }
+.admin-container { max-width:1100px; margin:0 auto; padding:24px 20px; }
+.admin-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+.admin-tab {
+  padding:8px 20px; border:1px solid var(--border); background:transparent;
+  color:var(--muted); cursor:pointer; border-radius:20px; font-family:'Nunito',sans-serif;
+  font-size:13px; font-weight:700; transition:all 0.2s;
+}
+.admin-tab.active { background:var(--accent); color:white; border-color:var(--accent); }
+.admin-section { display:none; }
+.admin-section.active { display:block; }
+
+.admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.admin-title { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); }
+.add-btn-admin {
+  padding:10px 24px; background:var(--accent); color:white;
+  border:none; border-radius:20px; cursor:pointer; font-family:'Nunito',sans-serif;
+  font-size:13px; font-weight:700; transition:background 0.2s;
+}
+.add-btn-admin:hover { background:#c73652; }
+
+.admin-table-wrap { background:var(--g2); border:1px solid var(--border); border-radius:16px; overflow:hidden; overflow-x:auto; }
+.admin-table { width:100%; border-collapse:collapse; min-width:700px; }
+.admin-table th { background:rgba(255,255,255,0.05); padding:12px 16px; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); text-align:left; white-space:nowrap; }
+.admin-table td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+.admin-table tr:last-child td { border-bottom:none; }
+.edit-btn-sm, .del-btn-sm { padding:5px 12px; border:none; border-radius:8px; cursor:pointer; font-size:12px; font-family:'Nunito',sans-serif; font-weight:700; margin-right:4px; transition:all 0.2s; }
+.edit-btn-sm { background:rgba(0,180,216,0.2); color:var(--teal); }
+.del-btn-sm { background:rgba(231,76,60,0.2); color:var(--danger); }
+.edit-btn-sm:hover { background:var(--teal); color:white; }
+.del-btn-sm:hover { background:var(--danger); color:white; }
+
+/* DHL Shipping Config */
+.shipping-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+.shipping-card {
+  background:var(--g2); border:1px solid var(--border); border-radius:16px; padding:20px;
+}
+.shipping-box-num { font-family:'Playfair Display',serif; font-size:22px; color:var(--gold); margin-bottom:4px; }
+.shipping-dims { font-size:12px; color:var(--muted); margin-bottom:12px; }
+.shipping-kg { font-size:13px; color:var(--teal); font-weight:700; margin-bottom:12px; }
+.shipping-price-input {
+  width:100%; padding:10px 12px;
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  border-radius:10px; color:white; font-family:'Nunito',sans-serif; font-size:14px;
+  outline:none; transition:border-color 0.2s;
+}
+.shipping-price-input:focus { border-color:var(--gold); }
+.shipping-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; display:block; font-weight:700; }
+
+/* Orders admin */
+.order-admin-card {
+  background:var(--g2); border:1px solid var(--border); border-radius:16px;
+  padding:20px; margin-bottom:12px;
+}
+.order-admin-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+.order-status { padding:4px 12px; border-radius:12px; font-size:12px; font-weight:700; }
+.status-pending { background:rgba(243,156,18,0.2); color:var(--warning); }
+.status-confirmed { background:rgba(46,204,113,0.2); color:var(--success); }
+.confirm-order-btn {
+  padding:8px 16px; background:var(--success); color:white;
+  border:none; border-radius:10px; cursor:pointer; font-size:12px; font-weight:700;
+  font-family:'Nunito',sans-serif; transition:background 0.2s;
+}
+.confirm-order-btn:hover { background:#27ae60; }
+
+/* Modal */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--g2); border:1px solid var(--border); border-radius:20px;
+  padding:28px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto;
+}
+.modal-title { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); margin-bottom:20px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal-actions { display:flex; gap:8px; margin-top:20px; }
+.save-btn { flex:1; padding:12px; background:var(--accent); color:white; border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:700; font-family:'Nunito',sans-serif; }
+.cancel-btn { flex:1; padding:12px; background:rgba(255,255,255,0.06); color:var(--muted); border:none; border-radius:10px; cursor:pointer; font-size:14px; font-family:'Nunito',sans-serif; }
+
+/* Brand settings */
+.settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:600px) { .settings-grid { grid-template-columns:1fr; } }
+.settings-card { background:var(--g2); border:1px solid var(--border); border-radius:16px; padding:24px; }
+.settings-card h3 { font-size:15px; font-weight:700; margin-bottom:16px; color:var(--teal); }
+.color-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.color-label { font-size:13px; color:var(--muted); flex:1; }
+.color-picker { width:40px; height:32px; border:none; border-radius:8px; cursor:pointer; background:none; padding:2px; }
+.save-settings-btn {
+  width:100%; padding:12px; background:var(--gold); color:var(--g1);
+  border:none; border-radius:10px; cursor:pointer; font-size:14px; font-weight:700;
+  font-family:'Nunito',sans-serif; margin-top:12px; transition:opacity 0.2s;
+}
+.save-settings-btn:hover { opacity:0.85; }
+
+/* Preview */
+.landing-preview {
+  border-radius:12px; overflow:hidden; margin-top:16px; border:1px solid var(--border);
+}
+.preview-hero { padding:24px; text-align:center; }
+.preview-name { font-family:'Playfair Display',serif; font-size:28px; color:var(--gold); }
+
+/* ===== ADMIN LOGIN PAGE ===== */
+#admin-login-page {
+  min-height:100vh;
+  background:linear-gradient(135deg, var(--g1) 0%, #0a0a1a 50%, var(--g3) 100%);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.admin-login-card {
+  background:rgba(255,255,255,0.04); backdrop-filter:blur(20px);
+  border:1px solid rgba(245,166,35,0.2); border-radius:24px;
+  padding:40px 36px; width:100%; max-width:420px; text-align:center;
+  box-shadow: 0 0 60px rgba(245,166,35,0.08);
+}
+.admin-login-icon { font-size:48px; margin-bottom:12px; }
+.admin-login-title { font-family:'Playfair Display',serif; font-size:26px; color:var(--gold); margin-bottom:4px; }
+.admin-login-sub { color:var(--muted); font-size:13px; margin-bottom:28px; }
+.admin-login-error {
+  background:rgba(231,76,60,0.15); border:1px solid rgba(231,76,60,0.3);
+  color:var(--danger); border-radius:10px; padding:10px 14px;
+  font-size:13px; margin-bottom:16px; display:none;
+}
+.password-wrapper { position:relative; }
+.toggle-pass {
+  position:absolute; right:14px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:var(--muted); font-size:16px;
+}
+
+
+/* ===== ORDER REVIEW MODAL ===== */
+.order-modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
+  z-index:3000; align-items:center; justify-content:center; padding:16px;
+  backdrop-filter:blur(4px);
+}
+.order-modal-overlay.open { display:flex; }
+.order-modal {
+  background:var(--g2); border:1px solid var(--border); border-radius:20px;
+  width:100%; max-width:620px; max-height:92vh; overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5);
+}
+.order-modal-header {
+  background:linear-gradient(135deg, var(--grad1), var(--grad2));
+  padding:24px 28px; position:sticky; top:0; z-index:1; border-radius:20px 20px 0 0;
+}
+.order-modal-shop { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); margin-bottom:2px; }
+.order-modal-num { font-size:12px; color:rgba(255,255,255,0.6); }
+.order-modal-body { padding:24px 28px; }
+.order-modal-customer {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;
+  background:rgba(255,255,255,0.03); border-radius:12px; padding:14px;
+}
+.ocf label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+.ocf p { font-size:14px; font-weight:600; margin-top:2px; }
+.order-items-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.order-items-table thead tr { background:rgba(255,255,255,0.06); }
+.order-items-table th { padding:10px 12px; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); text-align:left; font-weight:700; }
+.order-items-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:13px; vertical-align:middle; }
+.order-items-table tr:last-child td { border-bottom:none; }
+.item-num { color:var(--muted); font-size:12px; font-weight:700; }
+.item-name { font-weight:600; }
+.item-unit { color:var(--muted); font-size:11px; }
+.item-qty { color:var(--teal); font-weight:700; text-align:center; }
+.item-subtotal { color:var(--gold); font-weight:700; text-align:right; }
+.order-totals-box {
+  background:rgba(255,255,255,0.04); border:1px solid var(--border);
+  border-radius:12px; padding:16px; margin-bottom:16px;
+}
+.ot-row { display:flex; justify-content:space-between; padding:5px 0; font-size:13px; color:var(--muted); }
+.ot-row span:last-child { color:white; font-weight:600; }
+.ot-row.divider { border-top:1px solid var(--border); margin-top:6px; padding-top:10px; }
+.ot-row.grand { font-size:17px; color:var(--gold); font-weight:700; }
+.ot-row.grand span:last-child { color:var(--gold); }
+.order-dhl-info {
+  background:rgba(0,180,216,0.08); border:1px solid rgba(0,180,216,0.25);
+  border-radius:12px; padding:14px; margin-bottom:16px; font-size:13px;
+}
+.order-dhl-info strong { color:var(--teal); display:block; margin-bottom:6px; font-size:13px; }
+.dhl-detail-row { display:flex; justify-content:space-between; margin-bottom:3px; }
+.dhl-detail-row span:last-child { font-weight:600; }
+.order-packing-status {
+  border-radius:10px; padding:10px 14px; margin-bottom:20px; font-size:13px; font-weight:600;
+}
+.order-modal-actions { display:flex; flex-direction:column; gap:8px; }
+.btn-confirm-dl {
+  width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-size:15px; font-weight:700; transition:all 0.2s;
+  background:linear-gradient(135deg, var(--success), #27ae60); color:white;
+}
+.btn-confirm-dl:hover { opacity:0.9; transform:translateY(-1px); }
+.btn-cancel-order {
+  width:100%; padding:11px; border:1px solid var(--border); border-radius:12px;
+  background:transparent; color:var(--muted); cursor:pointer;
+  font-family:'Nunito',sans-serif; font-size:13px;
+}
+.confirmed-dl-box {
+  text-align:center; padding:20px;
+  background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3);
+  border-radius:12px; color:var(--success);
+}
+.btn-download {
+  display:inline-block; margin-top:12px; padding:12px 28px;
+  background:var(--gold); color:var(--g1); border:none; border-radius:10px;
+  cursor:pointer; font-size:14px; font-weight:700; font-family:'Nunito',sans-serif;
+  transition:opacity 0.2s; text-decoration:none;
+}
+.btn-download:hover { opacity:0.85; }
+
+
+/* ===== ADDRESS POPUP ===== */
+.addr-overlay {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8);
+  z-index:8000; align-items:center; justify-content:center; padding:16px;
+  backdrop-filter:blur(6px);
+}
+.addr-overlay.open { display:flex; }
+.addr-modal {
+  background:var(--g2); border:1px solid var(--border); border-radius:20px;
+  width:100%; max-width:480px; max-height:90vh; overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5);
+}
+.addr-header {
+  background:linear-gradient(135deg,var(--grad1),var(--grad2));
+  padding:18px 24px; border-radius:20px 20px 0 0;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.addr-header-title { font-family:'Playfair Display',serif; font-size:18px; color:var(--gold); }
+.addr-body { padding:24px; }
+.addr-step {
+  display:none;
+}
+.addr-step.active { display:block; }
+.addr-step-label {
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; font-weight:700; margin-bottom:16px;
+  padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.country-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:16px;
+  max-height:360px; overflow-y:auto;
+}
+.country-option {
+  padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+  cursor:pointer; transition:all 0.2s; font-size:13px; font-weight:600;
+  background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:8px;
+}
+.country-option:hover, .country-option.selected {
+  background:var(--teal); border-color:var(--teal); color:white;
+}
+.country-search {
+  width:100%; padding:10px 14px; background:rgba(255,255,255,0.08);
+  border:1px solid var(--border); border-radius:10px; color:white;
+  font-family:'Nunito',sans-serif; font-size:13px; outline:none;
+  margin-bottom:12px;
+}
+.country-search:focus { border-color:var(--teal); }
+.postal-result {
+  background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.3);
+  border-radius:10px; padding:12px 14px; margin-top:10px; font-size:13px;
+  display:none;
+}
+.postal-result.show { display:block; }
+.city-option {
+  padding:8px 12px; border:1px solid var(--border); border-radius:8px;
+  cursor:pointer; margin-bottom:6px; font-size:13px; font-weight:600;
+  transition:all 0.2s; background:rgba(255,255,255,0.03);
+}
+.city-option:hover, .city-option.selected { background:var(--teal); border-color:var(--teal); }
+.addr-progress {
+  display:flex; gap:6px; margin-bottom:20px;
+}
+.addr-dot {
+  flex:1; height:4px; border-radius:2px; background:rgba(255,255,255,0.1);
+  transition:background 0.3s;
+}
+.addr-dot.done { background:var(--teal); }
+.addr-dot.active { background:var(--gold); }
+.addr-nav { display:flex; gap:8px; margin-top:20px; }
+.addr-next-btn {
+  flex:1; padding:12px; background:var(--teal); border:none; border-radius:10px;
+  color:white; cursor:pointer; font-size:14px; font-weight:700;
+  font-family:'Nunito',sans-serif; transition:opacity 0.2s;
+}
+.addr-next-btn:hover { opacity:0.85; }
+.addr-back-btn {
+  padding:12px 20px; background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  border-radius:10px; color:var(--muted); cursor:pointer; font-size:13px;
+  font-family:'Nunito',sans-serif;
+}
+.addr-save-btn {
+  flex:1; padding:12px; background:linear-gradient(135deg,var(--success),#27ae60);
+  border:none; border-radius:10px; color:white; cursor:pointer;
+  font-size:14px; font-weight:700; font-family:'Nunito',sans-serif;
+}
+.addr-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(0,180,216,0.15); border:1px solid rgba(0,180,216,0.3);
+  border-radius:20px; padding:5px 12px; font-size:12px; color:var(--teal);
+  font-weight:700; cursor:pointer; transition:all 0.2s; margin-left:8px;
+}
+.addr-badge:hover { background:rgba(0,180,216,0.3); }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--g3); border:1px solid var(--teal); color:white;
+  padding:10px 24px; border-radius:25px; font-size:13px; font-weight:600;
+  opacity:0; transition:all 0.3s; z-index:9999; white-space:nowrap;
+  pointer-events:none;
+}
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+@media(max-width:768px) {
+  .form-row { grid-template-columns:1fr; }
+  .order-customer { grid-template-columns:1fr; }
+  .settings-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav" style="display:none">
+  <div class="nav-brand" id="navBrand">K&R Thailand Shop</div>
+  <div class="nav-menu">
+    <button class="nav-btn active" onclick="showPage('landing')" data-th="หน้าแรก" data-en="Home">Home</button>
+    <button class="nav-btn" onclick="requireLogin()" data-th="สั่งสินค้า" data-en="Order">Order</button>
+    <button class="nav-btn" onclick="requireAdmin()" data-th="หลังบ้าน" data-en="Admin">Admin</button>
+  </div>
+  <div class="lang-switch">
+    <button class="lang-btn" onclick="setLang('th')">TH</button>
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<!-- ===== LANDING PAGE ===== -->
+<div id="landing-page" class="page active">
+  <div class="landing-particles" id="particles"></div>
+  <div class="landing-content">
+    <div class="landing-logo" id="heroLogo">K&R</div>
+    <div class="landing-tagline" id="heroTagline">Thailand Shop</div>
+    <div class="contact-bar">
+      <a class="contact-chip" href="https://line.me/ti/p/@krthailandshop" target="_blank">
+        <span class="contact-icon">💬</span> Line: @krthailandshop
+      </a>
+      <a class="contact-chip" href="https://wa.me/66638068809" target="_blank">
+        <span class="contact-icon">📱</span> WhatsApp: +66638068809
+      </a>
+      <a class="contact-chip" href="https://www.facebook.com/share/1DG8MaGKjL/" target="_blank">
+        <span class="contact-icon">📘</span> Facebook
+      </a>
+    </div>
+    <div class="landing-actions">
+      <div class="action-card" onclick="requireLogin()">
+        <span class="action-icon">🛍️</span>
+        <div class="action-title" data-th="สั่งสินค้า" data-en="Order Now">Order Now</div>
+        <div class="action-sub" data-th="เลือกสินค้าและคำนวณราคา" data-en="Browse & calculate instantly">Browse & calculate instantly</div>
+      </div>
+      <div class="action-card" onclick="scrollToHow()">
+        <span class="action-icon">📋</span>
+        <div class="action-title" data-th="วิธีสั่งสินค้า" data-en="How to Order">How to Order</div>
+        <div class="action-sub" data-th="ขั้นตอนง่ายๆ 4 ขั้นตอน" data-en="Simple 4-step process">Simple 4-step process</div>
+      </div>
+    </div>
+  </div>
+  <div class="how-section" id="howSection">
+    <div class="how-title" data-th="วิธีการสั่งสินค้า" data-en="How to Order">How to Order</div>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <h4 data-th="ลงทะเบียน" data-en="Register">Register</h4>
+          <p data-th="กรอกชื่อและเบอร์โทรของคุณ" data-en="Enter your name and phone number">Enter your name and phone number</p>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <h4 data-th="เลือกสินค้าและกล่อง DHL" data-en="Select Products & DHL Box">Select Products & DHL Box</h4>
+          <p data-th="ระบบจะคำนวณน้ำหนักและขนาดให้อัตโนมัติ" data-en="System auto-calculates weight & volume">System auto-calculates weight & volume</p>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <h4 data-th="ตรวจสอบใบสั่งซื้อ" data-en="Review Your Order">Review Your Order</h4>
+          <p data-th="ดูยอดรวมสินค้า + ค่าขนส่ง" data-en="See total price + shipping cost">See total price + shipping cost</p>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <div class="step-text">
+          <h4 data-th="โอนเงินและแจ้งสลิป" data-en="Transfer & Send Slip">Transfer & Send Slip</h4>
+          <p data-th="ส่งสลิปผ่าน Line หรือ WhatsApp" data-en="Send your payment slip via Line or WhatsApp">Send your payment slip via Line or WhatsApp</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CLOSED PAGE ===== -->
+<div id="closed-page" class="page">
+  <div style="min-height:100vh;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;">
+    <div>
+      <div style="font-size:80px;margin-bottom:24px">🔧</div>
+      <div style="font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);margin-bottom:12px" id="closedTitle">ระหว่างปรับปรุงร้าน</div>
+      <div style="font-size:16px;color:var(--muted);margin-bottom:8px">We're updating our store</div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:32px" id="closedMsg">กรุณากลับมาใหม่ภายหลัง · Please check back soon</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;">
+        <a href="https://line.me/ti/p/@krthailandshop" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:25px;padding:10px 20px;color:white;text-decoration:none;font-size:14px;font-weight:600">💬 Line: @krthailandshop</a>
+        <a href="https://wa.me/66638068809" target="_blank" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:25px;padding:10px 20px;color:white;text-decoration:none;font-size:14px;font-weight:600">📱 WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="login-page" class="page">
+  <div style="min-height:100vh; background:linear-gradient(135deg, var(--g1), var(--g3)); display:flex; align-items:center; justify-content:center; padding:20px;">
+    <div class="login-card">
+      <div class="login-logo">K&R</div>
+      <div class="login-sub" data-th="กรอกชื่อและเบอร์โทรเพื่อสั่งซื้อ" data-en="Enter your name & phone to continue">Enter your name & phone to continue</div>
+      <div class="form-group">
+        <label class="form-label" data-th="ชื่อ-นามสกุล" data-en="Full Name">Full Name</label>
+        <input type="text" id="loginName" class="form-input" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-th="เบอร์โทรศัพท์" data-en="Phone Number">Phone Number</label>
+        <input type="tel" id="loginPhone" class="form-input" placeholder="+66 xxx xxx xxxx">
+      </div>
       <div class="form-group">
         <label class="form-label">🌍 Country / ประเทศ</label>
         <select id="loginCountry" class="form-input">
