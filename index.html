@@ -813,6 +813,25 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:var(--white)
         <label class="form-label" data-th="เบอร์โทรศัพท์" data-en="Phone Number">Phone Number</label>
         <input type="tel" id="loginPhone" class="form-input" placeholder="+66 xxx xxx xxxx">
       </div>
+      <div class="form-group">
+        <label class="form-label">🌍 Country / ประเทศ</label>
+        <select id="loginCountry" class="form-input">
+          <option value="">-- Select Country --</option>
+          <option>Australia</option><option>Belgium</option><option>Canada</option>
+          <option>China</option><option>France</option><option>Germany</option>
+          <option>Hong Kong</option><option>India</option><option>Indonesia</option>
+          <option>Italy</option><option>Japan</option><option>Malaysia</option>
+          <option>Netherlands</option><option>New Zealand</option><option>Norway</option>
+          <option>Philippines</option><option>Singapore</option><option>South Korea</option>
+          <option>Spain</option><option>Sweden</option><option>Switzerland</option>
+          <option>Taiwan</option><option>Thailand</option><option>United Kingdom</option>
+          <option>United States</option><option>Vietnam</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📫 Shipping Address / ที่อยู่จัดส่ง</label>
+        <textarea id="loginAddress" class="form-input" rows="3" placeholder="House No., Street, City, Postal Code" style="resize:vertical;min-height:80px;line-height:1.5"></textarea>
+      </div>
       <button class="submit-btn" onclick="doLogin()">
         <span data-th="เข้าสู่ระบบ" data-en="Continue to Shop">Continue to Shop</span>
       </button>
@@ -1189,6 +1208,8 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:var(--white)
         <div class="ocf"><label>📱 เบอร์โทร / Phone</label><p id="omPhone">-</p></div>
         <div class="ocf"><label>📅 วันที่ / Date</label><p id="omDate">-</p></div>
         <div class="ocf"><label>📦 กล่อง DHL / Box</label><p id="omBox" style="color:var(--teal)">-</p></div>
+        <div class="ocf" style="grid-column:1/-1"><label>🌍 Country</label><p id="omCountry" style="color:var(--teal)">-</p></div>
+        <div class="ocf" style="grid-column:1/-1"><label>📫 Shipping Address / ที่อยู่จัดส่ง</label><p id="omAddress" style="line-height:1.7;white-space:pre-wrap;font-size:13px">-</p></div>
       </div>
 
       <table class="order-items-table">
@@ -1465,8 +1486,12 @@ function logout() { currentUser=null; showPage('landing'); }
 function doLogin() {
   const name = document.getElementById('loginName').value.trim();
   const phone = document.getElementById('loginPhone').value.trim();
+  const country = document.getElementById('loginCountry').value.trim();
+  const address = document.getElementById('loginAddress').value.trim();
   if(!name || !phone) { showToast('Please fill in all fields'); return; }
-  currentUser = { name, phone };
+  if(!country) { showToast('Please select your country'); return; }
+  if(!address) { showToast('Please enter shipping address'); return; }
+  currentUser = { name, phone, country, address };
   document.getElementById('userBadge').textContent = name;
   cart = {};
   renderProducts();
@@ -1834,6 +1859,8 @@ function openOrderModal() {
   document.getElementById('omPhone').textContent = currentUser.phone;
   document.getElementById('omDate').textContent = now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
   document.getElementById('omBox').textContent = box ? `Box ${box.num} — ${box.dims} cm · Max ${box.maxKg}kg` : '-';
+  document.getElementById('omCountry').textContent = currentUser.country || '-';
+  document.getElementById('omAddress').textContent = currentUser.address || '-';
 
   // Items table
   let itemsHTML = '';
@@ -1903,6 +1930,7 @@ function confirmAndDownload() {
   const d = window._orderData;
   if(!d) return;
   orders.push({ num:d.orderNum, customer:d.customer.name, phone:d.customer.phone,
+    country:d.customer.country||'', address:d.customer.address||'',
     items:d.items, box:d.box?.num, totalProduct:d.totalProduct, shipping:d.shipping,
     total:d.total, status:'confirmed', date:new Date().toLocaleDateString() });
 
@@ -2157,6 +2185,7 @@ function renderAdminOrders() {
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="order-status status-${o.status}">${o.status==='confirmed'?'✓ Confirmed':'⏳ Pending'}</span>
+          <button onclick="viewOrderDetail(${i})" style="padding:6px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
           ${o.status==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${i})">Confirm</button>`:''}
         </div>
       </div>
@@ -2357,102 +2386,124 @@ setLang('en');
 // Update rate display on load
 updateRateDisplay();
 
-// ==========================================
-// ส่วนเชื่อมต่อ GOOGLE SHEETS (วางแทนที่ของเดิม)
-// ==========================================
+// GOOGLE SHEETS INTEGRATION
+const scriptURL = 'https://script.google.com/macros/s/AKfycbw6SFf0UPL6-ofjdTDKltcBDR2gqCshkS4WtTUX0hvAulWzh3uzFGdfJVisEkDTlt6z/exec';
 
-// 1. นำ URL ใหม่ที่คุณได้มาวางในเครื่องหมาย ' ' ด้านล่างนี้ครับ
-const scriptURL = 'https://script.google.com/macros/s/AKfycbw6SFf0UPL6-ofjdTDKltcBDR2gqCshkS4WtTUX0hvAulWzh3uzFGdfJVisEkDTlt6z/exec'; 
-
-// ฟังก์ชันดึงข้อมูลสินค้าจาก Sheet มาโชว์หน้าเว็บ
 async function loadProductsFromSheet() {
-    try {
-        const response = await fetch(scriptURL);
-        const data = await response.json();
-        if (data && data.length > 0) {
-            // แมพข้อมูลให้ตรงกับรูปแบบที่หน้าเว็บใช้
-            products = data.map(p => ({
-                id: p.id,
-                nameTH: p.nameTH,
-                nameEN: p.nameEN,
-                price: parseFloat(p.price),
-                weight: parseFloat(p.weight),
-                stock: parseInt(p.stock),
-                category: p.category,
-                emoji: p.emoji,
-                w: 5, l: 5, h: 5, status: 'active' // ค่าเริ่มต้นสำหรับขนาด
-            }));
-            renderProducts();
-            if (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn) renderAdminProducts();
-        }
-    } catch (err) { console.error("โหลดข้อมูลไม่สำเร็จ:", err); }
+  try {
+    const resp = await fetch(scriptURL);
+    const data = await resp.json();
+    if (data && data.length > 0) {
+      products = data.map(p => ({
+        id: p.id, nameTH: p.nameTH, nameEN: p.nameEN,
+        price: parseFloat(p.price)||0, weight: parseFloat(p.weight)||0,
+        stock: parseInt(p.stock)||0, category: p.category||'Other',
+        emoji: p.emoji||'📦', w: parseFloat(p.w)||5, l: parseFloat(p.l)||5,
+        h: parseFloat(p.h)||5, status: p.status||'active',
+        descTH: p.descTH||'', descEN: p.descEN||''
+      }));
+      renderProducts();
+      if (isAdminLoggedIn) renderAdminProducts();
+    }
+  } catch (e) { console.error('Sheet load failed:', e); }
 }
 
-// ฟังก์ชันส่งออร์เดอร์เข้า Sheet
-async function saveOrderToSheet(orderData) {
-    const payload = {
-        type: "Orders",
-        orderNum: orderData.orderNum,
-        name: orderData.customer.name,
-        phone: orderData.customer.phone,
-        items: orderData.items.map(i => (i.product.nameEN || i.product.nameTH) + " x" + i.qty).join(", "),
-        total: orderData.total
-    };
-    fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+async function saveOrderToSheet(d) {
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({
+    type:'Orders', orderNum:d.orderNum, name:d.customer.name, phone:d.customer.phone,
+    country:d.customer.country||'', address:d.customer.address||'',
+    items:d.items.map(i=>(i.product.nameEN||i.product.nameTH)+' x'+i.qty).join(', '),
+    total:d.total, shipping:d.shipping
+  })});
 }
 
-// ฟังก์ชันส่งข้อมูลการอัปเดตสินค้าทั้งหมดจาก Admin เข้า Sheet
-async function updateProductToSheet(product) {
-    const payload = {
-        type: "UpdateProduct",
-        id: product.id,
-        nameTH: product.nameTH,
-        nameEN: product.nameEN,
-        price: product.price,
-        weight: product.weight,
-        stock: product.stock,
-        category: product.category,
-        emoji: product.emoji
-    };
-    fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+async function updateProductToSheet(p) {
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'UpdateProduct', ...p }) });
 }
 
-// --- การเชื่อมโยงกับระบบเดิมของเว็บไซต์ ---
+const _origConfirmDL = confirmAndDownload;
+confirmAndDownload = function() {
+  const d = window._orderData;
+  if (d) saveOrderToSheet(d);
+  _origConfirmDL();
+};
 
-// เชื่อมปุ่มยืนยันออร์เดอร์
-if (typeof confirmAndDownload !== 'undefined') {
-    const originalConfirm = confirmAndDownload;
-    confirmAndDownload = function() {
-        const d = window._orderData;
-        if (d) saveOrderToSheet(d);
-        originalConfirm();
-    };
-}
+const _origSaveProd = saveProduct;
+saveProduct = async function() {
+  const id = editingProductId;
+  _origSaveProd();
+  if(id) { const p = products.find(x=>x.id===id); if(p) updateProductToSheet(p); }
+};
 
-// เชื่อมปุ่มเซฟในหน้า Admin
-if (typeof saveProduct !== 'undefined') {
-    const originalSaveProduct = saveProduct;
-    saveProduct = async function() {
-        // ดึงค่าล่าสุดจากฟอร์ม Admin
-        const productData = {
-            id: editingProductId || Date.now(),
-            nameTH: document.getElementById('p-nameTH').value,
-            nameEN: document.getElementById('p-nameEN').value,
-            price: document.getElementById('p-price').value,
-            weight: document.getElementById('p-weight').value,
-            stock: document.getElementById('p-stock').value,
-            category: document.getElementById('p-category').value,
-            emoji: document.getElementById('p-emoji').value
-        };
-        
-        updateProductToSheet(productData); // ส่งไปสะพานเชื่อม (Google Sheets)
-        originalSaveProduct(); // บันทึกในระบบเว็บปกติ
-        alert("บันทึกและอัปเดตข้อมูลไปยังคลังสินค้าเรียบร้อยแล้ว!");
-    };
-}
-
-// สั่งให้โหลดข้อมูลจาก Sheet ทันทีที่เปิดเว็บ
 window.addEventListener('load', loadProductsFromSheet);
+
+// Admin Order Detail Popup
+function closeOrderDetail() {
+  const el = document.getElementById('orderDetailOverlay');
+  if(el) el.remove();
+}
+function viewOrderDetail(i) {
+  const o = orders[i];
+  const box = o.box ? DHL_BOXES.find(b=>b.num===o.box) : null;
+  const rows = (o.items||[]).map(({product:p,qty},idx) => {
+    const nm = p?(p.nameEN||p.nameTH):'?';
+    const em = p?(p.emoji||''):'';
+    const pr = p?p.price:0;
+    return '<tr><td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--muted);font-size:13px">'+(idx+1)+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;font-weight:600">'+em+' '+nm+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:var(--teal);font-weight:700;font-size:13px">'+qty+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--muted);font-size:13px">'+pr.toLocaleString()+'</td>'
+      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--gold);font-weight:700;font-size:13px">'+(pr*qty).toLocaleString()+'</td></tr>';
+  }).join('');
+
+  const ov = document.createElement('div');
+  ov.id = 'orderDetailOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
+  ov.onclick = e => { if(e.target===ov) closeOrderDetail(); };
+  ov.innerHTML =
+    '<div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6)">'
+      +'<div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">'
+        +'<div><div style="font-family:Playfair Display,serif;font-size:18px;color:var(--gold)">'+o.num+'</div>'
+        +'<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px">'+o.date+'</div></div>'
+        +'<div style="display:flex;gap:10px;align-items:center">'
+          +'<span class="order-status status-'+o.status+'">'+(o.status==='confirmed'?'Confirmed':'Pending')+'</span>'
+          +'<button onclick="closeOrderDetail()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">X</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="padding:24px">'
+        +'<div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">'
+          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Customer</div><div style="font-size:14px;font-weight:700">'+o.customer+'</div></div>'
+          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Phone</div><div style="font-size:14px;font-weight:700">'+o.phone+'</div></div>'
+          +(o.country?'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Country</div><div style="font-size:14px;font-weight:700;color:var(--teal)">'+o.country+'</div></div>':'')
+          +(o.address?'<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Shipping Address</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+o.address+'</div></div>':'')
+        +'</div>'
+        +'<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Order Items ('+(o.items?o.items.length:0)+')</div>'
+        +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden">'
+          +'<thead><tr style="background:rgba(255,255,255,0.06)">'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">#</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">Product</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:center;color:var(--muted);letter-spacing:1px">Qty</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Price</th>'
+            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Total</th>'
+          +'</tr></thead>'
+          +'<tbody>'+rows+'</tbody>'
+        +'</table>'
+        +(box?'<div style="background:rgba(0,180,216,0.08);border:1px solid rgba(0,180,216,0.25);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px">'
+          +'<div style="color:var(--teal);font-weight:700;margin-bottom:8px">DHL Box '+box.num+' ('+box.dims+' cm · Max '+box.maxKg+'kg)</div>'
+        +'</div>':'')
+        +'<div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">'
+          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Products</span><span style="font-weight:600">'+o.totalProduct.toLocaleString()+'</span></div>'
+          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Shipping</span><span style="color:var(--teal);font-weight:600">'+o.shipping.toLocaleString()+'</span></div>'
+          +'<div style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;display:flex;justify-content:space-between;font-size:18px;color:var(--gold);font-weight:700"><span>Grand Total</span><span>'+o.total.toLocaleString()+'</span></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:8px">'
+          +(o.status==='pending'?'<button onclick="confirmAdminOrder('+i+');renderAdminOrders();closeOrderDetail();" style="flex:1;padding:12px;background:var(--success);border:none;border-radius:10px;color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:Nunito,sans-serif">Confirm Order</button>':'')
+          +'<button onclick="closeOrderDetail()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px">Close</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+}
  
 </script>
 </body>
