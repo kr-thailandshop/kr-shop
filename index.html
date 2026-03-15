@@ -1157,10 +1157,10 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     <button onclick="adminLogout()" style="padding:8px 20px;background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:var(--danger);border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--danger)';this.style.color='white'" onmouseout="this.style.background='rgba(231,76,60,0.2)';this.style.color='var(--danger)'">🔓 Logout Admin</button>
   </div>
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="showAdminSection('products')" data-th="สินค้า" data-en="Products">Products</button>
-      <button class="admin-tab" onclick="showAdminSection('shipping')" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping">DHL Shipping</button>
-      <button class="admin-tab" onclick="showAdminSection('orders')" data-th="คำสั่งซื้อ" data-en="Orders">Orders</button>
-      <button class="admin-tab" onclick="showAdminSection('settings')" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</button>
+      <button class="admin-tab active" onclick="showAdminSection('products',this)" data-th="สินค้า" data-en="Products">Products</button>
+      <button class="admin-tab" onclick="showAdminSection('shipping',this)" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping">DHL Shipping</button>
+      <button class="admin-tab" onclick="showAdminSection('orders',this)" data-th="คำสั่งซื้อ" data-en="Orders">Orders</button>
+      <button class="admin-tab" onclick="showAdminSection('settings',this)" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</button>
     </div>
 
     <!-- Products Section -->
@@ -2590,11 +2590,11 @@ function confirmOrder() {
 }
 
 // ===== ADMIN =====
-function showAdminSection(s) {
+function showAdminSection(s, btn) {
   document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('admin-'+s).classList.add('active');
-  event.target.classList.add('active');
+  if(btn) btn.classList.add('active');
   if(s==='orders') renderAdminOrders();
 }
 
@@ -2617,84 +2617,8 @@ function renderAdminProducts() {
   }).join('');
 }
 
-// ─── 1. ตัวแปรควบคุมหน้าสำหรับ ADMIN ORDERS ───
-let adminCurrentPage = 1;
-const adminPageSize = 10;
 
-// ─── 2. ฟังก์ชันวาดรายการออร์เดอร์ (แทนที่ตัวเดิมถ้ามี) ───
-function renderAdminOrders() {
-  // ลองหาคอนเทนเนอร์ตาม ID ที่ใช้ใน HTML ของคุณ (ถ้าไม่ใช่ admin-orders-list ให้เปลี่ยนชื่อในบรรทัดนี้)
-  const container = document.getElementById('admin-orders-list') || document.getElementById('adminOrderList'); 
-  if (!container) return;
 
-  // เรียงออร์เดอร์ใหม่ล่าสุดขึ้นก่อน
-  const sortedOrders = [...orders].reverse();
-
-  // คำนวณช่วงของข้อมูลที่จะแสดง (หน้าละ 10)
-  const start = (adminCurrentPage - 1) * adminPageSize;
-  const end = start + adminPageSize;
-  const paginatedOrders = sortedOrders.slice(start, end);
-
-  if (orders.length === 0) {
-    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);background:rgba(255,255,255,0.02);border-radius:15px">No orders yet.</div>';
-    return;
-  }
-
-  // วาดรายการออร์เดอร์แต่ละอัน
-  let html = paginatedOrders.map((o) => {
-    // หาตำแหน่ง Index ที่แท้จริงในตัวแปร orders เพื่อให้กด Details แล้วข้อมูลตรงตัว
-    const actualIdx = orders.findIndex(x => x.num === o.num);
-    const statusClass = (o.status || 'pending').toLowerCase();
-    
-    return `
-      <div class="order-card-admin" onclick="viewOrderDetail(${actualIdx})" 
-           style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:15px; padding:15px; margin-bottom:12px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="color:var(--gold); font-weight:700; font-size:14px; margin-bottom:4px;">${o.num}</div>
-          <div style="font-size:11px; color:var(--muted);">${o.date} • ${o.customer}</div>
-          <div style="font-size:12px; color:var(--teal); margin-top:4px; font-weight:600;">฿${o.total.toLocaleString()}</div>
-        </div>
-        <div style="text-align:right;">
-          <span class="order-status status-${statusClass}" style="font-size:10px; padding:4px 10px; border-radius:20px;">
-            ${statusClass.toUpperCase()}
-          </span>
-          <div style="margin-top:8px;"><button class="edit-btn-sm" style="font-size:11px; padding:4px 12px;">🔍 Details</button></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // ─── 3. ส่วนควบคุมการเปลี่ยนหน้า (Pagination) ───
-  const totalPages = Math.ceil(orders.length / adminPageSize);
-  if (totalPages > 1) {
-    html += `
-      <div style="display:flex; justify-content:center; align-items:center; gap:20px; padding:20px; margin-top:10px;">
-        <button onclick="changeAdminPage(-1)" ${adminCurrentPage === 1 ? 'disabled' : ''} 
-                style="background:var(--border); border:none; color:white; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12px; opacity:${adminCurrentPage === 1 ? 0.3 : 1}">
-          Back
-        </button>
-        <span style="font-size:13px; color:var(--muted); font-weight:600;">Page ${adminCurrentPage} / ${totalPages}</span>
-        <button onclick="changeAdminPage(1)" ${adminCurrentPage === totalPages ? 'disabled' : ''} 
-                style="background:var(--border); border:none; color:white; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12px; opacity:${adminCurrentPage === totalPages ? 0.3 : 1}">
-          Next
-        </button>
-      </div>
-    `;
-  }
-
-  container.innerHTML = html;
-}
-
-// ─── 4. ฟังก์ชันสำหรับเปลี่ยนหน้า ───
-function changeAdminPage(step) {
-  adminCurrentPage += step;
-  renderAdminOrders();
-  // เลื่อนกลับไปด้านบนสุดของรายการออร์เดอร์
-  const container = document.getElementById('admin-orders-list') || document.getElementById('adminOrderList');
-  if (container) container.scrollIntoView({ behavior: 'smooth' });
-}
-  
-  
 let activeShipZone = 'A';
 
 function renderShippingGrid() {
@@ -2752,24 +2676,28 @@ function saveShipping() {
 
 function renderAdminOrders() {
   const el = document.getElementById('adminOrdersList');
-  if(!orders.length) { el.innerHTML=`<p style="color:var(--muted);text-align:center;padding:40px">No orders yet</p>`; return; }
-  el.innerHTML = orders.map((o,i) => `
-    <div class="order-admin-card">
-      <div class="order-admin-header">
-        <div>
-          <div style="font-weight:700">${o.num}</div>
-          <div style="font-size:12px;color:var(--muted)">${o.customer} · ${o.phone} · ${o.date}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="order-status status-${o.status}">${o.status==='confirmed'?'✓ Confirmed':'⏳ Pending'}</span>
-          <button onclick="viewOrderDetail(${i})" style="padding:6px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
-          ${o.status==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${i})">Confirm</button>`:''}
-        </div>
-      </div>
-      <div style="font-size:13px">
-        Box ${o.box} · ${o.items.length} items · ฿${o.total.toLocaleString()} (Products: ฿${o.totalProduct.toLocaleString()} + Shipping: ฿${o.shipping.toLocaleString()})
-      </div>
-    </div>`).join('');
+  if(!el) return;
+  if(!orders.length) { el.innerHTML='<p style="color:var(--muted);text-align:center;padding:40px">No orders yet</p>'; return; }
+  // FIX: เรียงล่าสุดก่อน ใช้ actualIdx เพื่อให้ viewOrderDetail/confirmAdminOrder ชี้ถูกตัว
+  // FIX: o.customer และ o.phone เป็น flat string (ไม่ใช่ nested object)
+  el.innerHTML = [...orders].reverse().map((o) => {
+    const actualIdx = orders.findIndex(x => x.num === o.num);
+    const statusClass = (o.status || 'pending').toLowerCase();
+    return '<div class="order-admin-card">'
+      +'<div class="order-admin-header">'
+        +'<div>'
+          +'<div style="font-weight:700">'+o.num+'</div>'
+          +'<div style="font-size:12px;color:var(--muted)">'+o.customer+' · '+o.phone+' · '+o.date+'</div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<span class="order-status status-'+statusClass+'">'+(o.status==='confirmed'?'✓ Confirmed':'⏳ Pending')+'</span>'
+          +'<button onclick="viewOrderDetail('+actualIdx+')" style="padding:6px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>'
+          +(o.status==='pending'?'<button class="confirm-order-btn" onclick="confirmAdminOrder('+actualIdx+')">Confirm</button>':'')
+        +'</div>'
+      +'</div>'
+      +'<div style="font-size:13px">Box '+(o.box||'-')+' · '+(o.items?o.items.length:0)+' items · ฿'+o.total.toLocaleString()+'</div>'
+    +'</div>';
+  }).join('');
 }
 
 function confirmAdminOrder(i) {
@@ -3649,17 +3577,16 @@ const _origSaveProd = saveProduct;
 saveProduct = async function() {
   const id = editingProductId;
   _origSaveProd();
-  setTimeout(() => {
-    const p = id ? products.find(x=>x.id===id) : products[products.length-1];
-    if(p) updateProductToSheet(p);
-  }, 100);
+  // FIX: ดึง product ทันทีหลัง _origSaveProd() ไม่ใช้ setTimeout ที่ไม่น่าเชื่อถือ
+  const savedProduct = id
+    ? products.find(x => x.id === id)
+    : products[products.length - 1];
+  if (savedProduct) updateProductToSheet(savedProduct);
 };
 
-const _origDeleteProd = deleteProduct;
-deleteProduct = function(id) {
-  deleteProductFromSheet(id);
-  _origDeleteProd(id);
-};
+// FIX: ลบ wrapper deleteProduct ออก เพราะ deleteProduct ตัวเดิม
+// เรียก deleteProductFromSheet(id) อยู่แล้วในบรรทัด 2869
+// wrapper เดิมทำให้ deleteProductFromSheet ถูกเรียก 2 ครั้ง
 
 const _origSaveSettings = saveSettings;
 saveSettings = function() {
@@ -3705,22 +3632,21 @@ async function loadOrdersFromSheet() {
     const resp = await fetch(scriptURL + '?type=orders');
     const data = await resp.json();
     if (data && data.length > 0) {
-      // แปลงข้อมูลจาก Sheet กลับเป็นรูปแบบที่หน้าเว็บเข้าใจ
+      // FIX: เก็บเป็น flat fields ให้ตรงกับ confirmAndDownload และ renderAdminOrders
       orders = data.map(o => ({
-        orderNum: o.orderNum,
-        date: o.date,
-        customer: {
-          name: o.name,
-          phone: o.phone,
-          country: o.country,
-          address: o.address
-        },
-        items: parseOrderItems(o.items), // ฟังก์ชันช่วยแยกรายการสินค้า
-        total: parseFloat(o.total) || 0,
-        shipping: parseFloat(o.shipping) || 0,
-        status: o.status || 'Pending'
+        num:          o.orderNum || o.num,
+        date:         o.date,
+        customer:     o.name || o.customer,
+        phone:        o.phone,
+        country:      o.country || '',
+        address:      o.address || '',
+        items:        parseOrderItems(o.items || ''),
+        total:        parseFloat(o.total) || 0,
+        shipping:     parseFloat(o.shipping) || 0,
+        totalProduct: (parseFloat(o.total) || 0) - (parseFloat(o.shipping) || 0),
+        box:          o.box || null,
+        status:       o.status || 'pending'
       }));
-      // สั่งให้วาดรายการออร์เดอร์ในหน้า Admin
       if (typeof renderAdminOrders === 'function') renderAdminOrders();
     }
   } catch(e) {
