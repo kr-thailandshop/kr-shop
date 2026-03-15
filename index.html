@@ -3364,7 +3364,7 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbyf-tqU9XwDd_mfZpv1DHyhEBNstIPbzSbWyeh4asH5kb9SDNHP5KzItlf5nfdhg9SQ/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxkpYdqgi-f6APRpaJtKbntSmKaOKIUa9nZDCB1oHBf8yS4l5zk0TKxjFudqzJRKRZV/exec';
 
 // ─── LOAD ALL DATA ON STARTUP ───
 async function loadAllFromSheet() {
@@ -3565,80 +3565,126 @@ confirmAdminOrder = function(i) {
 async function loadOrdersFromSheet() {
   try {
     const resp = await fetch(scriptURL + '?type=orders');
-    // Not implemented yet - orders are append-only
-  } catch(e) {}
+    const data = await resp.json();
+    if (data && data.length > 0) {
+      // ปรับจูนข้อมูลให้เข้ากับความต้องการของหน้า Admin Order Detail
+      orders = data.map(o => {
+        const parsedItems = parseOrderItems(o.items || o.รายการสินค้า);
+        const subTotal = parseFloat(o.total || o.ยอดรวม) || 0;
+        const shipFee = parseFloat(o.shipping || o.ค่าจัดส่ง) || 0;
+        
+        return {
+          num: o.orderNum || o.เลขที่สั่งซื้อ || 'N/A',
+          date: o.date || o.วันที่ || '',
+          customer: o.name || o.ชื่อลูกค้า || 'No Name',
+          phone: o.phone || o.เบอร์โทร || '',
+          country: o.country || o.ประเทศ || '',
+          address: o.address || o.ที่อยู่ || '',
+          items: parsedItems,
+          totalProduct: subTotal,
+          shipping: shipFee,
+          total: subTotal + shipFee,
+          status: (o.status || o.สถานะ || 'pending').toLowerCase()
+        };
+      });
+      if (typeof renderAdminOrders === 'function') renderAdminOrders();
+    }
+  } catch(e) {
+    console.error('โหลดออร์เดอร์ไม่สำเร็จ:', e);
+  }
+}
+
+function parseOrderItems(itemsStr) {
+  if (!itemsStr) return [];
+  if (Array.isArray(itemsStr)) return itemsStr; // ถ้าเป็น Array อยู่แล้ว
+  return itemsStr.split(', ').map(item => {
+    const parts = item.split(' x');
+    return {
+      product: { nameEN: parts[0], emoji: '📦', price: 0 }, // ใส่ราคาจำลองไว้ก่อน
+      qty: parseInt(parts[1]) || 1
+    };
+  });
 }
 
 // ─── STARTUP ───
+// แก้ไข loadAllFromSheet ให้มั่นใจว่าสั่งรัน loadOrders ด้วย
+async function loadAllFromSheet() {
+  await loadProductsFromSheet();
+  await loadOrdersFromSheet();
+}
 window.addEventListener('load', loadAllFromSheet);
 
-// Admin Order Detail Popup
+// ─── ADMIN ORDER DETAIL POPUP ───
 function closeOrderDetail() {
   const el = document.getElementById('orderDetailOverlay');
   if(el) el.remove();
 }
+
 function viewOrderDetail(i) {
   const o = orders[i];
-  const box = o.box ? DHL_BOXES.find(b=>b.num===o.box) : null;
-  const rows = (o.items||[]).map(({product:p,qty},idx) => {
-    const nm = p?(p.nameEN||p.nameTH):'?';
-    const em = p?(p.emoji||''):'';
-    const pr = p?p.price:0;
-    return '<tr><td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--muted);font-size:13px">'+(idx+1)+'</td>'
-      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;font-weight:600">'+em+' '+nm+'</td>'
-      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:var(--teal);font-weight:700;font-size:13px">'+qty+'</td>'
-      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--muted);font-size:13px">'+pr.toLocaleString()+'</td>'
-      +'<td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--gold);font-weight:700;font-size:13px">'+(pr*qty).toLocaleString()+'</td></tr>';
+  if(!o) return;
+
+  const rows = (o.items || []).map(({product:p, qty}, idx) => {
+    const nm = p ? (p.nameEN || p.nameTH || 'Unknown') : 'Item';
+    const em = p ? (p.emoji || '📦') : '📦';
+    const pr = p ? (p.price || 0) : 0;
+    return `<tr>
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--muted);font-size:13px">${idx+1}</td>
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;font-weight:600">${em} ${nm}</td>
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:center;color:var(--teal);font-weight:700;font-size:13px">${qty}</td>
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--muted);font-size:13px">${pr.toLocaleString()}</td>
+      <td style="padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:var(--gold);font-weight:700;font-size:13px">${(pr*qty).toLocaleString()}</td>
+    </tr>`;
   }).join('');
 
   const ov = document.createElement('div');
   ov.id = 'orderDetailOverlay';
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)';
   ov.onclick = e => { if(e.target===ov) closeOrderDetail(); };
-  ov.innerHTML =
-    '<div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6)">'
-      +'<div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">'
-        +'<div><div style="font-family:Playfair Display,serif;font-size:18px;color:var(--gold)">'+o.num+'</div>'
-        +'<div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px">'+o.date+'</div></div>'
-        +'<div style="display:flex;gap:10px;align-items:center">'
-          +'<span class="order-status status-'+o.status+'">'+(o.status==='confirmed'?'Confirmed':'Pending')+'</span>'
-          +'<button onclick="closeOrderDetail()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">X</button>'
-        +'</div>'
-      +'</div>'
-      +'<div style="padding:24px">'
-        +'<div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">'
-          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Customer</div><div style="font-size:14px;font-weight:700">'+o.customer+'</div></div>'
-          +'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Phone</div><div style="font-size:14px;font-weight:700">'+o.phone+'</div></div>'
-          +(o.country?'<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Country</div><div style="font-size:14px;font-weight:700;color:var(--teal)">'+o.country+'</div></div>':'')
-          +(o.address?'<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Shipping Address</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">'+o.address+'</div></div>':'')
-        +'</div>'
-        +'<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Order Items ('+(o.items?o.items.length:0)+')</div>'
-        +'<table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden">'
-          +'<thead><tr style="background:rgba(255,255,255,0.06)">'
-            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">#</th>'
-            +'<th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">Product</th>'
-            +'<th style="padding:9px 12px;font-size:10px;text-align:center;color:var(--muted);letter-spacing:1px">Qty</th>'
-            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Price</th>'
-            +'<th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Total</th>'
-          +'</tr></thead>'
-          +'<tbody>'+rows+'</tbody>'
-        +'</table>'
-        +(box?'<div style="background:rgba(0,180,216,0.08);border:1px solid rgba(0,180,216,0.25);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px">'
-          +'<div style="color:var(--teal);font-weight:700;margin-bottom:8px">DHL Box '+box.num+' ('+box.dims+' cm · Max '+box.maxKg+'kg)</div>'
-        +'</div>':'')
-        +'<div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">'
-          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Products</span><span style="font-weight:600">'+o.totalProduct.toLocaleString()+'</span></div>'
-          +'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Shipping</span><span style="color:var(--teal);font-weight:600">'+o.shipping.toLocaleString()+'</span></div>'
-          +'<div style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;display:flex;justify-content:space-between;font-size:18px;color:var(--gold);font-weight:700"><span>Grand Total</span><span>'+o.total.toLocaleString()+'</span></div>'
-        +'</div>'
-        +'<div style="display:flex;gap:8px">'
-          +(o.status==='pending'?'<button onclick="confirmAdminOrder('+i+');renderAdminOrders();closeOrderDetail();" style="flex:1;padding:12px;background:var(--success);border:none;border-radius:10px;color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:Nunito,sans-serif">Confirm Order</button>':'')
-          +'<button onclick="closeOrderDetail()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px">Close</button>'
-        +'</div>'
-      +'</div>'
-    +'</div>';
+  
+  ov.innerHTML = `
+    <div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.6)">
+      <div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
+        <div>
+          <div style="font-family:Playfair Display,serif;font-size:18px;color:var(--gold)">${o.num}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px">${o.date}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="order-status status-${o.status}">${o.status.toUpperCase()}</span>
+          <button onclick="closeOrderDetail()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">×</button>
+        </div>
+      </div>
+      <div style="padding:24px">
+        <div style="background:rgba(255,255,255,0.03);border-radius:12px;padding:16px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Customer</div><div style="font-size:14px;font-weight:700">${o.customer}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Phone</div><div style="font-size:14px;font-weight:700">${o.phone}</div></div>
+          ${o.country ? `<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Country</div><div style="font-size:14px;font-weight:700;color:var(--teal)">${o.country}</div></div>` : ''}
+          ${o.address ? `<div style="grid-column:1/-1"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px">Shipping Address</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap">${o.address}</div></div>` : ''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Order Items (${o.items.length})</div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;background:rgba(255,255,255,0.02);border-radius:10px;overflow:hidden">
+          <thead><tr style="background:rgba(255,255,255,0.06)">
+            <th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">#</th>
+            <th style="padding:9px 12px;font-size:10px;text-align:left;color:var(--muted);letter-spacing:1px">Product</th>
+            <th style="padding:9px 12px;font-size:10px;text-align:center;color:var(--muted);letter-spacing:1px">Qty</th>
+            <th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Price</th>
+            <th style="padding:9px 12px;font-size:10px;text-align:right;color:var(--muted);letter-spacing:1px">Total</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Products Subtotal</span><span style="font-weight:600">${o.totalProduct.toLocaleString()}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px"><span style="color:var(--muted)">Shipping Fee</span><span style="color:var(--teal);font-weight:600">${o.shipping.toLocaleString()}</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:6px;padding-top:10px;display:flex;justify-content:space-between;font-size:18px;color:var(--gold);font-weight:700"><span>Grand Total</span><span>${o.total.toLocaleString()}</span></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="closeOrderDetail()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;font-size:13px">Close Window</button>
+        </div>
+      </div>
+    </div>`;
   document.body.appendChild(ov);
 }
+
 
 </script>
 </body>
