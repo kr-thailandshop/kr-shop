@@ -1870,6 +1870,7 @@ function showPage(p) {
   nav.style.display = (p === 'landing' || p === 'admin-login' || p === 'closed') ? 'none' : 'flex';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   if(p==='admin') { renderAdminProducts(); renderShippingGrid(); renderAdminOrders(); }
+  // Shipping grid ต้อง re-render ทุกครั้งที่เปิด เพราะข้อมูลอาจโหลดมาหลัง login
   window.scrollTo(0,0);
 }
 
@@ -3413,14 +3414,15 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbzql6YL1T6O3dxuLeWpwE9Csq_EcJF9XdgW12EzyyQZ1WdiaK71gVh40WwwAnWLqdZ1/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyh0ma6hKIjc1pjj0v3sWgbLGts15AAcojMhS5owhvaz6SOsdlAuXERwbxa4_gnSqmc/exec';
 
 // ─── LOAD ALL DATA ON STARTUP ───
 async function loadAllFromSheet() {
   await Promise.all([
     loadProductsFromSheet(),
     loadSettingsFromSheet(),
-    loadShippingFromSheet()
+    loadShippingFromSheet(),
+    loadOrdersFromSheet()
   ]);
 }
 
@@ -3549,6 +3551,8 @@ async function loadShippingFromSheet() {
         });
       }
     });
+    // ข้อมูลถูกโหลดเข้า zoneShippingRates แล้ว
+    // renderShippingGrid() จะถูกเรียกอีกครั้งเมื่อ Admin เปิดหน้า Shipping
     if (isAdminLoggedIn) renderShippingGrid();
   } catch(e) { console.error('Shipping load failed:', e); }
 }
