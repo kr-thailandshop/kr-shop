@@ -2731,19 +2731,58 @@ function openProductModal(id=null) {
 }
 function closeProductModal() { document.getElementById('productModal').classList.remove('open'); resetImageUpload(); }
 
-// ===== IMAGE UPLOAD =====
+// ===== IMAGE UPLOAD WITH AUTO-RESIZE =====
 let currentImageData = null;
+
+// ฟังก์ชันหลักในการย่อขนาดรูปภาพ
+function processAndResizeImage(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // --- ตั้งค่ามาตรฐานการย่อรูป ---
+      const MAX_WIDTH = 800;  // กว้างสูงสุด 800px
+      const MAX_HEIGHT = 800; // สูงสูงสุด 800px
+      let width = img.width;
+      let height = img.height;
+
+      // คำนวณสัดส่วนรูปภาพ (Aspect Ratio)
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      // สร้าง Canvas เพื่อวาดรูปใหม่
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // บีบอัดเป็นไฟล์ JPEG คุณภาพ 0.7 (70%) เพื่อให้ขนาดไฟล์เล็กแต่ยังชัดเจน
+      currentImageData = canvas.toDataURL('image/jpeg', 0.7);
+      
+      // แสดงตัวอย่างรูปภาพ
+      showImagePreview(currentImageData, file.name);
+      console.log("✅ ย่อรูปสำเร็จ! ขนาดใหม่ประมาณ:", Math.round(currentImageData.length / 1024), "KB");
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
 function handleImageUpload(input) {
   const file = input.files[0];
   if(!file) return;
-  if(file.size > 5 * 1024 * 1024) { showToast('รูปภาพใหญ่เกิน 5MB กรุณาลดขนาดก่อน'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    currentImageData = e.target.result;
-    showImagePreview(currentImageData, file.name);
-  };
-  reader.readAsDataURL(file);
+  // ส่งไปเข้ากระบวนการย่อรูปทันที (รองรับไฟล์ใหญ่ได้เลย)
+  processAndResizeImage(file);
 }
 
 function handleImageDrop(e) {
@@ -2751,13 +2790,8 @@ function handleImageDrop(e) {
   document.getElementById('imageDropZone').style.borderColor = 'var(--border)';
   const file = e.dataTransfer.files[0];
   if(!file || !file.type.startsWith('image/')) { showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น'); return; }
-  if(file.size > 5 * 1024 * 1024) { showToast('รูปภาพใหญ่เกิน 5MB'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    currentImageData = e.target.result;
-    showImagePreview(currentImageData, file.name);
-  };
-  reader.readAsDataURL(file);
+  // ส่งไปเข้ากระบวนการย่อรูป
+  processAndResizeImage(file);
 }
 
 function showImagePreview(dataUrl, name) {
@@ -2801,7 +2835,9 @@ function saveProduct() {
     descEN: document.getElementById('p-descEN').value.trim(),
     imageData: currentImageData !== null ? currentImageData : (editingProductId ? (products.find(p=>p.id===editingProductId)||{}).imageData||null : null),
   };
+  
   if(!data.nameTH||!data.nameEN||!data.price||!data.weight) { showToast('Please fill all required fields'); return; }
+  
   if(editingProductId) {
     const idx = products.findIndex(p=>p.id===editingProductId);
     products[idx] = {...products[idx],...data};
@@ -2810,20 +2846,24 @@ function saveProduct() {
     products.push({id:Date.now(),...data});
     showToast(lang==='th'?'เพิ่มสินค้าแล้ว ✓':'Product added ✓');
   }
+  
   closeProductModal();
   renderAdminProducts();
   renderProducts();
 }
 
+
 function deleteProduct(id) {
   if(!confirm(lang==='th'?'ยืนยันลบสินค้า?':'Delete this product?')) return;
   products = products.filter(p=>p.id!==id);
+  if (typeof deleteProductFromSheet === 'function') deleteProductFromSheet(id);
   delete cart[id];
   renderAdminProducts();
   renderProducts();
   renderCart();
   showToast(lang==='th'?'ลบแล้ว':'Deleted');
 }
+
 
 // ===== SETTINGS =====
 function saveSettings() {
