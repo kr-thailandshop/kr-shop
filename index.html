@@ -3378,21 +3378,36 @@ async function loadAllFromSheet() {
 // ─── PRODUCTS ───
 async function loadProductsFromSheet() {
   try {
+    // ดึงข้อมูลสินค้าโดยระบุ type=products
     const resp = await fetch(scriptURL + '?type=products');
     const data = await resp.json();
+    
     if (data && data.length > 0) {
       products = data.map(p => ({
-        id: p.id, nameTH: p.nameTH, nameEN: p.nameEN,
-        price: parseFloat(p.price)||0, weight: parseFloat(p.weight)||0,
-        stock: parseInt(p.stock)||0, category: p.category||'Other',
-        emoji: p.emoji||'📦', w: parseFloat(p.w)||5,
-        l: parseFloat(p.l)||5, h: parseFloat(p.h)||5,
-        status: p.status||'active', descTH: p.descTH||'', descEN: p.descEN||''
+        id: p.id, 
+        nameTH: p.nameTH, 
+        nameEN: p.nameEN,
+        price: parseFloat(p.price) || 0, 
+        weight: parseFloat(p.weight) || 0,
+        stock: parseInt(p.stock) || 0, 
+        category: p.category || 'Other',
+        emoji: p.emoji || '📦', 
+        w: parseFloat(p.w) || 5,
+        l: parseFloat(p.l) || 5, 
+        h: parseFloat(p.h) || 5,
+        status: p.status || 'active', 
+        descTH: p.descTH || '', 
+        descEN: p.descEN || '',
+        // ✅ เพิ่มบรรทัดนี้เพื่อให้เว็บดึงรหัสรูปภาพมาจาก Google Sheets คอลัมน์ O
+        imageData: p.imageData || null 
       }));
-      renderProducts();
-      if (isAdminLoggedIn) renderAdminProducts();
+      
+      renderProducts(); // วาดรายการสินค้าใหม่หน้าลูกค้า
+      if (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn) renderAdminProducts(); // วาดรายการหน้า Admin
     }
-  } catch(e) { console.error('Products load failed:', e); }
+  } catch(e) { 
+    console.error('Products load failed:', e); 
+  }
 }
 
 async function saveOrderToSheet(d) {
@@ -3406,12 +3421,14 @@ async function saveOrderToSheet(d) {
 }
 
 async function updateProductToSheet(p) {
+  // ส่งข้อมูลสินค้าทั้งหมด (รวมถึง imageData) ไปบันทึกที่ Sheets
   fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'UpdateProduct', ...p }) });
 }
 
 async function deleteProductFromSheet(id) {
   fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'DeleteProduct', id }) });
 }
+
 
 // ─── SETTINGS ───
 async function loadSettingsFromSheet() {
