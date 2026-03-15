@@ -2835,25 +2835,27 @@ function saveProduct() {
     descEN: document.getElementById('p-descEN').value.trim(),
     imageData: currentImageData !== null ? currentImageData : (editingProductId ? (products.find(p=>p.id===editingProductId)||{}).imageData||null : null),
   };
-  if(!data.nameTH||!data.nameEN||!data.price||!data.weight) { showToast('Please fill all required fields'); return; }
+  
+  if(!data.nameTH||!data.nameEN||!data.price||!data.weight) { 
+    showToast('Please fill all required fields'); 
+    return; 
+  }
   
   if(editingProductId) {
     const idx = products.findIndex(p=>p.id===editingProductId);
     products[idx] = {...products[idx],...data};
-    // ส่งข้อมูลอัปเดตไป Sheets (ถ้าคุณมีฟังก์ชันเชื่อมต่ออยู่)
-    if (typeof updateProductToSheet === 'function') updateProductToSheet(products[idx]);
     showToast(lang==='th'?'แก้ไขแล้ว ✓':'Updated ✓');
   } else {
     const newProd = {id:Date.now(),...data};
     products.push(newProd);
-    // ส่งข้อมูลใหม่ไป Sheets
-    if (typeof updateProductToSheet === 'function') updateProductToSheet(newProd);
     showToast(lang==='th'?'เพิ่มสินค้าแล้ว ✓':'Product added ✓');
   }
+  
   closeProductModal();
   renderAdminProducts();
   renderProducts();
 }
+
 
 function deleteProduct(id) {
   if(!confirm(lang==='th'?'ยืนยันลบสินค้า?':'Delete this product?')) return;
