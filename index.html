@@ -1157,10 +1157,10 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     <button onclick="adminLogout()" style="padding:8px 20px;background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:var(--danger);border-radius:20px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s" onmouseover="this.style.background='var(--danger)';this.style.color='white'" onmouseout="this.style.background='rgba(231,76,60,0.2)';this.style.color='var(--danger)'">🔓 Logout Admin</button>
   </div>
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="showAdminSection('products')" data-th="สินค้า" data-en="Products">Products</button>
-      <button class="admin-tab" onclick="showAdminSection('shipping')" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping">DHL Shipping</button>
-      <button class="admin-tab" onclick="showAdminSection('orders')" data-th="คำสั่งซื้อ" data-en="Orders">Orders</button>
-      <button class="admin-tab" onclick="showAdminSection('settings')" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</button>
+      <button class="admin-tab active" onclick="showAdminSection('products',this)" data-th="สินค้า" data-en="Products">Products</button>
+      <button class="admin-tab" onclick="showAdminSection('shipping',this)" data-th="ค่าขนส่ง DHL" data-en="DHL Shipping">DHL Shipping</button>
+      <button class="admin-tab" onclick="showAdminSection('orders',this)" data-th="คำสั่งซื้อ" data-en="Orders">Orders</button>
+      <button class="admin-tab" onclick="showAdminSection('settings',this)" data-th="ตั้งค่าร้าน" data-en="Shop Settings">Shop Settings</button>
     </div>
 
     <!-- Products Section -->
@@ -2643,11 +2643,11 @@ function confirmOrder() {
 }
 
 // ===== ADMIN =====
-function showAdminSection(s) {
+function showAdminSection(s, btn) {
   document.querySelectorAll('.admin-section').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.admin-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('admin-'+s).classList.add('active');
-  if(event && event.target) event.target.classList.add('active');
+  if(btn) btn.classList.add('active');
   if(s==='orders')   loadOrdersFromSheet().then(()=>renderAdminOrders());
   if(s==='products') loadProductsFromSheet().then(()=>renderAdminProducts());
   if(s==='shipping') loadShippingFromSheet().then(()=>renderShippingGrid());
