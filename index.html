@@ -3666,28 +3666,6 @@ async function loadOrdersFromSheet() {
     console.error('โหลดออร์เดอร์ไม่สำเร็จ:', e);
   }
 }
-      // แปลงข้อมูลจาก Sheet กลับเป็นรูปแบบที่หน้าเว็บเข้าใจ
-{
-  num: o.OrderNum || o.orderNum,  // ← ให้ตรงกับ o.num ที่ render ใช้
-  date: o.Date || o.date,
-  customer: o.Name || o.name,     // ← string ธรรมดา ไม่ใช่ object
-  phone: o.Phone || o.phone,
-  country: o.Country || o.country,
-  address: o.Address || o.address,
-  items: parseOrderItems(o.Items || o.items),
-  total: parseFloat(o.Total || o.total) || 0,
-  totalProduct: 0,
-  shipping: parseFloat(o.Shipping || o.shipping) || 0,
-  box: null,
-  status: (o.Status || o.status || 'pending').toLowerCase()
-}
-      // สั่งให้วาดรายการออร์เดอร์ในหน้า Admin
-      if (typeof renderAdminOrders === 'function') renderAdminOrders();
-    }
-  } catch(e) {
-    console.error('โหลดออร์เดอร์ไม่สำเร็จ:', e);
-  }
-}
 
 // ฟังก์ชันช่วยแปลงข้อความสินค้า (เช่น "Soap x2, Boiled beans x1") กลับเป็น Array
 function parseOrderItems(itemsStr) {
