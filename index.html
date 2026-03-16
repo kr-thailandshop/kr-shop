@@ -1365,10 +1365,10 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
       <div class="order-modal-actions" id="omActions">
         <button class="btn-confirm-dl" onclick="confirmAndDownload()">
-          <span data-th="✓ ยืนยัน & ดาวน์โหลด Invoice PDF" data-en="✓ Confirm & Download Invoice PDF">✓ Confirm &amp; Download Invoice PDF</span>
+          <span data-th="✓ ยืนยันคำสั่งซื้อ" data-en="✓ Confirm Order">✓ Confirm Order</span>
         </button>
         <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.5">
-          กรุณาส่งสลิปโอนเงินผ่าน Line: <strong style="color:white">@krthailandshop</strong> หรือ WhatsApp: <strong style="color:white">+66638068809</strong>
+          กรุณาส่งสลิปโอนเงินผ่าน Line: <strong style="color:var(--accent)">@krthailandshop</strong> หรือ WhatsApp: <strong style="color:var(--accent)">+66638068809</strong>
         </div>
         <button class="btn-cancel-order" onclick="closeOrderModal()"><span data-th="← แก้ไขรายการสินค้า" data-en="← Edit Cart">← Edit Cart</span></button>
       </div>
@@ -2372,16 +2372,16 @@ function openOrderModal() {
     ? fmtPrice(totalProduct) + ' + ค่าขนส่งตามจริง'
     : fmtPrice(omGrandVal) + (displayCurrency==='USD'&&usdRate?' (฿'+omGrandVal.toLocaleString()+')':'');
 
-  // Store for PDF
+  // Store order data
   window._orderData = { orderNum, items, box, totalProduct, shipping, total:totalProduct+shipping, totalWeight, customer:currentUser };
 
   refreshOrderModalAddr();
   document.getElementById('omActions').innerHTML = `
     <button class="btn-confirm-dl" id="omConfirmBtn" onclick="tryConfirmAndDownload()" style="opacity:${currentUser&&currentUser.address?1:0.4};cursor:${currentUser&&currentUser.address?'pointer':'not-allowed'}">
-      ${lang==='th'?'✓ ยืนยัน & ดาวน์โหลด Invoice PDF':'✓ Confirm & Download Invoice PDF'}
+      ${lang==='th'?'✓ ยืนยันคำสั่งซื้อ':'✓ Confirm Order'}
     </button>
     <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.5">
-      ${lang==='th'?'ส่งสลิปผ่าน':'Send slip via'} Line: <strong style="color:white">@krthailandshop</strong> ${lang==='th'?'หรือ':'or'} WhatsApp: <strong style="color:white">+66638068809</strong>
+      ${lang==='th'?'ส่งสลิปผ่าน':'Send slip via'} Line: <strong style="color:var(--accent)">${shopSettings.line||'@krthailandshop'}</strong> ${lang==='th'?'หรือ':'or'} WhatsApp: <strong style="color:var(--accent)">${shopSettings.wa||'+66638068809'}</strong>
     </div>
     <button class="btn-cancel-order" onclick="closeOrderModal()">${lang==='th'?'← แก้ไขรายการสินค้า':'← Edit Cart'}</button>`;
 
@@ -2397,7 +2397,7 @@ function confirmAndDownload() {
   if(!d) return;
 
   // บันทึกลง orders array (status = pending รอ Admin ยืนยัน)
-  const newOrder = {
+  orders.push({
     num:          d.orderNum,
     customer:     d.customer.name,
     phone:        d.customer.phone,
@@ -2410,14 +2410,10 @@ function confirmAndDownload() {
     total:        d.total,
     status:       'pending',
     date:         new Date().toLocaleDateString()
-  };
-  orders.push(newOrder);
+  });
 
   // บันทึกไป Google Sheets
   saveOrderToSheet(d);
-
-  // ดาวน์โหลด Invoice PDF
-  generateInvoicePDF(d);
 
   document.getElementById('omActions').innerHTML = `
     <div class="confirmed-dl-box">
@@ -2425,133 +2421,13 @@ function confirmAndDownload() {
       <div style="font-size:16px;font-weight:700;margin-bottom:4px">${lang==='th'?'ยืนยันออร์เดอร์แล้ว!':'Order Confirmed!'}</div>
       <div style="font-size:13px;color:rgba(46,204,113,0.9);margin-bottom:12px">Order #${d.orderNum}</div>
       <div style="font-size:13px;margin-bottom:8px">${lang==='th'?'กรุณาส่งสลิปผ่าน:':'Please send payment slip via:'}</div>
-      <div style="font-size:13px">💬 Line: <strong>@krthailandshop</strong></div>
-      <div style="font-size:13px;margin-bottom:12px">📱 WhatsApp: <strong>+66638068809</strong></div>
+      <div style="font-size:13px">💬 Line: <strong>${shopSettings.line||'@krthailandshop'}</strong></div>
+      <div style="font-size:13px;margin-bottom:12px">📱 WhatsApp: <strong>${shopSettings.wa||'+66638068809'}</strong></div>
     </div>
     <button class="btn-cancel-order" onclick="closeOrderModal();cart={};renderCart();">${lang==='th'?'✕ ปิดและล้างตะกร้า':'✕ Close & Clear Cart'}</button>`;
   cart = {};
   renderCart();
-  showToast('✅ ยืนยันแล้ว! Invoice กำลังดาวน์โหลด...');
-}
-
-function generateInvoicePDF(d) {
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
-  const box = d.box;
-  let itemRows = '';
-  d.items.forEach(({product:p, qty}, idx) => {
-    const name = p.nameEN;
-    itemRows += `<tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;color:#666">${idx+1}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px">${p.emoji} ${name}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:center">${qty} pcs</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right">฿${p.price.toLocaleString()}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;text-align:right;font-weight:700;color:#c0392b">฿${(p.price*qty).toLocaleString()}</td>
-    </tr>`;
-  });
-
-  const htmlContent = `<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<title>Invoice ${d.orderNum}</title>
-<style>
-  body{font-family:Arial,sans-serif;margin:0;padding:0;background:#f5f5f5}
-  .page{max-width:720px;margin:20px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)}
-  @media print{body{background:white}.page{margin:0;border-radius:0;box-shadow:none}}
-</style>
-</head><body>
-<div class="page">
-  <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);color:white;padding:32px;text-align:center">
-    <div style="font-size:32px;font-weight:900;color:#f5a623;letter-spacing:2px">${shopSettings.name}</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;letter-spacing:1px">INVOICE / ใบแจ้งหนี้</div>
-  </div>
-  <div style="padding:28px 32px">
-    <div style="display:flex;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-      <div>
-        <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Invoice No.</div>
-        <div style="font-size:18px;font-weight:700;color:#1a1a2e">${d.orderNum}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Date</div>
-        <div style="font-size:14px;font-weight:600">${dateStr}</div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;background:#f9f9f9;border-radius:10px;padding:16px">
-      <div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Customer</div><div style="font-size:15px;font-weight:700;margin-top:3px">${d.customer.name}</div></div>
-      <div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px">Phone</div><div style="font-size:15px;font-weight:700;margin-top:3px">${d.customer.phone}</div></div>
-    </div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
-      <thead><tr style="background:#1a1a2e;color:white">
-        <th style="padding:10px 12px;font-size:11px;text-align:left;letter-spacing:1px">#</th>
-        <th style="padding:10px 12px;font-size:11px;text-align:left;letter-spacing:1px">PRODUCT</th>
-        <th style="padding:10px 12px;font-size:11px;text-align:center;letter-spacing:1px">QTY</th>
-        <th style="padding:10px 12px;font-size:11px;text-align:right;letter-spacing:1px">UNIT PRICE</th>
-        <th style="padding:10px 12px;font-size:11px;text-align:right;letter-spacing:1px">TOTAL</th>
-      </tr></thead>
-      <tbody>${itemRows}</tbody>
-    </table>
-    ${box ? `<div style="background:#e8f4fd;border:1px solid #bee3f8;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px">
-      <strong style="color:#2980b9;display:block;margin-bottom:6px">📦 DHL Shipping Info</strong>
-      <div style="display:flex;justify-content:space-between"><span>Box</span><span><strong>DHL Easy Box ${box.num} (${box.dims} cm)</strong></span></div>
-      <div style="display:flex;justify-content:space-between"><span>Max Weight</span><span>${box.maxKg} kg</span></div>
-      <div style="display:flex;justify-content:space-between"><span>Package Weight</span><span>${(d.totalWeight/1000).toFixed(3)} kg</span></div>
-    </div>` : ''}
-    <div style="background:#1a1a2e;border-radius:10px;padding:16px;color:white">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px"><span style="color:rgba(255,255,255,0.6)">Products Total</span><span>฿${d.totalProduct.toLocaleString()}${usdRate?' / $'+(d.totalProduct/usdRate).toFixed(2):''}</span></div>
-      <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px"><span style="color:rgba(255,255,255,0.6)">DHL Shipping (Box ${box?.num||'-'}${selectedDestCountry?' · '+selectedDestCountry:''}${selectedDestZone?' · Zone '+selectedDestZone:''})</span><span style="color:#00b4d8">${d.shipping>0?'฿'+d.shipping.toLocaleString()+(usdRate?' / $'+(d.shipping/usdRate).toFixed(2):''):'ติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง'}</span></div>
-      ${usdRate?`<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px"><span style="color:rgba(255,255,255,0.4)">Exchange Rate (Kasikorn sell)</span><span style="color:rgba(255,255,255,0.4)">1 USD = ฿${usdRate.toFixed(2)}</span></div>`:''}
-      <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:10px;display:flex;justify-content:space-between;font-size:20px;font-weight:700"><span style="color:#f5a623">GRAND TOTAL</span><span style="color:#f5a623">฿${d.total.toLocaleString()}${usdRate?'<br><span style=\"font-size:14px;color:#00b4d8\">≈ $'+(d.total/usdRate).toFixed(2)+'</span>':''}</span></div>
-    </div>
-    <!-- PAYMENT SECTION -->
-    <div style="margin-top:28px;border:2px solid #1a1a2e;border-radius:12px;overflow:hidden">
-      <div style="background:#1a1a2e;color:white;padding:12px 20px;text-align:center">
-        <div style="font-size:15px;font-weight:900;letter-spacing:2px">MODE OF PAYMENT</div>
-      </div>
-      <div style="padding:20px 24px;background:#fafafa">
-        <table style="width:100%;border-collapse:collapse">
-          <tr style="border-bottom:1px solid #eee">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333;width:45%">Bank Name</td>
-            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">KASIKORN BANK</td>
-          </tr>
-          <tr style="border-bottom:1px solid #eee">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Bank Account Name</td>
-            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">KHONGKHA BUMRUNGKHET</td>
-          </tr>
-          <tr style="border-bottom:1px solid #eee">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Bank Account No.</td>
-            <td style="padding:10px 0;font-size:15px;color:#c0392b;font-weight:900;letter-spacing:1px">564-24-553-05</td>
-          </tr>
-          <tr style="border-bottom:1px solid #eee">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Swift Code</td>
-            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:700;letter-spacing:1px">KASITHBK</td>
-          </tr>
-          <tr style="border-bottom:1px solid #eee">
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Address</td>
-            <td style="padding:10px 0;font-size:12px;color:#555;line-height:1.5">199/84 Moo 4 Bang Phli Yai,<br>Bang Phli Samut Prakan Thailand 10540</td>
-          </tr>
-          <tr>
-            <td style="padding:10px 0;font-size:13px;font-weight:700;color:#333">Telephone No.</td>
-            <td style="padding:10px 0;font-size:13px;color:#1a1a2e;font-weight:600">+66(638068809)</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;padding:14px 16px;border:1px dashed #ddd;border-radius:10px;font-size:12px;color:#666;text-align:center;line-height:1.8">
-      <strong style="color:#333">ส่งสลิปหลังโอนเงิน / Send payment slip after transfer</strong><br>
-      💬 Line: <strong style="color:#00b900">${shopSettings.line}</strong> &nbsp;|&nbsp; 📱 WhatsApp: <strong style="color:#25d366">${shopSettings.wa}</strong>
-    </div>
-  </div>
-</div>
-<div style="text-align:center;padding:16px">
-  <button onclick="window.print()" style="padding:12px 32px;background:#1a1a2e;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;margin-right:8px">🖨 Print / Save as PDF</button>
-  <button onclick="window.close()" style="padding:12px 24px;background:#eee;color:#333;border:none;border-radius:8px;cursor:pointer;font-size:14px">✕ Close</button>
-</div>
-</body></html>`;
-
-  const blob = new Blob([htmlContent], {type:'text/html;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const win = window.open(url, '_blank');
-  if(win) setTimeout(()=>URL.revokeObjectURL(url), 10000);
+  showToast('✅ ยืนยันออร์เดอร์แล้ว!');
 }
 
 function goToOrder() {
@@ -2783,11 +2659,10 @@ function renderAdminOrders() {
     return;
   }
   const sortedOrders = [...orders].reverse();
-  container.innerHTML = sortedOrders.map((o, ri) => {
+  container.innerHTML = sortedOrders.map((o) => {
     const actualIdx = orders.findIndex(x => x.num === o.num);
-    // ✅ รองรับทั้ง customer เป็น string และเป็น object
-    const customerName = typeof o.customer === 'object' ? o.customer.name : (o.customer || '-');
-    const customerPhone = typeof o.customer === 'object' ? o.customer.phone : (o.phone || '-');
+    const customerName  = typeof o.customer === 'object' ? o.customer.name  : (o.customer || '-');
+    const customerPhone = typeof o.customer === 'object' ? o.customer.phone : (o.phone    || '-');
     const statusClass = (o.status || 'pending').toLowerCase();
     return `
       <div class="order-admin-card">
@@ -2796,13 +2671,14 @@ function renderAdminOrders() {
             <div style="font-weight:700">${o.num}</div>
             <div style="font-size:12px;color:var(--muted)">${customerName} · ${customerPhone} · ${o.date}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span class="order-status status-${statusClass}">${statusClass==='confirmed'?'✓ Confirmed':'⏳ Pending'}</span>
-            <button onclick="viewOrderDetail(${actualIdx})" style="padding:6px 14px;background:rgba(0,180,216,0.15);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
-            ${statusClass==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${actualIdx})">Confirm</button>`:''}
+            <button onclick="viewOrderDetail(${actualIdx})" style="padding:6px 12px;background:rgba(173,20,87,0.1);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
+            <button onclick="openInvoiceModal(${actualIdx})" style="padding:6px 12px;background:linear-gradient(135deg,var(--accent),var(--grad2));border:none;color:white;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🧾 Invoice</button>
+            ${statusClass==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${actualIdx})">✓ Confirm</button>`:''}
           </div>
         </div>
-        <div style="font-size:13px">
+        <div style="font-size:13px;color:#888">
           ${o.box?'Box '+o.box+' · ':''}${(o.items||[]).length} items · ฿${(o.total||0).toLocaleString()}
           (Products: ฿${(o.totalProduct||0).toLocaleString()} + Shipping: ฿${(o.shipping||0).toLocaleString()})
         </div>
@@ -3843,7 +3719,366 @@ function viewOrderDetail(i) {
     +'</div>';
   document.body.appendChild(ov);
 }
+// ================================================================
+// ADMIN INVOICE MODAL + EXPORT EXCEL
+// ================================================================
+let _invoiceOrderIdx = null;
+
+function openInvoiceModal(i) {
+  _invoiceOrderIdx = i;
+  const o = orders[i];
+  if (!o) return;
+
+  const customerName  = typeof o.customer === 'object' ? o.customer.name    : (o.customer || '-');
+  const customerPhone = typeof o.customer === 'object' ? o.customer.phone   : (o.phone    || '-');
+
+  // parse items จาก string "Product x1, Product x2" หรือ array
+  const itemsList = Array.isArray(o.items) && o.items.length > 0 && o.items[0].product
+    ? o.items.map(({product:p, qty}) => ({ name: p.nameEN||p.nameTH||'-', qty, price: p.price||0 }))
+    : String(o.items||'').split(',').map(s => s.trim()).filter(Boolean).map(s => {
+        const m = s.match(/^(.+)\s+x(\d+)$/i);
+        return m ? { name: m[1].trim(), qty: parseInt(m[2])||1, price: 0 } : { name: s, qty: 1, price: 0 };
+      });
+
+  const itemRowsHTML = itemsList.map((it, idx) => `
+    <tr>
+      <td style="padding:8px;text-align:center;font-size:13px;color:var(--muted)">${idx+1}</td>
+      <td style="padding:8px;font-size:13px;font-weight:600">${it.name}</td>
+      <td style="padding:8px;text-align:center">
+        <input type="number" min="1" value="${it.qty}" class="inv-qty" data-idx="${idx}"
+          style="width:54px;text-align:center;padding:4px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
+          oninput="recalcInvoice()">
+      </td>
+      <td style="padding:8px;text-align:right">
+        <input type="number" min="0" value="${it.price}" class="inv-price" data-idx="${idx}"
+          style="width:90px;text-align:right;padding:4px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
+          oninput="recalcInvoice()">
+      </td>
+      <td style="padding:8px;text-align:right;font-weight:700;color:var(--gold)" id="inv-sub-${idx}">
+        ฿${(it.qty * it.price).toLocaleString()}
+      </td>
+    </tr>`).join('');
+
+  const el = document.createElement('div');
+  el.id = 'invoiceModal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto';
+  el.innerHTML = `
+    <div style="background:white;border-radius:20px;width:100%;max-width:680px;max-height:94vh;overflow-y:auto;box-shadow:0 24px 80px rgba(214,51,132,0.2)">
+      <div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:20px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--gold)">🧾 Create Invoice</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:2px">${o.num}</div>
+        </div>
+        <button onclick="closeInvoiceModal()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">✕</button>
+      </div>
+      <div style="padding:24px;display:flex;flex-direction:column;gap:16px">
+
+        <!-- Customer Info -->
+        <div style="background:#fff8fc;border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:12px">Customer Information</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Name</label>
+              <input id="inv-cname" type="text" value="${customerName}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"></div>
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Phone</label>
+              <input id="inv-cphone" type="text" value="${customerPhone}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"></div>
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Country</label>
+              <input id="inv-ccountry" type="text" value="${o.country||''}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"></div>
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Invoice Date</label>
+              <input id="inv-date" type="date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"></div>
+            <div style="grid-column:1/-1"><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Shipping Address</label>
+              <input id="inv-caddr" type="text" value="${o.address||''}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"></div>
+          </div>
+        </div>
+
+        <!-- Items Table -->
+        <div style="background:#fff8fc;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700">Order Items — Edit price & qty if needed</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse">
+              <thead><tr style="background:#fff0f7">
+                <th style="padding:10px 8px;font-size:11px;color:var(--muted);text-align:center;width:40px">#</th>
+                <th style="padding:10px 8px;font-size:11px;color:var(--muted);text-align:left">Product</th>
+                <th style="padding:10px 8px;font-size:11px;color:var(--muted);text-align:center;width:70px">Qty</th>
+                <th style="padding:10px 8px;font-size:11px;color:var(--muted);text-align:right;width:110px">Unit Price (฿)</th>
+                <th style="padding:10px 8px;font-size:11px;color:var(--muted);text-align:right;width:100px">Subtotal</th>
+              </tr></thead>
+              <tbody id="inv-items-body">${itemRowsHTML}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Discounts -->
+        <div style="background:#fff8fc;border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:12px">Discounts</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Product Discount</label>
+              <div style="display:flex;gap:6px">
+                <input id="inv-disc-prod" type="number" min="0" value="0" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none" oninput="recalcInvoice()">
+                <select id="inv-disc-prod-type" style="padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;background:white" onchange="recalcInvoice()">
+                  <option value="thb">฿</option><option value="pct">%</option>
+                </select>
+              </div>
+            </div>
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Shipping Discount</label>
+              <div style="display:flex;gap:6px">
+                <input id="inv-disc-ship" type="number" min="0" value="0" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none" oninput="recalcInvoice()">
+                <select id="inv-disc-ship-type" style="padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;background:white" onchange="recalcInvoice()">
+                  <option value="thb">฿</option><option value="pct">%</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping & USD Rate -->
+        <div style="background:#fff8fc;border:1px solid var(--border);border-radius:12px;padding:16px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:12px">Shipping & Currency</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Shipping Fee (฿)</label>
+              <input id="inv-shipping" type="number" min="0" value="${o.shipping||0}" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none" oninput="recalcInvoice()"></div>
+            <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">USD Rate (฿ per $1)</label>
+              <input id="inv-usdrate" type="number" min="1" value="${usdRate||35.5}" step="0.01" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none" oninput="recalcInvoice()"></div>
+          </div>
+        </div>
+
+        <!-- Note -->
+        <div>
+          <label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Note / Remark</label>
+          <textarea id="inv-note" rows="2" placeholder="e.g. Payment due within 3 days. Thank you!" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;resize:vertical"></textarea>
+        </div>
+
+        <!-- Summary -->
+        <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);border-radius:12px;padding:18px;color:white">
+          <div style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Invoice Summary</div>
+          <div id="inv-summary-rows"></div>
+        </div>
+
+        <!-- Signature placeholder -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="border:2px dashed #e0d0e0;border-radius:12px;padding:20px;text-align:center;font-size:12px;color:#ccc">
+            Authorized Signature<br><span style="font-size:10px">(Sign after printing)</span>
+          </div>
+          <div style="border:2px dashed #e0d0e0;border-radius:12px;padding:20px;text-align:center;font-size:12px;color:#ccc">
+            Company Stamp<br><span style="font-size:10px">(Stamp after printing)</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="exportInvoiceXLSX()" style="flex:1;min-width:180px;padding:14px;background:linear-gradient(135deg,#1a7a4a,#27ae60);border:none;border-radius:12px;color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">
+            📊 Export Excel (.xlsx)
+          </button>
+          <button onclick="confirmAndCloseInvoice()" style="flex:1;min-width:140px;padding:14px;background:linear-gradient(135deg,var(--accent),var(--grad2));border:none;border-radius:12px;color:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">
+            ✓ Confirm Order
+          </button>
+          <button onclick="closeInvoiceModal()" style="padding:14px 20px;background:#f5f0f5;border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;font-size:13px;font-family:'Nunito',sans-serif">
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>`;
+
+  document.body.appendChild(el);
+  recalcInvoice();
+}
+
+function closeInvoiceModal() {
+  const el = document.getElementById('invoiceModal');
+  if (el) el.remove();
+  _invoiceOrderIdx = null;
+}
+
+function recalcInvoice() {
+  const qtys   = [...document.querySelectorAll('.inv-qty')];
+  const prices = [...document.querySelectorAll('.inv-price')];
+  let productTotal = 0;
+  qtys.forEach((q, idx) => {
+    const qty   = parseInt(q.value)            || 0;
+    const price = parseFloat(prices[idx].value) || 0;
+    const sub   = qty * price;
+    productTotal += sub;
+    const subEl = document.getElementById('inv-sub-'+idx);
+    if (subEl) subEl.textContent = '฿' + sub.toLocaleString();
+  });
+
+  const shipping     = parseFloat(document.getElementById('inv-shipping')?.value)       || 0;
+  const discProd     = parseFloat(document.getElementById('inv-disc-prod')?.value)       || 0;
+  const discProdTyp  = document.getElementById('inv-disc-prod-type')?.value || 'thb';
+  const discShip     = parseFloat(document.getElementById('inv-disc-ship')?.value)       || 0;
+  const discShipTyp  = document.getElementById('inv-disc-ship-type')?.value || 'thb';
+  const usdR         = parseFloat(document.getElementById('inv-usdrate')?.value)         || 35.5;
+
+  const discProdAmt  = discProdTyp === 'pct' ? Math.round(productTotal * discProd / 100) : discProd;
+  const discShipAmt  = discShipTyp === 'pct' ? Math.round(shipping     * discShip / 100) : discShip;
+  const netProduct   = Math.max(0, productTotal - discProdAmt);
+  const netShipping  = Math.max(0, shipping     - discShipAmt);
+  const grandTotal   = netProduct + netShipping;
+
+  const fmt    = n => '฿' + Math.round(n).toLocaleString();
+  const fmtUSD = n => '$' + (n / usdR).toFixed(2);
+
+  const summaryEl = document.getElementById('inv-summary-rows');
+  if (summaryEl) summaryEl.innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:rgba(255,255,255,0.7)"><span>Products Subtotal</span><span>${fmt(productTotal)}</span></div>
+    ${discProdAmt>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:#f39c12"><span>Product Discount${discProdTyp==='pct'?' ('+discProd+'%)':''}</span><span>- ${fmt(discProdAmt)}</span></div>`:''}
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:rgba(255,255,255,0.7)"><span>Shipping Fee</span><span>${fmt(shipping)}</span></div>
+    ${discShipAmt>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:#f39c12"><span>Shipping Discount${discShipTyp==='pct'?' ('+discShip+'%)':''}</span><span>- ${fmt(discShipAmt)}</span></div>`:''}
+    <div style="border-top:1px solid rgba(255,255,255,0.15);margin-top:8px;padding-top:10px;display:flex;justify-content:space-between;font-size:20px;font-weight:700">
+      <span style="color:#f5a623">Grand Total</span>
+      <span style="color:#f5a623">${fmt(grandTotal)} <span style="font-size:13px;color:#00b4d8">(${fmtUSD(grandTotal)})</span></span>
+    </div>`;
+}
+
+function confirmAndCloseInvoice() {
+  if (_invoiceOrderIdx === null) return;
+  confirmAdminOrder(_invoiceOrderIdx);
+  closeInvoiceModal();
+  showToast('✓ Order confirmed!');
+}
+
+function exportInvoiceXLSX() {
+  const o = orders[_invoiceOrderIdx];
+  if (!o) return;
+
+  const invDate   = document.getElementById('inv-date').value;
+  const cName     = document.getElementById('inv-cname').value;
+  const cPhone    = document.getElementById('inv-cphone').value;
+  const cCountry  = document.getElementById('inv-ccountry').value;
+  const cAddr     = document.getElementById('inv-caddr').value;
+  const note      = document.getElementById('inv-note').value;
+  const shipping  = parseFloat(document.getElementById('inv-shipping').value)   || 0;
+  const usdR      = parseFloat(document.getElementById('inv-usdrate').value)    || 35.5;
+  const discProd  = parseFloat(document.getElementById('inv-disc-prod').value)  || 0;
+  const discProdT = document.getElementById('inv-disc-prod-type').value;
+  const discShip  = parseFloat(document.getElementById('inv-disc-ship').value)  || 0;
+  const discShipT = document.getElementById('inv-disc-ship-type').value;
+
+  const qtys   = [...document.querySelectorAll('.inv-qty')];
+  const prices = [...document.querySelectorAll('.inv-price')];
+  const items  = qtys.map((q, idx) => ({
+    name:  document.getElementById('inv-items-body').rows[idx].cells[1].textContent.trim(),
+    qty:   parseInt(q.value)            || 0,
+    price: parseFloat(prices[idx].value) || 0,
+    sub:   (parseInt(q.value)||0) * (parseFloat(prices[idx].value)||0),
+  }));
+
+  const productTotal  = items.reduce((s, it) => s + it.sub, 0);
+  const discProdAmt   = discProdT === 'pct' ? Math.round(productTotal * discProd / 100) : discProd;
+  const discShipAmt   = discShipT === 'pct' ? Math.round(shipping    * discShip / 100) : discShip;
+  const grandTotal    = Math.max(0, productTotal - discProdAmt) + Math.max(0, shipping - discShipAmt);
+  const grandUSD      = (grandTotal / usdR).toFixed(2);
+
+  const load = (cb) => {
+    if (window.XLSX) { cb(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = cb;
+    document.head.appendChild(s);
+  };
+
+  load(() => _buildXLSX({
+    invNum: o.num, invDate, shopName: shopSettings.name||'K&R Thailand Shop',
+    shopLine: shopSettings.line||'@krthailandshop', shopWA: shopSettings.wa||'+66638068809',
+    cName, cPhone, cCountry, cAddr, note,
+    items, productTotal, discProdAmt, discProdT, discProd,
+    shipping, discShipAmt, discShipT, discShip,
+    grandTotal, grandUSD, usdR,
+  }));
+}
+
+function _buildXLSX(d) {
+  const WB = XLSX.utils.book_new();
+  const rows = [];
+
+  const C = (v, bold, bg, color, sz, align) => ({
+    v, s: {
+      font: { bold:!!bold, sz:sz||11, name:'Arial', color:{rgb:color||'000000'} },
+      fill: bg ? {patternType:'solid', fgColor:{rgb:bg}} : {},
+      alignment: { horizontal:align||'left', vertical:'center', wrapText:true },
+    }
+  });
+  const N = (v, bold, color) => ({
+    v: Number(v)||0, t:'n',
+    s: { font:{bold:!!bold,sz:11,name:'Arial',color:{rgb:color||'000000'}}, numFmt:'#,##0', alignment:{horizontal:'right',vertical:'center'} }
+  });
+
+  // Title
+  rows.push([C(d.shopName, true, 'C2185B', 'FFFFFF', 16, 'center'), '', '', '', '', '', '']);
+  rows.push([C('INVOICE', true, 'FCE4EC', 'C2185B', 14, 'center'), '', '', '', C('Invoice No.', true, null, '888888'), C(d.invNum, false, null, 'C2185B'), '']);
+  rows.push([C('Date:', true, null, '888888'), C(d.invDate), '', '', C('USD Rate:', true, null, '888888'), C(`1 USD = ฿${d.usdR}`), '']);
+  rows.push([]);
+
+  // Bill To
+  rows.push([C('BILL TO', true, 'FFF0F7', 'C2185B', 12), '', '', '', '', '', '']);
+  rows.push([C('Name:',    true), C(d.cName),    '', C('Phone:',   true), C(d.cPhone),   '', '']);
+  rows.push([C('Country:', true), C(d.cCountry), '', C('Address:', true), C(d.cAddr),    '', '']);
+  rows.push([]);
+
+  // Items header
+  rows.push([
+    C('#',           true, 'FFF0F7', 'AD1457', 11, 'center'),
+    C('Product',     true, 'FFF0F7', 'AD1457', 11, 'left'),
+    C('Qty',         true, 'FFF0F7', 'AD1457', 11, 'center'),
+    C('Unit (฿)',    true, 'FFF0F7', 'AD1457', 11, 'right'),
+    C('Sub (฿)',     true, 'FFF0F7', 'AD1457', 11, 'right'),
+    C('Unit ($)',    true, 'FFF0F7', 'AD1457', 11, 'right'),
+    C('Sub ($)',     true, 'FFF0F7', 'AD1457', 11, 'right'),
+  ]);
+
+  // Items rows
+  d.items.forEach((it, idx) => {
+    rows.push([
+      C(idx+1, false, null, null, 11, 'center'),
+      C(it.name),
+      C(it.qty,  false, null, null, 11, 'center'),
+      N(it.price),
+      N(it.sub,   true,  'C2185B'),
+      N((it.price/d.usdR).toFixed(2)),
+      N((it.sub/d.usdR).toFixed(2), true, '0070C0'),
+    ]);
+  });
+  rows.push([]);
+
+  // Totals
+  const tRow = (lbl, thb, usd, bold, col) => ['', C(lbl, bold, null, col||'555555'), '', '', N(thb, bold, col||'000000'), '', N(usd, bold, col||'0070C0')];
+  rows.push(tRow('Products Subtotal', d.productTotal, (d.productTotal/d.usdR).toFixed(2)));
+  if (d.discProdAmt > 0) rows.push(tRow(`Product Discount (${d.discProdT==='pct'?d.discProd+'%':'฿'+d.discProdAmt})`, -d.discProdAmt, -(d.discProdAmt/d.usdR).toFixed(2), false, 'E65100'));
+  rows.push(tRow('Shipping Fee', d.shipping, (d.shipping/d.usdR).toFixed(2)));
+  if (d.discShipAmt > 0) rows.push(tRow(`Shipping Discount (${d.discShipT==='pct'?d.discShip+'%':'฿'+d.discShipAmt})`, -d.discShipAmt, -(d.discShipAmt/d.usdR).toFixed(2), false, 'E65100'));
+  rows.push(['', C('GRAND TOTAL', true, 'FFF0F7', 'C2185B', 13), '', '', N(d.grandTotal, true, 'C2185B'), '', N(d.grandUSD, true, '0070C0')]);
+  rows.push([]);
+
+  // Payment
+  rows.push([C('PAYMENT DETAILS', true, 'FFF0F7', 'C2185B', 12), '', '', '', '', '', '']);
+  rows.push([C('Bank:'), C('KASIKORN BANK'), '', C('Swift:'), C('KASITHBK', true), '', '']);
+  rows.push([C('Account Name:'), C('KHONGKHA BUMRUNGKHET'), '', '', '', '', '']);
+  rows.push([C('Account No.:'), C('564-24-553-05', true, null, 'C62828'), '', '', '', '', '']);
+  rows.push([C('Line:'), C(d.shopLine), '', C('WhatsApp:'), C(d.shopWA), '', '']);
+  rows.push([]);
+
+  // Note
+  if (d.note) { rows.push([C('Note:', true), C(d.note), '', '', '', '', '']); rows.push([]); }
+
+  // Signature
+  rows.push(['', '', '', '', C('Authorized Signature', false, null, '888888', 10, 'center'), '', '']);
+  rows.push(['', '', '', '', C('________________________', false, null, 'AAAAAA', 10, 'center'), '', '']);
+  rows.push(['', '', '', '', C(d.shopName, true, null, 'C2185B', 10, 'center'), '', '']);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:5},{wch:32},{wch:8},{wch:16},{wch:14},{wch:12},{wch:12}];
+  ws['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:6}},
+    {s:{r:1,c:0}, e:{r:1,c:3}},
+    {s:{r:4,c:0}, e:{r:4,c:6}},
+  ];
+
+  XLSX.utils.book_append_sheet(WB, ws, 'Invoice');
+  XLSX.writeFile(WB, `Invoice_${d.invNum}.xlsx`);
+  showToast('📊 Invoice exported!');
+}
+
 
 </script>
 </body>
-            </html>
+</html>
