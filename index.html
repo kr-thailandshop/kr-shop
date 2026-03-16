@@ -3667,28 +3667,6 @@ async function loadOrdersFromSheet() {
   }
 }
 
-// ฟังก์ชันช่วยแปลงข้อความสินค้า (เช่น "Soap x2, Boiled beans x1") กลับเป็น Array
-function parseOrderItems(itemsStr) {
-  if (!itemsStr) return [];
-  // หมายเหตุ: ตรงนี้เป็นการดึงชื่อมาโชว์เบื้องต้น เพราะใน Sheet เราเก็บเป็นข้อความรวม
-  return itemsStr.split(', ').map(item => {
-    const parts = item.split(' x');
-    return {
-      product: { nameEN: parts[0], emoji: '📦' },
-      qty: parseInt(parts[1]) || 1
-    };
-  });
-}
-
-
-// ─── STARTUP ───
-window.addEventListener('load', loadAllFromSheet);
-
-// Admin Order Detail Popup
-function closeOrderDetail() {
-  const el = document.getElementById('orderDetailOverlay');
-  if(el) el.remove();
-}
 function viewOrderDetail(i) {
   const o = orders[i];
   const box = o.box ? DHL_BOXES.find(b=>b.num===o.box) : null;
