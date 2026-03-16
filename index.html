@@ -2619,82 +2619,7 @@ function renderAdminProducts() {
 
 // ─── 1. ตัวแปรควบคุมหน้าสำหรับ ADMIN ORDERS ───
 let adminCurrentPage = 1;
-const adminPageSize = 10;
-
-// ─── 2. ฟังก์ชันวาดรายการออร์เดอร์ (แทนที่ตัวเดิมถ้ามี) ───
-function renderAdminOrders() {
-  // ลองหาคอนเทนเนอร์ตาม ID ที่ใช้ใน HTML ของคุณ (ถ้าไม่ใช่ admin-orders-list ให้เปลี่ยนชื่อในบรรทัดนี้)
-  const container = document.getElementById('admin-orders-list') || document.getElementById('adminOrderList'); 
-  if (!container) return;
-
-  // เรียงออร์เดอร์ใหม่ล่าสุดขึ้นก่อน
-  const sortedOrders = [...orders].reverse();
-
-  // คำนวณช่วงของข้อมูลที่จะแสดง (หน้าละ 10)
-  const start = (adminCurrentPage - 1) * adminPageSize;
-  const end = start + adminPageSize;
-  const paginatedOrders = sortedOrders.slice(start, end);
-
-  if (orders.length === 0) {
-    container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);background:rgba(255,255,255,0.02);border-radius:15px">No orders yet.</div>';
-    return;
-  }
-
-  // วาดรายการออร์เดอร์แต่ละอัน
-  let html = paginatedOrders.map((o) => {
-    // หาตำแหน่ง Index ที่แท้จริงในตัวแปร orders เพื่อให้กด Details แล้วข้อมูลตรงตัว
-    const actualIdx = orders.findIndex(x => x.num === o.num);
-    const statusClass = (o.status || 'pending').toLowerCase();
-    
-    return `
-      <div class="order-card-admin" onclick="viewOrderDetail(${actualIdx})" 
-           style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:15px; padding:15px; margin-bottom:12px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="color:var(--gold); font-weight:700; font-size:14px; margin-bottom:4px;">${o.num}</div>
-          <div style="font-size:11px; color:var(--muted);">${o.date} • ${o.customer}</div>
-          <div style="font-size:12px; color:var(--teal); margin-top:4px; font-weight:600;">฿${o.total.toLocaleString()}</div>
-        </div>
-        <div style="text-align:right;">
-          <span class="order-status status-${statusClass}" style="font-size:10px; padding:4px 10px; border-radius:20px;">
-            ${statusClass.toUpperCase()}
-          </span>
-          <div style="margin-top:8px;"><button class="edit-btn-sm" style="font-size:11px; padding:4px 12px;">🔍 Details</button></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // ─── 3. ส่วนควบคุมการเปลี่ยนหน้า (Pagination) ───
-  const totalPages = Math.ceil(orders.length / adminPageSize);
-  if (totalPages > 1) {
-    html += `
-      <div style="display:flex; justify-content:center; align-items:center; gap:20px; padding:20px; margin-top:10px;">
-        <button onclick="changeAdminPage(-1)" ${adminCurrentPage === 1 ? 'disabled' : ''} 
-                style="background:var(--border); border:none; color:white; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12px; opacity:${adminCurrentPage === 1 ? 0.3 : 1}">
-          Back
-        </button>
-        <span style="font-size:13px; color:var(--muted); font-weight:600;">Page ${adminCurrentPage} / ${totalPages}</span>
-        <button onclick="changeAdminPage(1)" ${adminCurrentPage === totalPages ? 'disabled' : ''} 
-                style="background:var(--border); border:none; color:white; padding:8px 16px; border-radius:10px; cursor:pointer; font-size:12px; opacity:${adminCurrentPage === totalPages ? 0.3 : 1}">
-          Next
-        </button>
-      </div>
-    `;
-  }
-
-  container.innerHTML = html;
-}
-
-// ─── 4. ฟังก์ชันสำหรับเปลี่ยนหน้า ───
-function changeAdminPage(step) {
-  adminCurrentPage += step;
-  renderAdminOrders();
-  // เลื่อนกลับไปด้านบนสุดของรายการออร์เดอร์
-  const container = document.getElementById('admin-orders-list') || document.getElementById('adminOrderList');
-  if (container) container.scrollIntoView({ behavior: 'smooth' });
-}
-  
-  
+const adminPageSize = 10;  
 let activeShipZone = 'A';
 
 function renderShippingGrid() {
@@ -2823,12 +2748,6 @@ function renderAdminOrders() {
         </div>
       </div>`;
   }).join('');
-}
-
-function confirmAdminOrder(i) {
-  orders[i].status = 'confirmed';
-  renderAdminOrders();
-  showToast('Order confirmed ✓');
 }
 
 // ===== PRODUCT MODAL =====
@@ -3543,15 +3462,6 @@ updateRateDisplay();
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
 const scriptURL = 'https://script.google.com/macros/s/AKfycbzsmp_PGqHhr1_4CzUAc7SAz9VwogKDBwsmLnA6oh0e9RC2YWuv09l17X5mptqc94zp/exec';
 
-// ─── LOAD ALL DATA ON STARTUP ───
-async function loadAllFromSheet() {
-  await Promise.all([
-    loadProductsFromSheet(),
-    loadSettingsFromSheet(),
-    loadShippingFromSheet()
-  ]);
-}
-
 // ─── PRODUCTS ───
 async function loadProductsFromSheet() {
   try {
@@ -3681,18 +3591,6 @@ async function loadShippingFromSheet() {
   } catch(e) { console.error('Shipping load failed:', e); }
 }
 
-function saveShippingToSheet() {
-  // Build rates object: { 2: {A:x, B:x, ...}, 3: {...}, ... }
-  const rates = {};
-  [2,3,4,5,6,7,8].forEach(n => {
-    rates[n] = {};
-    ['A','B','C','D','E'].forEach(z => {
-      rates[n][z] = (zoneShippingRates[z]||{})[n] || 0;
-    });
-  });
-  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'SaveShipping', rates }) });
-}
-
 // ─── WRAP EXISTING FUNCTIONS ───
 const _origConfirmDL = confirmAndDownload;
 confirmAndDownload = function() {
@@ -3740,13 +3638,6 @@ const _origSaveUsdRate = saveUsdRate;
 saveUsdRate = function() {
   _origSaveUsdRate();
   saveSettingsToSheet();
-};
-
-const _origConfirmAdminOrder = confirmAdminOrder;
-confirmAdminOrder = function(i) {
-  _origConfirmAdminOrder(i);
-  const o = orders[i];
-  if (o) fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'ConfirmOrder', orderNum: o.num }) });
 };
 
 // ─── LOAD ORDERS FROM SHEET ───
