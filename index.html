@@ -1875,6 +1875,20 @@ function showPage(p) {
     loadAllFromSheet().then(() => {
       renderAdminProducts(); renderShippingGrid(); renderAdminOrders(); _fillAdminSettingsForm();
     });
+    // auto refresh orders ทุก 2 นาที เมื่ออยู่หน้า Admin
+    if (!window._ordersRefreshTimer) {
+      window._ordersRefreshTimer = setInterval(() => {
+        if (document.getElementById('admin-page')?.classList.contains('active')) {
+          loadOrdersFromSheet();
+        }
+      }, 2 * 60 * 1000);
+    }
+  } else {
+    // หยุด timer เมื่อออกจากหน้า Admin
+    if (window._ordersRefreshTimer) {
+      clearInterval(window._ordersRefreshTimer);
+      window._ordersRefreshTimer = null;
+    }
   }
   if(p==='shop')    { loadProductsFromSheet(); loadSettingsFromSheet(); loadShippingFromSheet(); }
   if(p==='landing') { loadSettingsFromSheet(); }
@@ -2647,7 +2661,12 @@ function confirmAdminOrder(i) {
   showToast('Order confirmed ✓');
   const o = orders[i];
   if (o) fetch(scriptURL, { method:'POST', mode:'no-cors',
-    body: JSON.stringify({ type:'UpdateOrderStatus', orderNum: o.num, status:'confirmed' })
+    body: JSON.stringify({
+      type:          'UpdateOrderStatus',
+      orderNum:      o.num,
+      status:        'confirmed',
+      confirmedDate: new Date().toLocaleDateString(),
+    })
   });
 }
 
@@ -3403,7 +3422,7 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbySDOOSS2Ae6Wy0iTiRDpfhB8_U5NBNTjBqxV2ZZYRQ9K--ncqQCUwg2agSCYRJ4dhE/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbw3LKm1IAM1M7g06lKwJemj3gZHRgSIxgyhzuMEqnndU3RnEZnR5ezEhTxc2Sx6egcm/exec';
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
@@ -3948,9 +3967,43 @@ function recalcInvoice() {
 
 function confirmAndCloseInvoice() {
   if (_invoiceOrderIdx === null) return;
-  confirmAdminOrder(_invoiceOrderIdx);
+  const o = orders[_invoiceOrderIdx];
+  if (!o) return;
+
+  // เก็บข้อมูลส่วนลดจาก modal
+  const discProd   = parseFloat(document.getElementById('inv-disc-prod')?.value)  || 0;
+  const discProdT  = document.getElementById('inv-disc-prod-type')?.value || 'thb';
+  const discShip   = parseFloat(document.getElementById('inv-disc-ship')?.value)  || 0;
+  const discShipT  = document.getElementById('inv-disc-ship-type')?.value || 'thb';
+  const shipping   = parseFloat(document.getElementById('inv-shipping')?.value)   || 0;
+  const usdR       = parseFloat(document.getElementById('inv-usdrate')?.value)    || 35.5;
+  const note       = document.getElementById('inv-note')?.value || '';
+  const qtys       = [...document.querySelectorAll('.inv-qty')];
+  const prices     = [...document.querySelectorAll('.inv-price')];
+  const productTotal = qtys.reduce((s,q,idx) => s + (parseInt(q.value)||0)*(parseFloat(prices[idx]?.value)||0), 0);
+  const discProdAmt  = discProdT === 'pct' ? Math.round(productTotal * discProd / 100) : discProd;
+  const discShipAmt  = discShipT === 'pct' ? Math.round(shipping    * discShip / 100) : discShip;
+  const grandTotal   = Math.max(0, productTotal - discProdAmt) + Math.max(0, shipping - discShipAmt);
+
+  // อัปเดต Sheets
+  orders[_invoiceOrderIdx].status = 'confirmed';
+  fetch(scriptURL, { method:'POST', mode:'no-cors',
+    body: JSON.stringify({
+      type:          'UpdateOrderStatus',
+      orderNum:      o.num,
+      status:        'confirmed',
+      confirmedDate: new Date().toLocaleDateString(),
+      discProduct:   discProdAmt,
+      discShipping:  discShipAmt,
+      grandTotal:    grandTotal,
+      invoiceNote:   note,
+    })
+  });
+
   closeInvoiceModal();
-  showToast('✓ Order confirmed!');
+  _updateOrdersBadge();
+  renderAdminOrders();
+  showToast('✓ Order confirmed & saved!');
 }
 
 function exportInvoiceXLSX() {
@@ -3993,14 +4046,33 @@ function exportInvoiceXLSX() {
     document.head.appendChild(s);
   };
 
-  load(() => _buildXLSX({
-    invNum: o.num, invDate, shopName: shopSettings.name||'K&R Thailand Shop',
-    shopLine: shopSettings.line||'@krthailandshop', shopWA: shopSettings.wa||'+66638068809',
-    cName, cPhone, cCountry, cAddr, note,
-    items, productTotal, discProdAmt, discProdT, discProd,
-    shipping, discShipAmt, discShipT, discShip,
-    grandTotal, grandUSD, usdR,
-  }));
+  load(() => {
+    _buildXLSX({
+      invNum: o.num, invDate, shopName: shopSettings.name||'K&R Thailand Shop',
+      shopLine: shopSettings.line||'@krthailandshop', shopWA: shopSettings.wa||'+66638068809',
+      cName, cPhone, cCountry, cAddr, note,
+      items, productTotal, discProdAmt, discProdT, discProd,
+      shipping, discShipAmt, discShipT, discShip,
+      grandTotal, grandUSD, usdR,
+    });
+
+    // บันทึกข้อมูล Invoice กลับ Sheets
+    orders[_invoiceOrderIdx].status = 'confirmed';
+    fetch(scriptURL, { method:'POST', mode:'no-cors',
+      body: JSON.stringify({
+        type:          'UpdateOrderStatus',
+        orderNum:      o.num,
+        status:        'confirmed',
+        confirmedDate: new Date().toLocaleDateString(),
+        discProduct:   discProdAmt,
+        discShipping:  discShipAmt,
+        grandTotal:    grandTotal,
+        invoiceNote:   note,
+      })
+    });
+    _updateOrdersBadge();
+    renderAdminOrders();
+  });
 }
 
 function _buildXLSX(d) {
