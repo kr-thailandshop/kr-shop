@@ -2678,36 +2678,24 @@ function renderAdminOrders() {
   const container = document.getElementById('adminOrdersList');
   if (!container) return;
   _updateOrdersBadge();
-  if (!orders.length) {
+  if (!orders || orders.length === 0) {
     container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px">No orders yet</p>';
     return;
   }
-  const sortedOrders = [...orders].reverse();
-  container.innerHTML = sortedOrders.map((o) => {
-    const actualIdx = orders.findIndex(x => x.num === o.num);
-    const customerName  = typeof o.customer === 'object' ? o.customer.name  : (o.customer || '-');
-    const customerPhone = typeof o.customer === 'object' ? o.customer.phone : (o.phone    || '-');
-    const statusClass = (o.status || 'pending').toLowerCase();
-    return `
-      <div class="order-admin-card">
-        <div class="order-admin-header">
-          <div>
-            <div style="font-weight:700">${o.num}</div>
-            <div style="font-size:12px;color:var(--muted)">${customerName} · ${customerPhone} · ${o.date}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <span class="order-status status-${statusClass}">${statusClass==='confirmed'?'✓ Confirmed':'⏳ Pending'}</span>
-            <button onclick="viewOrderDetail(${actualIdx})" style="padding:6px 12px;background:rgba(173,20,87,0.1);border:1px solid var(--teal);color:var(--teal);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🔍 Details</button>
-            <button onclick="openInvoiceModal(${actualIdx})" style="padding:6px 12px;background:linear-gradient(135deg,var(--accent),var(--grad2));border:none;color:white;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">🧾 Invoice</button>
-            ${statusClass==='pending'?`<button class="confirm-order-btn" onclick="confirmAdminOrder(${actualIdx})">✓ Confirm</button>`:''}
-          </div>
-        </div>
-        <div style="font-size:13px;color:#888">
-          ${o.box?'Box '+o.box+' · ':''}${(o.items||[]).length} items · ฿${(o.total||0).toLocaleString()}
-          (Products: ฿${(o.totalProduct||0).toLocaleString()} + Shipping: ฿${(o.shipping||0).toLocaleString()})
-        </div>
-      </div>`;
-  }).join('');
+  container.innerHTML = [...orders].reverse().map(o => `
+    <div style="background:white;border:1px solid #f0e0f0;border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-weight:700;color:var(--accent)">${o.num}</div>
+      <div style="font-size:13px;color:#555;margin-top:4px">${o.customer} · ${o.phone}</div>
+      <div style="font-size:13px;color:#555">${o.country} · ${o.address}</div>
+      <div style="font-size:13px;margin-top:6px">${typeof o.items === 'string' ? o.items : (o.items||[]).map(i=>i.product?(i.product.nameEN||i.product.nameTH)+' x'+i.qty:i).join(', ')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+        <span style="font-size:13px;color:var(--muted)">${o.date}</span>
+        <span style="font-weight:700;color:var(--gold)">฿${(o.total||0).toLocaleString()}</span>
+        <span style="padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${o.status==='confirmed'?'#e8f5e9':'#fff3e0'};color:${o.status==='confirmed'?'#2e7d32':'#e65100'}">
+          ${o.status==='confirmed'?'✓ Confirmed':'⏳ Pending'}
+        </span>
+      </div>
+    </div>`).join('');
 }
 
 // ===== PRODUCT MODAL =====
@@ -3477,21 +3465,26 @@ async function loadProductsFromSheet() {
 
 async function saveOrderToSheet(d) {
   try {
-    await fetch(scriptURL, {
-      method: 'POST',
-      mode:   'no-cors',
-      body:   JSON.stringify({
-        type:      'Orders',
-        orderNum:  d.orderNum,
-        name:      d.customer.name,
-        phone:     d.customer.phone,
-        country:   d.customer.country  || '',
-        address:   d.customer.address  || '',
-        items:     d.items.map(i => (i.product.nameEN || i.product.nameTH) + ' x' + i.qty).join(', '),
-        total:     d.total,
-        shipping:  d.shipping,
+    // ใช้ redirect follow เพื่อให้ Apps Script รับข้อมูลได้
+    const resp = await fetch(scriptURL, {
+      method:   'POST',
+      redirect: 'follow',
+      headers:  { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type:     'Orders',
+        orderNum: d.orderNum,
+        name:     d.customer.name,
+        phone:    d.customer.phone,
+        country:  d.customer.country  || '',
+        address:  d.customer.address  || '',
+        items:    d.items.map(i => (i.product.nameEN || i.product.nameTH) + ' x' + i.qty).join(', '),
+        total:    d.total,
+        shipping: d.shipping,
+        status:   'pending',
       })
     });
+    const text = await resp.text();
+    console.log('saveOrderToSheet:', text);
   } catch(e) {
     console.error('saveOrderToSheet failed:', e);
   }
@@ -3619,32 +3612,29 @@ saveUsdRate = function() {
 // ─── LOAD ORDERS FROM SHEET ───
 async function loadOrdersFromSheet() {
   try {
-    const resp = await fetch(scriptURL + '?type=orders&t=' + Date.now());
+    const url = scriptURL + '?type=orders&t=' + Date.now();
+    const resp = await fetch(url);
     const data = await resp.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      orders = [];
-    } else {
-      orders = data
-        .filter(o => o && o.orderNum)
-        .map(o => ({
-          num:          o.orderNum || '',
-          date:         o.date     || '',
-          customer:     o.name     || '-',
-          phone:        o.phone    || '-',
-          country:      o.country  || '',
-          address:      o.address  || '',
-          items:        parseOrderItems(o.items),
-          total:        parseFloat(o.total)    || 0,
-          totalProduct: parseFloat(o.total)    || 0,
-          shipping:     parseFloat(o.shipping) || 0,
-          box:          null,
-          status:       _normalizeStatus(o.status || 'pending'),
-        }));
-    }
+    console.log('Orders raw data:', data);
+    orders = Array.isArray(data) ? data.filter(o => o && o.orderNum).map(o => ({
+      num:      o.orderNum || '',
+      date:     o.date     || '',
+      customer: o.name     || '-',
+      phone:    o.phone    || '-',
+      country:  o.country  || '',
+      address:  o.address  || '',
+      items:    o.items    || '',
+      total:    parseFloat(o.total)    || 0,
+      totalProduct: parseFloat(o.total) || 0,
+      shipping: parseFloat(o.shipping) || 0,
+      status:   _normalizeStatus(o.status || 'pending'),
+    })) : [];
     _updateOrdersBadge();
-    if (typeof renderAdminOrders === 'function') renderAdminOrders();
+    renderAdminOrders();
   } catch(e) {
     console.error('Orders load failed:', e);
+    document.getElementById('adminOrdersList').innerHTML =
+      '<p style="color:red;padding:20px">Error: ' + e.message + '</p>';
   }
 }
 
