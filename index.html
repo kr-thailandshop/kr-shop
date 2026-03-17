@@ -3422,7 +3422,7 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbw3LKm1IAM1M7g06lKwJemj3gZHRgSIxgyhzuMEqnndU3RnEZnR5ezEhTxc2Sx6egcm/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyvmp0nQfUhkelEAA86vW9ysoWzWRPWdE6ODOWrUzshwT2To_fKOyBUkgQ8xQXkPW63/exec';
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
@@ -3617,16 +3617,10 @@ saveUsdRate = function() {
 };
 
 // ─── LOAD ORDERS FROM SHEET ───
-// ─── LOAD ADMIN ORDERS — ดึงจาก AdminOrders sheet (ถาวร) ───
 async function loadOrdersFromSheet() {
   try {
-    // Step 1: sync Orders → AdminOrders ผ่าน GET (รอผลได้)
-    await fetch(scriptURL + '?type=syncAdminOrders&t=' + Date.now());
-
-    // Step 2: ดึงจาก AdminOrders
-    const resp = await fetch(scriptURL + '?type=adminOrders&t=' + Date.now());
+    const resp = await fetch(scriptURL + '?type=orders&t=' + Date.now());
     const data = await resp.json();
-
     if (!Array.isArray(data) || data.length === 0) {
       orders = [];
     } else {
@@ -3649,7 +3643,6 @@ async function loadOrdersFromSheet() {
     }
     _updateOrdersBadge();
     if (typeof renderAdminOrders === 'function') renderAdminOrders();
-
   } catch(e) {
     console.error('Orders load failed:', e);
   }
