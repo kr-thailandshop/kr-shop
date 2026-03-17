@@ -904,20 +904,37 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
 <!-- ===== LOGIN PAGE ===== -->
 <div id="login-page" class="page">
-  <div style="min-height:100vh; background:linear-gradient(135deg, var(--g1), var(--g3)); display:flex; align-items:center; justify-content:center; padding:20px;">
+  <div style="min-height:100vh;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;padding:20px;">
     <div class="login-card">
       <div class="login-logo">K&R</div>
-      <div class="login-sub" data-th="กรอกรหัสและเบอร์โทรเพื่อสั่งซื้อ" data-en="Enter your code & phone to continue">Enter your code & phone to continue</div>
-      <div class="form-group">
-        <label class="form-label" data-th="รหัสลูกค้า" data-en="Customer Code">Customer Code</label>
-        <input type="text" id="loginCode" class="form-input" placeholder="e.g. KHONG01" style="text-transform:uppercase;letter-spacing:2px;font-weight:700">
+      <div class="login-sub" data-th="กรอกข้อมูลเพื่อเริ่มช้อปปิ้ง" data-en="Enter your details to start shopping">Enter your details to start shopping</div>
+
+      <!-- ชื่อ (required ถ้าไม่มีโค้ด) -->
+      <div class="form-group" id="loginNameGroup">
+        <label class="form-label" data-th="ชื่อของคุณ" data-en="Your Name">Your Name</label>
+        <input type="text" id="loginName" class="form-input" placeholder="e.g. Khongkha">
       </div>
+
+      <!-- เบอร์โทร -->
       <div class="form-group">
         <label class="form-label" data-th="เบอร์โทรศัพท์" data-en="Phone Number">Phone Number</label>
-        <input type="tel" id="loginPhone" class="form-input" placeholder="+66 xxx xxx xxxx">
+        <input type="tel" id="loginPhone" class="form-input" placeholder="0812345678">
       </div>
+
+      <!-- โค้ดลูกค้า (optional) -->
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:6px">
+          <span data-th="รหัสลูกค้า (ถ้ามี)" data-en="Customer Code (optional)">Customer Code (optional)</span>
+          <span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:10px;font-weight:700">Special price</span>
+        </label>
+        <input type="text" id="loginCode" class="form-input" placeholder="e.g. KHONG01"
+          style="text-transform:uppercase;letter-spacing:2px;font-weight:700"
+          oninput="onLoginCodeInput(this.value)">
+        <div id="loginCodeHint" style="display:none;font-size:12px;margin-top:4px;padding:6px 10px;border-radius:8px"></div>
+      </div>
+
       <button class="submit-btn" id="loginBtn" onclick="doLogin()">
-        <span data-th="เข้าสู่ระบบ" data-en="Continue to Shop">Continue to Shop</span>
+        <span data-th="เริ่มช้อปปิ้ง" data-en="Continue to Shop">Continue to Shop</span>
       </button>
       <div id="loginError" style="display:none;color:var(--danger);font-size:13px;text-align:center;margin-top:8px;padding:8px;background:#fff0f0;border-radius:8px"></div>
       <div class="back-link" onclick="showPage('landing')">← <span data-th="กลับหน้าแรก" data-en="Back to home">Back to home</span></div>
@@ -1397,6 +1414,15 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
         <div class="ot-row grand"><span><span data-th="ยอดรวมทั้งหมด" data-en="Grand Total">Grand Total</span></span><span id="omGrandTotal">-</span></div>
       </div>
 
+      <!-- Zone quick-select -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">
+          🌏 <span data-th="เลือกโซนค่าขนส่ง DHL" data-en="Select DHL Shipping Zone">Select DHL Shipping Zone</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px" id="omZoneBtns"></div>
+        <div id="omZoneInfo" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+      </div>
+
       <div class="order-modal-actions" id="omActions">
         <button class="btn-confirm-dl" onclick="confirmAndDownload()">
           <span data-th="✓ ยืนยันคำสั่งซื้อ" data-en="✓ Confirm Order">✓ Confirm Order</span>
@@ -1486,8 +1512,9 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
 <!-- ===== ADDRESS POPUP ===== -->
 <!-- ===== DESTINATION COUNTRY PICKER ===== -->
-<div id="destPickerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:8500;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)">
-  <div style="background:var(--g2);border:1px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.5)">
+<div id="destPickerOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px)"
+  onclick="if(event.target===this)closeDestPicker()">
+  <div style="background:white;border:1px solid var(--border);border-radius:20px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,0.5)">
     <div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:18px 24px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1">
       <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--gold)">🌍 <span data-th="เลือกประเทศปลายทาง" data-en="Destination Country">Destination Country</span></div>
       <button onclick="closeDestPicker()" style="background:rgba(255,255,255,0.15);border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;font-weight:700">✕</button>
@@ -1495,7 +1522,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     <div style="padding:20px">
       <input type="text" id="destCountrySearch" oninput="renderDestCountries(this.value)"
         placeholder="🔍 Search country..."
-        style="width:100%;padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:10px;color:white;font-family:'Nunito',sans-serif;font-size:13px;outline:none;margin-bottom:14px">
+        style="width:100%;padding:10px 14px;background:white;border:1.5px solid var(--border);border-radius:10px;color:#1a1a2e;font-family:'Nunito',sans-serif;font-size:13px;outline:none;margin-bottom:14px;box-sizing:border-box">
 
       <!-- Zone tabs -->
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="destZoneTabs"></div>
@@ -1973,60 +2000,104 @@ function requireLogin() {
 }
 function logout() { currentUser=null; showPage('landing'); }
 
-async function doLogin() {
-  const code  = (document.getElementById('loginCode').value || '').trim().toUpperCase();
-  const phone = (document.getElementById('loginPhone').value || '').trim();
-  const errEl = document.getElementById('loginError');
-  const btn   = document.getElementById('loginBtn');
+// hint เมื่อพิมพ์โค้ด
+function onLoginCodeInput(val) {
+  const code    = val.toUpperCase().trim();
+  const hintEl  = document.getElementById('loginCodeHint');
+  const nameGrp = document.getElementById('loginNameGroup');
+  if (!hintEl) return;
 
-  if (!code || !phone) {
+  if (!code) {
+    hintEl.style.display = 'none';
+    if (nameGrp) nameGrp.style.display = 'block';
+    return;
+  }
+
+  // ซ่อนช่องชื่อเมื่อมีโค้ด เพราะจะดึงชื่อจาก Sheets แทน
+  if (nameGrp) nameGrp.style.display = 'none';
+  hintEl.style.display = 'block';
+  hintEl.style.background = '#fff8e1';
+  hintEl.style.color = '#888';
+  hintEl.textContent = '🔑 Using customer code — special prices will apply';
+}
+
+async function doLogin() {
+  const code    = (document.getElementById('loginCode')?.value || '').trim().toUpperCase();
+  const phone   = (document.getElementById('loginPhone')?.value || '').trim();
+  const nameVal = (document.getElementById('loginName')?.value || '').trim();
+  const errEl   = document.getElementById('loginError');
+  const btn     = document.getElementById('loginBtn');
+
+  // validate
+  if (!phone) {
     errEl.style.display = 'block';
-    errEl.textContent = 'Please fill in all fields';
+    errEl.textContent   = 'Please enter your phone number';
+    return;
+  }
+  if (!code && !nameVal) {
+    errEl.style.display = 'block';
+    errEl.textContent   = 'Please enter your name or customer code';
     return;
   }
 
   errEl.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Checking...';
+  btn.disabled        = true;
+  btn.textContent     = 'Checking...';
 
-  try {
-    const phoneClean = phone.replace(/\D/g,'');
-    const resp = await fetch(`${scriptURL}?type=getCustomer&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phoneClean)}&t=${Date.now()}`);
-    const data = await resp.json();
+  const phoneClean = phone.replace(/\D/g, '');
 
-    if (!data.found) {
+  // ── มีโค้ด → ตรวจกับ Sheets ──
+  if (code) {
+    try {
+      const resp = await fetch(`${scriptURL}?type=getCustomer&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phoneClean)}&t=${Date.now()}`);
+      const data = await resp.json();
+
+      if (!data.found) {
+        errEl.style.display = 'block';
+        errEl.textContent   = 'Invalid code or phone number. Please check and try again.';
+        btn.disabled        = false;
+        btn.textContent     = 'Continue to Shop';
+        return;
+      }
+
+      currentUser = {
+        name:          data.name,
+        phone:         data.phone || phone,
+        customerCode:  data.customerCode,
+        discount:      data.discount      || 0,
+        priceOverride: data.priceOverride || {},
+        country:       '',
+        address:       '',
+      };
+    } catch(e) {
       errEl.style.display = 'block';
-      errEl.textContent = 'Invalid code or phone number. Please check and try again.';
-      btn.disabled = false;
-      btn.textContent = 'Continue to Shop';
+      errEl.textContent   = 'Connection error. Please try again.';
+      btn.disabled        = false;
+      btn.textContent     = 'Continue to Shop';
       return;
     }
-
-    // login สำเร็จ — เก็บข้อมูลลูกค้าและราคาพิเศษ
+  } else {
+    // ── ไม่มีโค้ด → ใช้ชื่อ + เบอร์ ราคาปกติ ──
     currentUser = {
-      name:          data.name,
-      phone:         data.phone,
-      customerCode:  data.customerCode,
-      discount:      data.discount || 0,       // % ส่วนลดทุกชิ้น
-      priceOverride: data.priceOverride || {},  // {ชื่อสินค้า: ราคา}
+      name:          nameVal,
+      phone:         phone,
+      customerCode:  '',
+      discount:      0,
+      priceOverride: {},
       country:       '',
       address:       '',
     };
-
-    document.getElementById('userBadge').textContent = data.name;
-    cart = {};
-    renderProducts();
-    renderCart();
-    showPage('shop');
-    updateAddressBadge();
-    showToast(`Welcome, ${data.name}! 👋`);
-
-  } catch(e) {
-    errEl.style.display = 'block';
-    errEl.textContent = 'Connection error. Please try again.';
-    btn.disabled = false;
-    btn.textContent = 'Continue to Shop';
   }
+
+  document.getElementById('userBadge').textContent = currentUser.name;
+  cart = {};
+  renderProducts();
+  renderCart();
+  showPage('shop');
+  updateAddressBadge();
+  showToast(`Welcome, ${currentUser.name}! 👋`);
+  btn.disabled    = false;
+  btn.textContent = 'Continue to Shop';
 }
 
 // ===== SEARCH =====
@@ -2302,7 +2373,7 @@ function closeCustomerModal() {
 async function saveCustomer() {
   const code     = (document.getElementById('cm-code').value||'').trim().toUpperCase();
   const name     = (document.getElementById('cm-name').value||'').trim();
-  const phone    = (document.getElementById('cm-phone').value||'').trim().replace(/\D/g,'');
+  const phone    = (document.getElementById('cm-phone').value||'').trim();
   const discount = parseFloat(document.getElementById('cm-discount').value)||0;
   const note     = (document.getElementById('cm-note').value||'').trim();
 
@@ -3737,11 +3808,21 @@ const DEST_COUNTRIES = [
 ];
 
 function openDestCountryPicker() {
-  destFilterZone = 'ALL';
-  document.getElementById('destCountrySearch').value = '';
-  renderDestZoneTabs();
-  renderDestCountries('');
-  document.getElementById('destPickerOverlay').style.display = 'flex';
+  try {
+    destFilterZone = 'ALL';
+    const searchEl = document.getElementById('destCountrySearch');
+    if (searchEl) searchEl.value = '';
+    renderDestZoneTabs();
+    renderDestCountries('');
+    const overlay = document.getElementById('destPickerOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    } else {
+      console.error('destPickerOverlay not found');
+    }
+  } catch(e) {
+    console.error('openDestCountryPicker error:', e);
+  }
 }
 
 function closeDestPicker() {
@@ -3792,10 +3873,10 @@ function renderDestCountries(q) {
     const countryItems = countries.map(c => `
       <div onclick="selectDestCountry('${c.name}','${c.flag}','${c.code}','${c.zone}')"
         style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-        border:1px solid ${selectedDestCountry===c.name?zd.color:'var(--border)'};
+        border:1.5px solid ${selectedDestCountry===c.name?zd.color:'#f0e0f0'};
         border-radius:10px;cursor:pointer;transition:all 0.2s;
-        background:${selectedDestCountry===c.name?'rgba('+hexToRgb(zd.color)+',0.15)':'rgba(255,255,255,0.03)'};
-        font-size:13px;font-weight:600">
+        background:${selectedDestCountry===c.name?'rgba('+hexToRgb(zd.color)+',0.12)':'white'};
+        font-size:13px;font-weight:600;color:#1a1a2e">
         <span style="font-size:20px">${c.flag}</span>
         <span style="flex:1">${c.name}</span>
         <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;background:${zd.color};color:white">${z}</span>
@@ -4762,8 +4843,23 @@ function openAdminInvoiceBuilder() {
         <div style="background:#fff8fc;border:1px solid var(--border);border-radius:12px;padding:14px">
           <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Shipping & Discount</div>
           <div style="display:flex;flex-direction:column;gap:10px">
+
+            <!-- Zone picker -->
+            <div>
+              <label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Select DHL Zone & Box</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+                ${Object.entries(typeof DHL_ZONES!=='undefined'?DHL_ZONES:{}).map(([z,d])=>`
+                  <button onclick="aibSelectZone('${z}',this)"
+                    style="padding:5px 12px;border:2px solid ${d.color};border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;background:white;color:${d.color};transition:all 0.15s"
+                    id="aibZoneBtn${z}">
+                    ${z}: ${d.name}
+                  </button>`).join('')}
+              </div>
+              <div id="aib-zone-boxes" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+            </div>
+
             <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Shipping Fee (฿)</label>
-              <input id="aib-shipping" type="number" min="0" value="1000"
+              <input id="aib-shipping" type="number" min="0" value="0"
                 style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;box-sizing:border-box" oninput="aibRecalc()"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div><label style="font-size:11px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px">Product Discount</label>
@@ -4834,7 +4930,59 @@ function openAdminInvoiceBuilder() {
   aibRecalc();
 }
 
-function closeAIB() {
+function aibSelectZone(zone, btn) {
+  // highlight ปุ่ม zone
+  document.querySelectorAll('[id^="aibZoneBtn"]').forEach(b => {
+    const z = b.id.replace('aibZoneBtn','');
+    const color = (DHL_ZONES[z]||{}).color || '#888';
+    b.style.background = 'white';
+    b.style.color = color;
+  });
+  if (btn) {
+    const color = (DHL_ZONES[zone]||{}).color || '#888';
+    btn.style.background = color;
+    btn.style.color = 'white';
+  }
+
+  // แสดงปุ่ม Box
+  const boxesEl = document.getElementById('aib-zone-boxes');
+  if (!boxesEl) return;
+  boxesEl.innerHTML = DHL_BOXES.map(b => {
+    const rate = getShippingRateForZone(b.num, zone);
+    return `
+      <button onclick="aibSelectBox(${b.num},'${zone}',${rate},this)"
+        style="padding:5px 10px;border:1.5px solid #e0c0d0;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif;background:white;color:#555;transition:all 0.15s"
+        id="aibBoxBtn${b.num}">
+        Box ${b.num}<br><span style="font-weight:400;color:#888">${b.dims}cm</span><br>
+        <span style="color:var(--accent)">฿${(rate||0).toLocaleString()}</span>
+      </button>`;
+  }).join('');
+}
+
+function getShippingRateForZone(boxNum, zone) {
+  if (!zoneShippingRates || !zoneShippingRates[zone]) return 0;
+  return zoneShippingRates[zone][boxNum] || 0;
+}
+
+function aibSelectBox(boxNum, zone, rate, btn) {
+  document.querySelectorAll('[id^="aibBoxBtn"]').forEach(b => {
+    b.style.background = 'white';
+    b.style.color = '#555';
+    b.style.borderColor = '#e0c0d0';
+  });
+  if (btn) {
+    btn.style.background = 'var(--accent)';
+    btn.style.color = 'white';
+    btn.style.borderColor = 'var(--accent)';
+  }
+  const shippingInput = document.getElementById('aib-shipping');
+  if (shippingInput) {
+    shippingInput.value = rate || 0;
+    aibRecalc();
+  }
+}
+
+
   const el = document.getElementById('aibModal');
   if (el) el.remove();
   _aibItems = [];
