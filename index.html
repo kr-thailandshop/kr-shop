@@ -2300,13 +2300,22 @@ function openCustomerModal(idx) {
   const overrideEntries = c ? Object.entries(c.priceOverride||{}) : [];
   const overrideRowsHTML = overrideEntries.map(([k,v]) => `
     <div class="po-row" style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" class="po-name" value="${k}" placeholder="Product name (EN)"
-        style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
+      <input type="text" class="po-name" value="${k}" placeholder="เลือกสินค้า..."
+        list="po-products-list"
+        style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
+        oninput="autoFillPoPrice(this)">
       <input type="number" class="po-price" value="${v}" placeholder="Price ฿" min="0"
         style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
       <button onclick="this.parentElement.remove()"
         style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>
     </div>`).join('');
+
+  // Build datalist from products
+  const poDatalist = '<datalist id="po-products-list">' +
+    products.filter(p=>p.status==='active').map(p =>
+      `<option value="${p.nameEN||''}" data-price="${p.price||0}">${p.nameEN||''} — ฿${(p.price||0).toLocaleString()}</option>`
+    ).join('') +
+  '</datalist>';
 
   const el = document.createElement('div');
   el.id = 'customerModal';
@@ -2353,6 +2362,7 @@ function openCustomerModal(idx) {
             <button onclick="addPriceOverrideRow()" style="padding:4px 10px;background:var(--light);border:1px solid var(--border);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">+ Add</button>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px">ชื่อสินค้า (EN) + ราคาพิเศษ แทนที่ราคาปกติ</div>
+          ${poDatalist}
           <div id="po-rows">${overrideRowsHTML}</div>
         </div>
         <div style="display:flex;gap:10px">
@@ -2371,12 +2381,27 @@ function addPriceOverrideRow() {
   div.className = 'po-row';
   div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
   div.innerHTML = `
-    <input type="text" class="po-name" placeholder="Product name (EN)"
-      style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
+    <input type="text" class="po-name" placeholder="เลือกสินค้า..."
+      list="po-products-list"
+      style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
+      oninput="autoFillPoPrice(this)">
     <input type="number" class="po-price" placeholder="Price ฿" min="0"
       style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
     <button onclick="this.parentElement.remove()" style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>`;
   container.appendChild(div);
+}
+
+function autoFillPoPrice(input) {
+  // เมื่อเลือกสินค้าจาก datalist ให้ auto-fill ราคาปกติ
+  const selectedName = input.value.trim();
+  const prod = products.find(p => (p.nameEN||'').toLowerCase() === selectedName.toLowerCase() || (p.nameTH||'') === selectedName);
+  if (prod) {
+    const row = input.closest('.po-row');
+    const priceInput = row ? row.querySelector('.po-price') : null;
+    if (priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0)) {
+      priceInput.value = prod.price || 0;
+    }
+  }
 }
 
 function closeCustomerModal() {
