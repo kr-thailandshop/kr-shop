@@ -915,7 +915,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
       <!-- ชื่อ (required ถ้าไม่มีโค้ด) -->
       <div class="form-group" id="loginNameGroup">
         <label class="form-label" data-th="ชื่อของคุณ" data-en="Your Name">Your Name</label>
-        <input type="text" id="loginName" class="form-input" placeholder="e.g. Name Surname">
+        <input type="text" id="loginName" class="form-input" placeholder="e.g. Name surname">
       </div>
 
       <!-- เบอร์โทร -->
@@ -5187,7 +5187,10 @@ function aibRenderItems() {
       <div style="display:flex;align-items:center;gap:4px">
         <button onclick="_aibItems[${i}].qty=Math.max(1,_aibItems[${i}].qty-1);aibRenderItems();aibRecalc()"
           style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">−</button>
-        <span style="min-width:28px;text-align:center;font-weight:700;font-size:14px">${item.qty}</span>
+        <input type="number" min="1" value="${item.qty}"
+          style="width:48px;text-align:center;padding:4px;border:1.5px solid var(--border);border-radius:6px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;outline:none"
+          onchange="_aibItems[${i}].qty=Math.max(1,parseInt(this.value)||1);aibRenderItems();aibRecalc()"
+          onclick="this.select()">
         <button onclick="_aibItems[${i}].qty++;aibRenderItems();aibRecalc()"
           style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">+</button>
       </div>
