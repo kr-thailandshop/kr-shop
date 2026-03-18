@@ -930,7 +930,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
           <span data-th="รหัสลูกค้า (ถ้ามี)" data-en="Customer Code (optional)">Customer Code (optional)</span>
           <span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:10px;font-weight:700">Special price</span>
         </label>
-        <input type="text" id="loginCode" class="form-input" placeholder="e.g. KR00000"
+        <input type="text" id="loginCode" class="form-input" placeholder="e.g. KHONG01"
           style="text-transform:uppercase;letter-spacing:2px;font-weight:700"
           oninput="onLoginCodeInput(this.value)">
         <div id="loginCodeHint" style="display:none;font-size:12px;margin-top:4px;padding:6px 10px;border-radius:8px"></div>
@@ -1492,12 +1492,22 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     </div>
     <div class="form-group">
       <label class="form-label">🖼 <span data-th="รูปภาพสินค้า" data-en="Product Image">Product Image</span> <span style="color:var(--muted);font-weight:400;font-size:11px">(JPG/PNG · แนะนำ 800×800px · ไม่เกิน 5MB)</span></label>
-      <div style="border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;position:relative" id="imageDropZone" onclick="document.getElementById('p-image').click()" ondragover="event.preventDefault();this.style.borderColor='var(--teal)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImageDrop(event)">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;transition:border-color 0.2s;position:relative" id="imageDropZone" ondragover="event.preventDefault();this.style.borderColor='var(--teal)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImageDrop(event)">
         <input type="file" id="p-image" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleImageUpload(this)">
+        <input type="file" id="p-image-camera" accept="image/jpeg,image/png" capture="environment" style="display:none" onchange="handleImageUpload(this)">
         <div id="imagePreviewWrap">
-          <div style="font-size:32px;margin-bottom:8px">📷</div>
-          <div style="font-size:13px;color:var(--muted)">คลิกเพื่อเลือกรูป หรือลากรูปมาวาง</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px">Click to select or drag & drop</div>
+          <div style="font-size:28px;margin-bottom:12px">🖼</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">
+            <button type="button" onclick="document.getElementById('p-image').click()"
+              style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif">
+              🖼 เลือกรูปจากเครื่อง
+            </button>
+            <button type="button" onclick="document.getElementById('p-image-camera').click()"
+              style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#2e7d32;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif">
+              📷 ถ่ายรูปด้วยกล้อง
+            </button>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">หรือลากรูปมาวางตรงนี้ / drag & drop</div>
         </div>
         <div id="imagePreviewImg" style="display:none">
           <img id="previewImg" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:contain">
@@ -4029,7 +4039,7 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbz_EWQcYBphnvYEVd8lbxmAINlePQ4Gu73tyoY5fxSTBmqI1KtcdPr_AVYleXzxDBM0/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbz86EpJEqOFTButaPt4rr7FYvPjurtoofdYQoQjwLPRKFHS7CSYNpIG41CAOr5XyZ-4/exec';
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
