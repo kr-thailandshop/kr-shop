@@ -59,33 +59,24 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 .lang-btn.active { background:var(--teal); color:white; border-color:var(--teal); }
 
 /* ===== LANDING PAGE ===== */
-/* ===== LANDING — White Beauty Theme ===== */
 #landing-page {
   min-height:100vh;
-  background:#fff;
+  background: linear-gradient(135deg, var(--grad1) 0%, var(--grad2) 50%, var(--accent) 100%);
   position:relative; overflow:hidden;
 }
-
-/* Soft pink blobs background */
 #landing-page::before {
-  content:''; position:absolute; inset:0; pointer-events:none;
-  background:
-    radial-gradient(ellipse 60% 50% at 10% 20%, rgba(249,83,198,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 60% at 90% 80%, rgba(185,29,115,0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,182,230,0.08) 0%, transparent 70%);
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(102,126,234,0.3) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(233,69,96,0.3) 0%, transparent 50%);
 }
-
-/* Floating beauty icons decoration */
 .landing-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
 .particle {
-  position:absolute; font-size:28px; opacity:0.12;
-  animation:floatIcon 10s infinite ease-in-out;
-  user-select:none; line-height:1;
+  position:absolute; border-radius:50%;
+  background:rgba(255,255,255,0.15); animation:float 8s infinite ease-in-out;
 }
-@keyframes floatIcon {
-  0%,100% { transform:translateY(0) rotate(0deg) scale(1); opacity:0.10; }
-  33% { transform:translateY(-20px) rotate(8deg) scale(1.05); opacity:0.18; }
-  66% { transform:translateY(-10px) rotate(-5deg) scale(0.95); opacity:0.14; }
+@keyframes float {
+  0%,100% { transform:translateY(0) scale(1); opacity:0.3; }
+  50% { transform:translateY(-40px) scale(1.1); opacity:0.7; }
 }
 
 .landing-content {
@@ -93,120 +84,64 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   min-height:100vh; padding:80px 24px 40px; text-align:center;
 }
-
-/* Logo */
 .landing-logo {
   font-family:'Playfair Display',serif;
-  font-size:clamp(52px,12vw,100px); font-weight:700; line-height:1;
-  background:linear-gradient(135deg, #e91e8c 0%, #f953c6 40%, #b91d73 100%);
+  font-size:clamp(48px,10vw,90px); font-weight:700;
+  background: linear-gradient(135deg, #fff 0%, var(--gold) 50%, #fff 100%);
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  margin-bottom:6px;
-  animation:fadeUp 0.9s cubic-bezier(.22,1,.36,1) both;
-  filter:drop-shadow(0 4px 24px rgba(233,30,140,0.2));
+  margin-bottom:8px; line-height:1; animation:slideDown 0.8s ease;
 }
-@keyframes fadeUp {
-  from { opacity:0; transform:translateY(24px); }
-  to   { opacity:1; transform:translateY(0); }
-}
-
+@keyframes slideDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
 .landing-tagline {
-  font-size:clamp(12px,3vw,16px); color:#b91d73;
-  letter-spacing:5px; text-transform:uppercase; margin-bottom:10px;
-  font-weight:600; animation:fadeUp 0.9s 0.15s cubic-bezier(.22,1,.36,1) both;
+  font-size:clamp(14px,3vw,20px); color:rgba(255,255,255,0.85);
+  letter-spacing:3px; text-transform:uppercase; margin-bottom:32px;
+  animation:slideDown 0.8s ease 0.2s both;
 }
-
-/* Decorative line */
-.landing-divider {
-  width:60px; height:2px; margin:0 auto 28px;
-  background:linear-gradient(90deg,transparent,#e91e8c,transparent);
-  animation:fadeUp 0.9s 0.2s both;
-}
-
-/* Beauty icons strip */
-.beauty-icons-strip {
-  display:flex; gap:20px; justify-content:center; align-items:center;
-  margin-bottom:32px; font-size:26px;
-  animation:fadeUp 0.9s 0.25s cubic-bezier(.22,1,.36,1) both;
-}
-.beauty-icon-item {
-  width:52px; height:52px; border-radius:50%;
-  background:linear-gradient(135deg,#fff0f7,#fce4ec);
-  border:1.5px solid rgba(233,30,140,0.15);
-  display:flex; align-items:center; justify-content:center;
-  font-size:24px; transition:transform 0.3s;
-  box-shadow:0 4px 12px rgba(233,30,140,0.08);
-}
-.beauty-icon-item:hover { transform:translateY(-4px) scale(1.1); }
-
-/* Contact chips */
 .contact-bar {
-  display:flex; flex-wrap:wrap; gap:10px; justify-content:center;
-  margin-bottom:36px; animation:fadeUp 0.9s 0.35s cubic-bezier(.22,1,.36,1) both;
+  display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
+  margin-bottom:48px; animation:slideDown 0.8s ease 0.4s both;
 }
 .contact-chip {
   display:flex; align-items:center; gap:8px;
-  background:white; border:1.5px solid rgba(233,30,140,0.2);
-  border-radius:25px; padding:9px 18px; font-size:13px;
-  color:#b91d73; text-decoration:none; transition:all 0.25s; font-weight:600;
-  box-shadow:0 2px 12px rgba(233,30,140,0.08);
+  background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.25); border-radius:25px;
+  padding:8px 18px; font-size:13px; color:white; text-decoration:none;
+  transition:all 0.2s; font-weight:600;
 }
-.contact-chip:hover {
-  background:#fff0f7; border-color:var(--accent);
-  transform:translateY(-2px); box-shadow:0 6px 20px rgba(233,30,140,0.15);
-}
+.contact-chip:hover { background:rgba(255,255,255,0.25); transform:translateY(-2px); }
 .contact-icon { font-size:16px; }
 
-/* Action cards */
-.landing-actions {
-  display:flex; flex-wrap:wrap; gap:16px; justify-content:center;
-  animation:fadeUp 0.9s 0.45s cubic-bezier(.22,1,.36,1) both;
-}
+.landing-actions { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; animation:slideDown 0.8s ease 0.6s both; }
 .action-card {
-  background:white; border:1.5px solid rgba(233,30,140,0.12);
-  border-radius:24px; padding:28px 32px; cursor:pointer;
-  transition:all 0.3s; text-align:center; min-width:180px;
-  box-shadow:0 4px 20px rgba(233,30,140,0.08);
-  position:relative; overflow:hidden;
+  background:rgba(255,255,255,0.1); backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.2); border-radius:20px;
+  padding:28px 36px; cursor:pointer; transition:all 0.3s; text-align:center;
+  min-width:200px;
 }
-.action-card::before {
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(135deg,rgba(249,83,198,0.05),rgba(185,29,115,0.05));
-  opacity:0; transition:opacity 0.3s;
-}
-.action-card:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(233,30,140,0.18); border-color:var(--accent); }
-.action-card:hover::before { opacity:1; }
-.action-icon { font-size:42px; margin-bottom:12px; display:block; }
-.action-title { font-size:17px; font-weight:700; margin-bottom:4px; color:#1a0a10; }
-.action-sub { font-size:12px; color:#b91d73; font-weight:500; }
+.action-card:hover { background:rgba(255,255,255,0.2); transform:translateY(-6px); box-shadow:0 20px 40px rgba(0,0,0,0.3); }
+.action-icon { font-size:40px; margin-bottom:12px; display:block; }
+.action-title { font-size:18px; font-weight:700; margin-bottom:4px; }
+.action-sub { font-size:12px; color:rgba(255,255,255,0.7); }
 
-/* How section */
 .how-section {
   position:relative; z-index:1;
-  max-width:680px; margin:0 auto; padding:48px 24px 60px;
+  max-width:700px; margin:0 auto; padding:48px 24px;
+  animation:slideDown 0.8s ease 0.8s both;
 }
-.how-title {
-  font-family:'Playfair Display',serif; font-size:28px;
-  text-align:center; margin-bottom:32px;
-  color:#b91d73;
-}
-.how-steps { display:flex; flex-direction:column; gap:14px; }
+.how-title { font-family:'Playfair Display',serif; font-size:28px; text-align:center; margin-bottom:32px; color:var(--gold); }
+.how-steps { display:flex; flex-direction:column; gap:16px; }
 .how-step {
   display:flex; align-items:flex-start; gap:16px;
-  background:white; border-radius:16px; padding:16px 20px;
-  border:1.5px solid rgba(233,30,140,0.1);
-  box-shadow:0 2px 10px rgba(233,30,140,0.06);
-  transition:box-shadow 0.2s;
+  background:rgba(255,255,255,0.08); border-radius:16px; padding:16px 20px;
+  border:1px solid rgba(255,255,255,0.1);
 }
-.how-step:hover { box-shadow:0 6px 20px rgba(233,30,140,0.12); }
 .step-num {
-  width:36px; height:36px; border-radius:50%;
-  background:linear-gradient(135deg,#f953c6,#b91d73);
+  width:36px; height:36px; border-radius:50%; background:var(--accent);
   display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:15px; flex-shrink:0; color:white;
-  box-shadow:0 4px 10px rgba(233,30,140,0.3);
+  font-weight:700; font-size:16px; flex-shrink:0;
 }
-.step-text h4 { font-size:14px; font-weight:700; margin-bottom:3px; color:#1a0a10; }
-.step-text p { font-size:13px; color:#888; line-height:1.5; }
+.step-text h4 { font-size:15px; font-weight:700; margin-bottom:4px; }
+.step-text p { font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5; }
 
 /* ===== LOGIN PAGE ===== */
 #login-page {
@@ -299,11 +234,11 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 .shop-layout { display:grid; grid-template-columns:1fr 320px; gap:0; height:calc(100vh - 56px); }
 @media(max-width:768px) { .shop-layout { grid-template-columns:1fr; height:auto; } }
 
-.products-area { overflow-y:auto; padding:16px 20px; }
-.products-grid { display:flex; flex-direction:column; gap:12px; }
+.products-area { overflow-y:auto; padding:12px 16px; }
+.products-grid { display:flex; flex-direction:column; gap:9px; }
 
 .product-card {
-  background:white; border:1.5px solid #f0e0f0; border-radius:16px;
+  background:white; border:1.5px solid #f0e0f0; border-radius:13px;
   overflow:hidden; transition:all 0.25s; display:flex; align-items:stretch;
   box-shadow:0 2px 8px rgba(214,51,132,0.06);
 }
@@ -312,27 +247,27 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
 /* Product image - left side */
 .prod-img-wrap {
-  width:110px; min-width:110px; background:#fdf0f8;
+  width:88px; min-width:88px; background:#fdf0f8;
   display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;
 }
 .prod-img-wrap img {
   width:100%; height:100%; object-fit:cover;
 }
 .prod-img-placeholder {
-  font-size:40px; display:flex; align-items:center; justify-content:center;
-  width:100%; height:100%; min-height:100px;
+  font-size:32px; display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; min-height:80px;
 }
 
 /* Product body - right side */
-.prod-body { padding:12px 14px; flex:1; display:flex; flex-direction:column; justify-content:space-between; }
+.prod-body { padding:9px 11px; flex:1; display:flex; flex-direction:column; justify-content:space-between; }
 .prod-top { flex:1; }
-.prod-name { font-size:14px; font-weight:700; margin-bottom:3px; line-height:1.3; color:#1a1a2e; }
-.prod-dims { font-size:11px; color:#999; margin-bottom:2px; }
-.prod-weight { font-size:11px; color:var(--accent); margin-bottom:4px; font-weight:600; }
-.prod-desc { font-size:11px; color:#aaa; margin-bottom:6px; line-height:1.4; }
-.prod-bottom { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
-.prod-price { font-size:16px; color:var(--accent); font-weight:700; }
-.prod-price span { font-size:11px; color:var(--muted); font-weight:400; }
+.prod-name { font-size:12px; font-weight:700; margin-bottom:2px; line-height:1.3; color:#1a1a2e; }
+.prod-dims { font-size:10px; color:#999; margin-bottom:1px; }
+.prod-weight { font-size:10px; color:var(--accent); margin-bottom:3px; font-weight:600; }
+.prod-desc { font-size:10px; color:#aaa; margin-bottom:4px; line-height:1.4; }
+.prod-bottom { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:6px; }
+.prod-price { font-size:13px; color:var(--accent); font-weight:700; }
+.prod-price span { font-size:10px; color:var(--muted); font-weight:400; }
 
 .stock-tag { display:inline-block; font-size:10px; padding:2px 7px; border-radius:8px; margin-bottom:4px; font-weight:700; }
 .stock-tag.in { background:rgba(46,204,113,0.2); color:var(--success); }
@@ -445,7 +380,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 .cart-panel {
   background:white; border-left:1.5px solid #f0e0f0;
   display:flex; flex-direction:column; height:calc(100vh - 56px);
-  position:sticky; top:56px; overflow-y:auto;
+  position:sticky; top:56px;
 }
 .cart-header { padding:16px 20px; border-bottom:1px solid var(--border); }
 .cart-title { font-family:'Playfair Display',serif; font-size:18px; color:var(--accent); }
@@ -867,9 +802,6 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
   .form-row { grid-template-columns:1fr; }
   .order-customer { grid-template-columns:1fr; }
   .settings-grid { grid-template-columns:1fr; }
-  .shop-layout { grid-template-columns:1fr; height:auto; }
-  .cart-panel { height:auto; position:relative; top:0; border-left:none; border-top:1.5px solid #f0e0f0; }
-  .products-area { overflow-y:visible; }
 }
 </style>
 </head>
@@ -895,17 +827,6 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
   <div class="landing-content">
     <div class="landing-logo" id="heroLogo">K&R</div>
     <div class="landing-tagline" id="heroTagline">Thailand Shop</div>
-    <div class="landing-divider"></div>
-
-    <!-- Beauty Icons Strip -->
-    <div class="beauty-icons-strip">
-      <div class="beauty-icon-item">💄</div>
-      <div class="beauty-icon-item">🧴</div>
-      <div class="beauty-icon-item">✨</div>
-      <div class="beauty-icon-item">🌸</div>
-      <div class="beauty-icon-item">💅</div>
-    </div>
-
     <div class="contact-bar">
       <a class="contact-chip" href="https://line.me/ti/p/@krthailandshop" target="_blank">
         <span class="contact-icon">💬</span> Line: @krthailandshop
@@ -991,7 +912,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
       <!-- ชื่อ (required ถ้าไม่มีโค้ด) -->
       <div class="form-group" id="loginNameGroup">
         <label class="form-label" data-th="ชื่อของคุณ" data-en="Your Name">Your Name</label>
-        <input type="text" id="loginName" class="form-input" placeholder="e.g. Name surname">
+        <input type="text" id="loginName" class="form-input" placeholder="e.g. Khongkha">
       </div>
 
       <!-- เบอร์โทร -->
@@ -1079,6 +1000,18 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
   <div class="shop-layout">
     <div class="products-area">
       <div class="products-grid" id="productsGrid"></div>
+      <!-- Pagination -->
+      <div id="productsPagination" style="display:flex;justify-content:center;align-items:center;gap:12px;padding:14px 0 6px;font-family:'Nunito',sans-serif">
+        <button id="prodPrevBtn" onclick="prodChangePage(-1)"
+          style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:white;cursor:pointer;font-size:18px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center;transition:all 0.2s">
+          ‹
+        </button>
+        <span id="prodPageInfo" style="font-size:13px;color:var(--muted);font-weight:600"></span>
+        <button id="prodNextBtn" onclick="prodChangePage(1)"
+          style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:white;cursor:pointer;font-size:18px;font-weight:700;color:var(--accent);display:flex;align-items:center;justify-content:center;transition:all 0.2s">
+          ›
+        </button>
+      </div>
     </div>
     <div class="cart-panel" id="cartPanel">
       <div class="cart-header">
@@ -1305,6 +1238,26 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
       <div class="admin-header">
         <div class="admin-title" data-th="คำสั่งซื้อทั้งหมด" data-en="All Orders">All Orders</div>
       </div>
+      <!-- Search Bar -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;position:relative">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px">🔍</span>
+          <input id="orderSearchInput" type="text" placeholder="Search order no., name, phone, items..."
+            oninput="_ordersPage=0;renderAdminOrders()"
+            style="width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;box-sizing:border-box">
+        </div>
+        <select id="orderStatusFilter" onchange="_ordersPage=0;renderAdminOrders()"
+          style="padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;background:white;color:#555">
+          <option value="all">All Status</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="confirmed">✓ Confirmed</option>
+        </select>
+        <button onclick="document.getElementById('orderSearchInput').value='';document.getElementById('orderStatusFilter').value='all';_ordersPage=0;renderAdminOrders()"
+          style="padding:9px 14px;background:#f5f0f5;border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);font-family:'Nunito',sans-serif;white-space:nowrap">
+          ✕ Clear
+        </button>
+      </div>
+      <div id="ordersResultInfo" style="font-size:12px;color:var(--muted);margin-bottom:8px"></div>
       <div id="adminOrdersList"></div>
     </div>
 
@@ -1544,10 +1497,14 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     <div class="form-row">
       <div class="form-group">
         <label class="form-label" data-th="หมวดหมู่" data-en="Category">Category</label>
-        <select id="p-category" class="form-input">
-          <option>Skincare</option><option>Makeup</option><option>Haircare</option>
-          <option>Body</option><option>Fragrance</option><option>Tools</option><option>Other</option>
-        </select>
+        <div style="display:flex;gap:6px">
+          <select id="p-category" class="form-input" onchange="onCategoryChange(this.value)" style="flex:1">
+            <option>Skincare</option><option>Makeup</option><option>Haircare</option>
+            <option>Body</option><option>Fragrance</option><option>Tools</option><option>Other</option>
+            <option value="__custom__">+ Add new category...</option>
+          </select>
+        </div>
+        <input type="text" id="p-category-custom" placeholder="New category name..." style="display:none;margin-top:6px;width:100%;padding:10px;border:1.5px solid var(--accent);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;box-sizing:border-box">
       </div>
       <div class="form-group"><label class="form-label" data-th="สต็อก" data-en="Stock">Stock</label><input type="number" id="p-stock" class="form-input"></div>
     </div>
@@ -1568,22 +1525,12 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     </div>
     <div class="form-group">
       <label class="form-label">🖼 <span data-th="รูปภาพสินค้า" data-en="Product Image">Product Image</span> <span style="color:var(--muted);font-weight:400;font-size:11px">(JPG/PNG · แนะนำ 800×800px · ไม่เกิน 5MB)</span></label>
-      <div style="border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;transition:border-color 0.2s;position:relative" id="imageDropZone" ondragover="event.preventDefault();this.style.borderColor='var(--teal)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImageDrop(event)">
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:border-color 0.2s;position:relative" id="imageDropZone" onclick="document.getElementById('p-image').click()" ondragover="event.preventDefault();this.style.borderColor='var(--teal)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleImageDrop(event)">
         <input type="file" id="p-image" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleImageUpload(this)">
-        <input type="file" id="p-image-camera" accept="image/jpeg,image/png" capture="environment" style="display:none" onchange="handleImageUpload(this)">
         <div id="imagePreviewWrap">
-          <div style="font-size:28px;margin-bottom:10px">🖼</div>
-          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px">
-            <button type="button" onclick="document.getElementById('p-image').click()"
-              style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif">
-              🖼 เลือกจากเครื่อง
-            </button>
-            <button type="button" onclick="document.getElementById('p-image-camera').click()"
-              style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#2e7d32;color:white;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif">
-              📷 ถ่ายด้วยกล้อง
-            </button>
-          </div>
-          <div style="font-size:11px;color:var(--muted)">หรือลากรูปมาวาง / drag & drop</div>
+          <div style="font-size:32px;margin-bottom:8px">📷</div>
+          <div style="font-size:13px;color:var(--muted)">คลิกเพื่อเลือกรูป หรือลากรูปมาวาง</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:4px">Click to select or drag & drop</div>
         </div>
         <div id="imagePreviewImg" style="display:none">
           <img id="previewImg" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:contain">
@@ -1597,7 +1544,6 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
       <button class="save-btn" onclick="saveProduct()">Save</button>
     </div>
   </div>
-</div>
 </div>
 
 <!-- ===== ADDRESS POPUP ===== -->
@@ -2242,7 +2188,6 @@ function renderCategories() {
     `<div class="cat-chip ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</div>`
   ).join('');
 }
-function setCategory(c) { activeCategory=c; renderProducts(); }
 
 
 // ===== CURRENCY =====
@@ -2376,22 +2321,13 @@ function openCustomerModal(idx) {
   const overrideEntries = c ? Object.entries(c.priceOverride||{}) : [];
   const overrideRowsHTML = overrideEntries.map(([k,v]) => `
     <div class="po-row" style="display:flex;gap:8px;margin-bottom:8px">
-      <input type="text" class="po-name" value="${k}" placeholder="เลือกสินค้า..."
-        list="po-products-list"
-        style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
-        oninput="autoFillPoPrice(this)">
+      <input type="text" class="po-name" value="${k}" placeholder="Product name (EN)"
+        style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
       <input type="number" class="po-price" value="${v}" placeholder="Price ฿" min="0"
         style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
       <button onclick="this.parentElement.remove()"
         style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>
     </div>`).join('');
-
-  // Build datalist from products
-  const poDatalist = '<datalist id="po-products-list">' +
-    products.filter(p=>p.status==='active').map(p =>
-      `<option value="${p.nameEN||''}" data-price="${p.price||0}">${p.nameEN||''} — ฿${(p.price||0).toLocaleString()}</option>`
-    ).join('') +
-  '</datalist>';
 
   const el = document.createElement('div');
   el.id = 'customerModal';
@@ -2438,7 +2374,6 @@ function openCustomerModal(idx) {
             <button onclick="addPriceOverrideRow()" style="padding:4px 10px;background:var(--light);border:1px solid var(--border);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif">+ Add</button>
           </div>
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px">ชื่อสินค้า (EN) + ราคาพิเศษ แทนที่ราคาปกติ</div>
-          ${poDatalist}
           <div id="po-rows">${overrideRowsHTML}</div>
         </div>
         <div style="display:flex;gap:10px">
@@ -2457,27 +2392,12 @@ function addPriceOverrideRow() {
   div.className = 'po-row';
   div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
   div.innerHTML = `
-    <input type="text" class="po-name" placeholder="เลือกสินค้า..."
-      list="po-products-list"
-      style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none"
-      oninput="autoFillPoPrice(this)">
+    <input type="text" class="po-name" placeholder="Product name (EN)"
+      style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
     <input type="number" class="po-price" placeholder="Price ฿" min="0"
       style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
     <button onclick="this.parentElement.remove()" style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>`;
   container.appendChild(div);
-}
-
-function autoFillPoPrice(input) {
-  // เมื่อเลือกสินค้าจาก datalist ให้ auto-fill ราคาปกติ
-  const selectedName = input.value.trim();
-  const prod = products.find(p => (p.nameEN||'').toLowerCase() === selectedName.toLowerCase() || (p.nameTH||'') === selectedName);
-  if (prod) {
-    const row = input.closest('.po-row');
-    const priceInput = row ? row.querySelector('.po-price') : null;
-    if (priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0)) {
-      priceInput.value = prod.price || 0;
-    }
-  }
 }
 
 function closeCustomerModal() {
@@ -2562,35 +2482,56 @@ function getCustomerPrice(product) {
 }
 
 // ===== PRODUCTS =====
-function renderProducts() {
+let _prodPage = 0;
+const _prodPerPage = 12;
+
+function prodChangePage(dir) {
+  const filtered = products.filter(p => p.status==='active' && (activeCategory==='All'||p.category===activeCategory));
+  const totalPages = Math.ceil(filtered.length / _prodPerPage);
+  _prodPage = Math.max(0, Math.min(_prodPage + dir, totalPages - 1));
+  renderProducts(false); // false = ไม่ reset page
+  document.querySelector('.products-area')?.scrollTo({top:0, behavior:'smooth'});
+}
+
+function setCategory(c) { activeCategory=c; _prodPage=0; renderProducts(); }
+
+function renderProducts(resetPage=true) {
+  if(resetPage) _prodPage = 0;
   renderCategories();
   renderBoxGrid();
   const filtered = products.filter(p => p.status==='active' && (activeCategory==='All'||p.category===activeCategory));
-  document.getElementById('productsGrid').innerHTML = filtered.map(p => {
+  const totalPages = Math.max(1, Math.ceil(filtered.length / _prodPerPage));
+  if(_prodPage >= totalPages) _prodPage = totalPages - 1;
+  if(_prodPage < 0) _prodPage = 0;
+
+  const pageItems = filtered.slice(_prodPage * _prodPerPage, (_prodPage + 1) * _prodPerPage);
+
+  document.getElementById('productsGrid').innerHTML = pageItems.map(p => {
     const name = lang==='th' ? p.nameTH : p.nameEN;
     const inStock = p.stock > 0;
     const custPrice = getCustomerPrice(p);
     const hasSpecial = custPrice !== p.price;
     const imgHTML = p.imageData
-      ? `<img src="${p.imageData}" alt="${name}" style="width:100%;height:110px;object-fit:cover;">`
+      ? `<img src="${p.imageData}" alt="${name}" style="width:100%;height:88px;object-fit:cover;">`
       : `<div class="prod-img-placeholder">${p.emoji}</div>`;
     return `
     <div class="product-card ${!inStock?'out-of-stock':''}">
       <div class="prod-img-wrap">${imgHTML}</div>
       <div class="prod-body">
         <div class="prod-top">
-          <span class="stock-tag ${inStock?'in':'out'}">${inStock?(lang==='th'?'มีสินค้า':'In Stock'):(lang==='th'?'หมด':'Out of Stock')}</span>
-          ${hasSpecial ? `<span style="background:#e8f5e9;color:#2e7d32;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">⭐ Your Price</span>` : ''}
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:3px">
+            <span class="stock-tag ${inStock?'in':'out'}">${inStock?(lang==='th'?'มีสินค้า':'In Stock'):(lang==='th'?'หมด':'Out')}</span>
+            ${hasSpecial ? `<span style="background:#e8f5e9;color:#2e7d32;font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px">⭐ Your Price</span>` : ''}
+          </div>
           <div class="prod-name">${name}</div>
           ${p.descTH||p.descEN ? `<div class="prod-desc">${lang==='th'?(p.descTH||p.descEN):(p.descEN||p.descTH)}</div>` : ''}
-          <div class="prod-dims">📐 ${p.w}×${p.l}×${p.h} cm</div>
-          <div class="prod-weight">⚖ ${p.weight}g</div>
+          <div class="prod-dims">📐 ${p.w}×${p.l}×${p.h} cm · ⚖ ${p.weight}g</div>
         </div>
         <div class="prod-bottom">
           <div class="prod-price">
             ${fmtPrice(custPrice)}
-            ${hasSpecial ? `<span style="font-size:10px;color:var(--muted);text-decoration:line-through">฿${p.price.toLocaleString()}</span>` : ''}
-            ${(displayCurrency==='USD'&&usdRate)?`<span style="font-size:11px;color:var(--muted)">฿${custPrice.toLocaleString()}</span>`:''}
+            ${hasSpecial ? `<span style="text-decoration:line-through">฿${p.price.toLocaleString()}</span>` : ''}
+            ${(displayCurrency==='USD'&&usdRate)?`<span>฿${custPrice.toLocaleString()}</span>`:''}
             <span>/ ${lang==='th'?'ชิ้น':'pc'}</span>
           </div>
           <button class="add-btn" onclick="addToCart(${p.id})" ${!inStock?'disabled':''}>
@@ -2600,6 +2541,16 @@ function renderProducts() {
       </div>
     </div>`;
   }).join('') || `<p style="color:var(--muted);font-size:13px;padding:20px">No products in this category</p>`;
+
+  // update pagination
+  const pageInfo  = document.getElementById('prodPageInfo');
+  const prevBtn   = document.getElementById('prodPrevBtn');
+  const nextBtn   = document.getElementById('prodNextBtn');
+  const pagDiv    = document.getElementById('productsPagination');
+  if(pagDiv) pagDiv.style.display = totalPages > 1 ? 'flex' : 'none';
+  if(pageInfo) pageInfo.textContent = `${_prodPage+1} / ${totalPages}`;
+  if(prevBtn)  { prevBtn.disabled = _prodPage===0; prevBtn.style.opacity = _prodPage===0?'0.3':'1'; }
+  if(nextBtn)  { nextBtn.disabled = _prodPage>=totalPages-1; nextBtn.style.opacity = _prodPage>=totalPages-1?'0.3':'1'; }
 }
 
 // ===== CART =====
@@ -3316,10 +3267,45 @@ function renderAdminOrders() {
 
   if (!orders || orders.length === 0) {
     container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px">No orders yet</p>';
+    const ri = document.getElementById('ordersResultInfo');
+    if (ri) ri.textContent = '';
     return;
   }
 
-  const sorted     = [...orders].reverse();
+  // Filter: search + status
+  const q      = (document.getElementById('orderSearchInput')?.value || '').toLowerCase().trim();
+  const status = document.getElementById('orderStatusFilter')?.value || 'all';
+
+  let sorted = [...orders].reverse();
+  if (status !== 'all') sorted = sorted.filter(o => _normalizeStatus(o.status) === status);
+  if (q) {
+    sorted = sorted.filter(o => {
+      const itemsStr = typeof o.items === 'string' ? o.items : (o.items||[]).map(i=>i.product?(i.product.nameEN||''):'').join(' ');
+      return (o.num||'').toLowerCase().includes(q)
+          || (o.customer||'').toLowerCase().includes(q)
+          || (o.phone||'').includes(q)
+          || (o.address||'').toLowerCase().includes(q)
+          || itemsStr.toLowerCase().includes(q);
+    });
+  }
+
+  // Result info
+  const ri = document.getElementById('ordersResultInfo');
+  if (ri) {
+    if (q || status !== 'all') {
+      ri.textContent = `Found ${sorted.length} order${sorted.length!==1?'s':''} of ${orders.length} total`;
+      ri.style.color = sorted.length === 0 ? '#c62828' : 'var(--muted)';
+    } else {
+      ri.textContent = `${orders.length} order${orders.length!==1?'s':''} total`;
+      ri.style.color = 'var(--muted)';
+    }
+  }
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px">No orders match your search</p>';
+    return;
+  }
+
   const totalPages = Math.ceil(sorted.length / _ordersPerPage);
   if (_ordersPage >= totalPages) _ordersPage = totalPages - 1;
   if (_ordersPage < 0) _ordersPage = 0;
@@ -3332,18 +3318,23 @@ function renderAdminOrders() {
       ? o.items
       : (o.items||[]).map(i => i.product ? (i.product.nameEN||i.product.nameTH)+' x'+i.qty : String(i)).join(', ');
     const isConfirmed = o.status === 'confirmed';
+    const profitInfo  = calcOrderProfit(o);
 
-    // คำนวณต้นทุนและกำไร
-    const profitInfo = calcOrderProfit(o);
+    // highlight search term
+    const hl = (text) => {
+      if (!q || !text) return text || '';
+      const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+      return String(text).replace(re, '<mark style="background:#fff3cd;border-radius:3px;padding:0 2px">$1</mark>');
+    };
 
     return `
       <div style="background:white;border:1px solid #f0e0f0;border-radius:12px;padding:16px;margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
           <div style="flex:1;min-width:0">
-            <div style="font-weight:700;color:var(--accent);font-size:15px">${o.num}</div>
-            <div style="font-size:13px;color:#555;margin-top:2px">${o.customer} · ${o.phone}</div>
-            <div style="font-size:12px;color:#888">${o.country} · ${o.address}</div>
-            <div style="font-size:13px;margin-top:6px;color:#333">${itemsText}</div>
+            <div style="font-weight:700;color:var(--accent);font-size:15px">${hl(o.num)}</div>
+            <div style="font-size:13px;color:#555;margin-top:2px">${hl(o.customer)} · ${hl(o.phone)}</div>
+            <div style="font-size:12px;color:#888">${o.country} · ${hl(o.address)}</div>
+            <div style="font-size:13px;margin-top:6px;color:#333">${hl(itemsText)}</div>
             <div style="font-size:12px;color:var(--muted);margin-top:4px">${o.date}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
@@ -3383,10 +3374,10 @@ function renderAdminOrders() {
       </div>`;
   }).join('');
 
-  // Pagination controls
+  // Pagination
   const pagination = totalPages > 1 ? `
     <div style="display:flex;justify-content:center;align-items:center;gap:12px;padding:16px 0;font-family:'Nunito',sans-serif">
-      <button onclick="_ordersPage--;renderAdminOrders()" ${_ordersPage===0?'disabled':''} 
+      <button onclick="_ordersPage--;renderAdminOrders()" ${_ordersPage===0?'disabled':''}
         style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:white;cursor:pointer;font-weight:700;color:${_ordersPage===0?'#ccc':'var(--accent)'};font-family:'Nunito',sans-serif">
         ← Prev
       </button>
@@ -3401,7 +3392,42 @@ function renderAdminOrders() {
 }
 
 // ===== PRODUCT MODAL =====
+function onCategoryChange(val) {
+  const customInput = document.getElementById('p-category-custom');
+  if (!customInput) return;
+  if (val === '__custom__') {
+    customInput.style.display = 'block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    customInput.value = '';
+  }
+}
+
+function getCategoryValue() {
+  const sel = document.getElementById('p-category');
+  if (sel.value === '__custom__') {
+    const custom = (document.getElementById('p-category-custom')?.value || '').trim();
+    return custom || 'Other';
+  }
+  return sel.value;
+}
+
+// ===== PRODUCT MODAL =====
 function openProductModal(id=null) {
+  editingProductId = id;
+  document.getElementById('productModalTitle').textContent = id ? (lang==='th'?'แก้ไขสินค้า':'Edit Product') : (lang==='th'?'เพิ่มสินค้า':'Add Product');
+
+  // rebuild category options รวม custom ที่มีใน products
+  const defaultCats = ['Skincare','Makeup','Haircare','Body','Fragrance','Tools','Other'];
+  const existingCats = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const allCats = [...new Set([...defaultCats, ...existingCats])];
+  const sel = document.getElementById('p-category');
+  sel.innerHTML = allCats.map(c => `<option value="${c}">${c}</option>`).join('') +
+    `<option value="__custom__">+ Add new category...</option>`;
+  document.getElementById('p-category-custom').style.display = 'none';
+  document.getElementById('p-category-custom').value = '';
+
   editingProductId = id;
   document.getElementById('productModalTitle').textContent = id ? (lang==='th'?'แก้ไขสินค้า':'Edit Product') : (lang==='th'?'เพิ่มสินค้า':'Add Product');
   if(id) {
@@ -3432,35 +3458,31 @@ function openProductModal(id=null) {
 }
 function closeProductModal() { document.getElementById('productModal').classList.remove('open'); resetImageUpload(); }
 
-// ===== IMAGE UPLOAD — Base64 Local =====
-let currentImageData = null;
-let currentImageURL  = null;
+// ===== IMAGE UPLOAD — Google Drive =====
+let currentImageData = null;   // base64 ชั่วคราวก่อนอัปโหลด
+let currentImageURL  = null;   // Drive URL หลังอัปโหลดสำเร็จ
 
 function processAndResizeImage(file) {
-  if(!file) return;
-  if(file.size > 8 * 1024 * 1024) { showToast('รูปใหญ่เกิน 8MB กรุณาเลือกรูปใหม่'); return; }
   const reader = new FileReader();
   reader.onload = function(e) {
     const img = new Image();
     img.onload = function() {
-      // Resize to max 800px
       const MAX = 800;
       let w = img.width, h = img.height;
-      if (w > h) { if (w > MAX) { h = Math.round(h * MAX/w); w = MAX; } }
-      else       { if (h > MAX) { w = Math.round(w * MAX/h); h = MAX; } }
+      if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } }
+      else       { if (h > MAX) { w *= MAX/h; h = MAX; } }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const base64 = canvas.toDataURL('image/jpeg', 0.75);
-      // แสดง preview ชั่วคราว
+      const base64 = canvas.toDataURL('image/jpeg', 0.7);
+      // แสดง preview ชั่วคราวด้วย base64 ก่อน
       currentImageData = base64;
       currentImageURL  = null;
       showImagePreview(base64, file.name);
       document.getElementById('imageFileName').textContent = '⏳ กำลังอัปโหลดไป Google Drive...';
-      // อัปโหลดไป Google Drive ผ่าน Apps Script
+      // อัปโหลดไป Drive ผ่าน Apps Script
       uploadImageToDrive(base64, file.name);
     };
-    img.onerror = function() { showToast('ไม่สามารถอ่านรูปได้ กรุณาลองใหม่'); };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
@@ -3468,31 +3490,22 @@ function processAndResizeImage(file) {
 
 async function uploadImageToDrive(base64Data, fileName) {
   try {
-    document.getElementById('imageFileName').textContent = '⏳ กำลังอัปโหลด...';
     const resp = await fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify({ type: 'UploadImage', imageData: base64Data, fileName: fileName || 'product.jpg' })
+      body: JSON.stringify({ type: 'UploadImage', imageData: base64Data, fileName: fileName })
     });
-    const text = await resp.text();
-    let result;
-    try { result = JSON.parse(text); } catch(e) { result = null; }
+    const result = await resp.json();
     if (result && result.url) {
       currentImageURL  = result.url;
       currentImageData = null;
-      document.getElementById('imageFileName').textContent = '✅ อัปโหลดสำเร็จ!';
+      document.getElementById('imageFileName').textContent = '✅ อัปโหลด Drive สำเร็จ';
       document.getElementById('previewImg').src = currentImageURL;
-      showToast('✅ อัปโหลดรูปสำเร็จ');
     } else {
-      // fallback: ใช้ base64 แทน (รูปจะอยู่ชั่วคราว)
-      currentImageData = base64Data;
-      currentImageURL  = null;
-      document.getElementById('imageFileName').textContent = '⚠️ Drive ไม่ตอบ — ใช้ base64 แทน';
+      document.getElementById('imageFileName').textContent = '❌ อัปโหลดไม่สำเร็จ ลองใหม่';
     }
   } catch(err) {
-    console.error('Upload error:', err);
-    currentImageData = base64Data;
-    currentImageURL  = null;
-    document.getElementById('imageFileName').textContent = '⚠️ Upload failed — ใช้ base64 แทน';
+    console.error('Drive upload error:', err);
+    document.getElementById('imageFileName').textContent = '❌ อัปโหลดไม่สำเร็จ';
   }
 }
 
@@ -3544,13 +3557,13 @@ function saveProduct() {
     w:         parseFloat(document.getElementById('p-w').value)||1,
     l:         parseFloat(document.getElementById('p-l').value)||1,
     h:         parseFloat(document.getElementById('p-h').value)||1,
-    category:  document.getElementById('p-category').value,
+    category:  getCategoryValue(),
     stock:     parseInt(document.getElementById('p-stock').value)||0,
     emoji:     document.getElementById('p-emoji').value||'📦',
     status:    document.getElementById('p-status').value,
     descTH:    document.getElementById('p-descTH').value.trim(),
     descEN:    document.getElementById('p-descEN').value.trim(),
-    imageData: currentImageURL || currentImageData || (editingProductId ? (products.find(p=>p.id===editingProductId)||{}).imageData||null : null),
+    imageData: currentImageData !== null ? currentImageData : (editingProductId ? (products.find(p=>p.id===editingProductId)||{}).imageData||null : null),
   };
 
   if(!data.nameTH||!data.nameEN||!data.price||!data.weight) {
@@ -3619,18 +3632,13 @@ function applyColors() {
 // ===== PARTICLES =====
 function createParticles() {
   const container = document.getElementById('particles');
-  const icons = ['💄','🌸','✨','🧴','💅','🌷','💗','🧖','🌺','💆','🪷','💋'];
-  icons.forEach((icon, i) => {
+  for(let i=0;i<12;i++) {
     const p = document.createElement('div');
     p.className = 'particle';
-    p.textContent = icon;
-    const x = Math.random() * 95;
-    const y = Math.random() * 95;
-    const delay = i * 0.8;
-    const dur = Math.random() * 5 + 8;
-    p.style.cssText = `left:${x}%;top:${y}%;animation-delay:${delay}s;animation-duration:${dur}s;font-size:${Math.random()*16+20}px`;
+    const size = Math.random()*60+20;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*6}s;animation-duration:${Math.random()*4+6}s`;
     container.appendChild(p);
-  });
+  }
 }
 
 
@@ -3970,21 +3978,17 @@ function closeDestPicker() {
 
 function renderDestZoneTabs() {
   const tabs = document.getElementById('destZoneTabs');
-  if (!tabs) return;
-  const ZONE_COLORS = { A:'#1a3a6e', B:'#2980b9', C:'#c8a400', D:'#c0392b', E:'#e67e22' };
   const allZones = ['ALL', 'A', 'B', 'C', 'D', 'E'];
   tabs.innerHTML = allZones.map(z => {
     const isAll = z === 'ALL';
     const zd = isAll ? null : DHL_ZONES[z];
     const active = destFilterZone === z;
-    const zColor = isAll ? '#d63384' : ZONE_COLORS[z];
-    const bg = active ? zColor : 'white';
-    const border = zColor;
-    const txtColor = active ? 'white' : zColor;
+    const bg = active ? (isAll ? 'var(--teal)' : zd.color) : 'transparent';
+    const border = isAll ? 'var(--teal)' : (zd ? zd.color : 'var(--border)');
+    const color = active ? 'white' : (isAll ? 'var(--teal)' : (zd ? zd.color : 'var(--muted)'));
     return `<button onclick="filterDestZone('${z}')"
-      style="padding:5px 14px;border:2px solid ${border};border-radius:20px;
-      background:${bg};color:${txtColor};cursor:pointer;font-size:12px;
-      font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s">
+      style="padding:5px 14px;border:2px solid ${border};border-radius:20px;background:${bg};
+      color:${color};cursor:pointer;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;transition:all 0.2s">
       ${isAll ? 'All Zones' : z+' · '+zd.name}
     </button>`;
   }).join('');
@@ -3998,50 +4002,38 @@ function filterDestZone(z) {
 
 function renderDestCountries(q) {
   const list = document.getElementById('destCountryList');
-  if (!list) return;
   let filtered = DEST_COUNTRIES;
-  if(destFilterZone !== 'ALL') filtered = filtered.filter(ct => ct.zone === destFilterZone);
-  if(q) filtered = filtered.filter(ct => ct.name.toLowerCase().includes(q.toLowerCase()));
+  if(destFilterZone !== 'ALL') filtered = filtered.filter(c => c.zone === destFilterZone);
+  if(q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q.toLowerCase()));
 
   if(!filtered.length) {
-    list.innerHTML = `<div style="text-align:center;padding:20px;color:#999;font-size:13px">
-      Country not found in list<br>
-      <span style="color:var(--warning);font-size:12px">Please contact shop for shipping rate</span>
-    </div>`;
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">ไม่พบประเทศนี้ใน list<br><span style="color:var(--warning);font-size:12px">กรุณาติดต่อร้านค้าเพื่อสอบถามค่าขนส่ง</span></div>';
     return;
   }
 
   // Group by zone
   const byZone = {};
-  filtered.forEach(ct => { if(!byZone[ct.zone]) byZone[ct.zone] = []; byZone[ct.zone].push(ct); });
-
-  const ZONE_COLORS = { A:'#1a3a6e', B:'#2980b9', C:'#c8a400', D:'#c0392b', E:'#e67e22' };
+  filtered.forEach(c => { if(!byZone[c.zone]) byZone[c.zone] = []; byZone[c.zone].push(c); });
 
   list.innerHTML = Object.entries(byZone).map(([z, countries]) => {
     const zd = DHL_ZONES[z];
-    const zColor = ZONE_COLORS[z] || '#888';
-    const countryItems = countries.map(ct => {
-      const isSelected = selectedDestCountry === ct.name;
-      return `<div onclick="selectDestCountry('${ct.name.replace(/'/g,"\\'")}','${ct.flag}','${ct.code}','${ct.zone}')"
+    const countryItems = countries.map(c => `
+      <div onclick="selectDestCountry('${c.name}','${c.flag}','${c.code}','${c.zone}')"
         style="display:flex;align-items:center;gap:10px;padding:10px 12px;
-        border:2px solid ${isSelected ? zColor : '#f0e0f0'};
-        border-radius:10px;cursor:pointer;transition:all 0.2s;margin-bottom:6px;
-        background:${isSelected ? '#fff0f7' : 'white'};
+        border:1.5px solid ${selectedDestCountry===c.name?zd.color:'#f0e0f0'};
+        border-radius:10px;cursor:pointer;transition:all 0.2s;
+        background:${selectedDestCountry===c.name?'rgba('+hexToRgb(zd.color)+',0.12)':'white'};
         font-size:13px;font-weight:600;color:#1a1a2e">
-        <span style="font-size:20px">${ct.flag}</span>
-        <span style="flex:1">${ct.name}</span>
-        <span style="font-size:11px;padding:3px 9px;border-radius:10px;font-weight:700;
-          background:${zColor};color:white">${z}</span>
-      </div>`;
-    }).join('');
-    return `<div style="margin-bottom:14px">
-      <div style="font-size:11px;color:${zColor};font-weight:700;text-transform:uppercase;
-        letter-spacing:1px;margin-bottom:8px;padding-left:4px">${zd.name}</div>
+        <span style="font-size:20px">${c.flag}</span>
+        <span style="flex:1">${c.name}</span>
+        <span style="font-size:11px;padding:2px 8px;border-radius:10px;font-weight:700;background:${zd.color};color:white">${z}</span>
+      </div>`).join('');
+    return `<div style="margin-bottom:10px">
+      <div style="font-size:11px;color:${zd.color};font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;padding-left:4px">${zd.name}</div>
       ${countryItems}
     </div>`;
   }).join('');
 }
-
 
 function hexToRgb(hex) {
   const r = parseInt(hex.slice(1,3),16);
@@ -4061,7 +4053,7 @@ function selectDestCountry(name, flag, code, zone) {
   const zd = zone ? DHL_ZONES[zone] : null;
   btn.style.borderColor = zd ? zd.color : 'var(--warning)';
   btn.style.color = zd ? zd.color : 'var(--warning)';
-  btn.style.background = zd ? '#fff0f7' : 'rgba(243,156,18,0.12)';
+  btn.style.background = zd ? 'rgba('+hexToRgb(zd.color)+',0.12)' : 'rgba(243,156,18,0.12)';
 
   // Show zone badge
   const badge = document.getElementById('destZoneBadge');
@@ -4158,7 +4150,7 @@ applyLangTexts('en');
 updateRateDisplay();
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbyJOkyqXL3lJ0S13PKEgbrYmgOQpZp9IdAmLtknsWGpX-1mj6ZntZwU3MU2YZb0n15_/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzhQbJJRIVfaPq3lYRLkz7_Gn39d-zESAbgXv-E3rRzdfIsSSBuIt8sbW2fBHGm2ES6/exec';
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
@@ -4201,7 +4193,7 @@ async function loadProductsFromSheet() {
         status:    p.status   || 'active',
         descTH:    p.descTH   || '',
         descEN:    p.descEN   || '',
-        imageData: p.imageData || null  // Drive URL หรือ base64
+        imageData: p.imageData || null
       }));
       
       renderProducts(); // วาดรายการสินค้าใหม่หน้าลูกค้า
@@ -4430,24 +4422,10 @@ function viewOrderDetail(i) {
   const customerAddress = typeof o.customer === 'object' ? o.customer.address : (o.address  || '');
 
   const box = o.box ? DHL_BOXES.find(b=>b.num===o.box) : null;
-  // รองรับ items ทั้ง array (local) และ string (จาก Sheets)
-  const parsedItems = Array.isArray(o.items) && o.items.length>0 && o.items[0] && o.items[0].product
-    ? o.items.map(({product:p,qty}) => ({
-        name: p?(p.nameEN||p.nameTH||'-'):'-',
-        emoji: p?(p.emoji||'📦'):'📦',
-        qty: qty||1, price: p?(p.price||0):0
-      }))
-    : String(o.items||'').split(',').map(s=>s.trim()).filter(Boolean).map(s => {
-        const m2 = s.match(/^(.+)\s+x(\d+)\s+@(\d+)$/i);
-        const m1 = s.match(/^(.+)\s+x(\d+)$/i);
-        const name = m2?m2[1].trim():(m1?m1[1].trim():s);
-        const qty  = m2?parseInt(m2[2]):(m1?parseInt(m1[2]):1);
-        const price = m2?parseFloat(m2[3]):0;
-        const found = products.find(p=>(p.nameEN||'').toLowerCase()===name.toLowerCase()||(p.nameTH||'')===name);
-        return { name, emoji:found?found.emoji||'📦':'📦', qty:qty||1, price:price||found?.price||0 };
-      });
-
-  const rows = parsedItems.map(({name:nm,emoji:em,qty,price:pr},idx) => {
+  const rows = (o.items||[]).map(({product:p,qty},idx) => {
+    const nm = p?(p.nameEN||p.nameTH):'?';
+    const em = p?(p.emoji||''):'';
+    const pr = p?(p.price||0):0;
     return '<tr>'
       +'<td style="padding:9px 12px;border-bottom:1px solid rgba(214,51,132,0.08);color:var(--muted);font-size:13px">'+(idx+1)+'</td>'
       +'<td style="padding:9px 12px;border-bottom:1px solid rgba(214,51,132,0.08);font-size:13px;font-weight:600">'+em+' '+nm+'</td>'
@@ -5316,10 +5294,7 @@ function aibRenderItems() {
       <div style="display:flex;align-items:center;gap:4px">
         <button onclick="_aibItems[${i}].qty=Math.max(1,_aibItems[${i}].qty-1);aibRenderItems();aibRecalc()"
           style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">−</button>
-        <input type="number" min="1" value="${item.qty}"
-          style="width:48px;text-align:center;padding:4px;border:1.5px solid var(--border);border-radius:6px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;outline:none"
-          onchange="_aibItems[${i}].qty=Math.max(1,parseInt(this.value)||1);aibRenderItems();aibRecalc()"
-          onclick="this.select()">
+        <span style="min-width:28px;text-align:center;font-weight:700;font-size:14px">${item.qty}</span>
         <button onclick="_aibItems[${i}].qty++;aibRenderItems();aibRecalc()"
           style="width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif">+</button>
       </div>
