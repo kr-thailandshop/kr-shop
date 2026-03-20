@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#080d1a">
+<title>BizCapture</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  /* Dark base */
+  --bg:       #080d1a;
+  --bg2:      #0d1425;
+  --surface:  rgba(255,255,255,.05);
+  --surface2: rgba(255,255,255,.08);
+  --glass:    rgba(255,255,255,.06);
+  --glass-border: rgba(255,255,255,.10);
+
+  /* Brand colors */
+  --inc:    #00e5a0;
+  --inc2:   #00c986;
+  --inc-glow: rgba(0,229,160,.20);
+  --exp:    #ff3d6b;
+  --exp2:   #e52f5d;
+  --exp-glow: rgba(255,61,107,.20);
+  --acc:    #4f8dff;
+  --acc2:   #2563eb;
+  --acc-glow: rgba(79,141,255,.25);
+  --gold:   #ffbb33;
+  --gold-glow: rgba(255,187,51,.20);
+  --purple: #9b6dff;
+
+  /* Text */
+  --t1: #f0f4ff;
+  --t2: #8899bb;
+  --t3: #4a5a7a;
+
+  /* Radius */
+  --r-sm: 10px;
+  --r:    16px;
+  --r-lg: 24px;
+
+  /* Shadows */
+  --shadow:    0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,.6);
+
+  /* Safe areas */
+  --safe-t: env(safe-area-inset-top, 44px);
+  --safe-b: env(safe-area-inset-bottom, 20px);
+}
+
+/* ════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; overflow:hidden; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* Animated mesh gradient background */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(79,141,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,229,160,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(155,109,255,.05) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+
+/* ════════════════════════════════════════
+   SETUP SCREEN
+════════════════════════════════════════ */
+.setup {
+  position: fixed; inset: 0; z-index: 600;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(79,141,255,.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,229,160,.1) 0%, transparent 60%);
+}
+.setup.gone { display: none; }
+
+.setup-logo-wrap {
+  width: 72px; height: 72px; border-radius: 22px;
+  background: linear-gradient(135deg, var(--acc) 0%, var(--purple) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; margin-bottom: 16px;
+  box-shadow: 0 8px 32px rgba(79,141,255,.4);
+}
+.setup-title { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
+.setup-title span { background: linear-gradient(135deg, var(--acc), var(--inc)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.setup-sub { font-size: .85rem; color: var(--t2); text-align: center; line-height: 1.7; margin-bottom: 28px; }
+
+.setup-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  width: 100%; max-width: 400px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.setup-step {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding-bottom: 18px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.setup-step:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+
+.step-num {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--acc), var(--purple));
+  color: #fff; font-weight: 800; font-size: .82rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 4px 12px var(--acc-glow);
+}
+.step-body-title { font-size: .9rem; font-weight: 700; margin-bottom: 4px; }
+.step-body-desc { font-size: .75rem; color: var(--t2); line-height: 1.6; margin-bottom: 8px; }
+
+.setup-input {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--r-sm);
+  padding: 11px 14px;
+  color: var(--t1);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: .85rem;
+  transition: border-color .2s, box-shadow .2s;
+  margin-top: 6px;
+}
+.setup-input:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-glow); }
+.setup-input::placeholder { color: var(--t3); }
+
+.link-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border-radius: 8px;
+  background: var(--acc-glow); border: 1px solid rgba(79,141,255,.3);
+  color: var(--acc); font-size: .78rem; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.link-btn:hover { background: rgba(79,141,255,.2); }
+
+.setup-cta {
+  width: 100%; max-width: 400px; margin-top: 16px;
+  padding: 15px; border: none; border-radius: var(--r);
+  background: linear-gradient(135deg, var(--inc), var(--acc));
+  color: #fff; font-family: 'Noto Sans Thai', sans-serif;
+  font-size: .95rem; font-weight: 800; cursor: pointer;
+  box-shadow: 0 6px 24px var(--acc-glow);
+  transition: all .2s; letter-spacing: .3px;
+}
+.setup-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 32px var(--acc-glow); }
+.setup-cta:active { transform: scale(.98); }
+
+/* ════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════ */
+.app { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+/* ── TOP BAR ── */
+.topbar {
+  padding: calc(var(--safe-t) + 4px) 18px 12px;
+  background: rgba(8,13,26,.8);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0; z-index: 10;
+}
+.brand-mark {
+  width: 36px; height: 36px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--acc), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+  box-shadow: 0 4px 14px var(--acc-glow);
+}
+.brand-text { font-weight: 900; font-size: .95rem; letter-spacing: .5px; }
+.brand-text span { color: var(--inc); }
+
+.sync-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  font-size: .68rem; font-weight: 600; color: var(--t2);
+  transition: all .3s;
+}
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--t3); transition: all .3s; }
+.sync-pill.ok { border-color: rgba(0,229,160,.2); color: var(--inc); }
+.sync-pill.ok .sync-dot { background: var(--inc); box-shadow: 0 0 6px var(--inc); }
+.sync-pill.syncing .sync-dot { background: var(--gold); animation: syncPulse .8s infinite; }
+.sync-pill.err { border-color: rgba(255,61,107,.2); color: var(--exp); }
+.sync-pill.err .sync-dot { background: var(--exp); }
+@keyframes syncPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.topbar-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.stat-chip {
+  padding: 4px 10px; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .72rem; font-weight: 700;
+}
+.stat-chip.i { background: var(--inc-glow); color: var(--inc); }
+.stat-chip.e { background: var(--exp-glow); color: var(--exp); }
+
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--glass); border: 1px solid var(--glass-border);
+  color: var(--t2); cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.icon-btn:active { transform: scale(.92); background: var(--surface2); }
+
+/* ── SCROLL BODY ── */
+.body { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.body::-webkit-scrollbar { display: none; }
+
+/* ── VIEWS ── */
+.view { display: none; padding: 16px 16px calc(90px + var(--safe-b)); }
+.view.on { display: block; }
+
+/* ════════════════════════════════════════
+   CAPTURE VIEW
+════════════════════════════════════════ */
+
+/* NET BALANCE CARD */
+.balance-card {
+  background: linear-gradient(135deg, rgba(79,141,255,.15) 0%, rgba(155,109,255,.12) 100%);
+  border: 1px solid rgba(79,141,255,.2);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.balance-card::before {
+  content: '';
+  position: absolute; top: -30%; right: -10%;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79,141,255,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.balance-lbl { font-size: .72rem; color: var(--t2); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 6px; }
+.balance-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem; font-weight: 700;
+  background: linear-gradient(135deg, #fff, var(--acc));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 12px;
+}
+.balance-row { display: flex; gap: 10px; }
+.balance-item {
+  flex: 1; background: rgba(255,255,255,.06); border-radius: var(--r-sm);
+  padding: 10px 12px;
+}
+.balance-item-lbl { font-size: .68rem; color: var(--t2); margin-bottom: 4px; }
+.balance-item-val { font-family: 'JetBrains Mono', monospace; font-size: .9rem; font-weight: 700; }
+.balance-item-val.i { color: var(--inc); }
+.balance-item-val.e { color: var(--exp); }
+
+/* HERO DROP ZONE */
+.hero {
+  border-radius: var(--r-lg);
+  margin-bottom: 12px;
+  position: relative; overflow: hidden; cursor: pointer;
+  min-height: 150px;
+  background: linear-gradient(135deg, rgba(79,141,255,.18) 0%, rgba(37,99,235,.12) 100%);
+  border: 1.5px dashed rgba(79,141,255,.35);
+  transition: all .2s;
+}
+.hero:active { transform: scale(.99); }
+.hero.has-img { border-style: solid; border-color: var(--acc-glow); background: none; }
+.hero.scanning { border-color: var(--purple); border-style: solid; }
+.hero.scanning::after {
+  content: '';
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--purple), transparent);
+  animation: sweep 1.5s ease-in-out infinite;
+}
+@keyframes sweep { 0%{top:5%;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:95%;opacity:0} }
+
+.hero-preview { width: 100%; max-height: 210px; object-fit: cover; border-radius: calc(var(--r-lg) - 1px); display: none; }
+.hero.has-img .hero-preview { display: block; }
+.hero.has-img .hero-inner { display: none; }
+.hero-overlay {
+  position: absolute; inset: 0; border-radius: var(--r-lg);
+  background: rgba(0,0,0,.5); display: none;
+  align-items: center; justify-content: center;
+}
+.hero.has-img:active .hero-overlay { display: flex; }
+
+.hero-inner { padding: 22px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.hero-icon-wrap {
+  width: 60px; height: 60px; border-radius: 18px;
+  background: rgba(79,141,255,.15); border: 1.5px solid rgba(79,141,255,.3);
+  display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+}
+.hero-title { font-size: 1rem; font-weight: 800; }
+.hero-sub { font-size: .78rem; color: var(--t2); text-align: center; line-height: 1.65; }
+.hero-tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.hero-tag {
+  padding: 3px 10px; border-radius: 20px;
+  background: rgba(255,255,255,.06); border: 1px solid var(--glass-border);
+  font-size: .68rem; color: var(--t2);
+}
+
+/* METHODS */
+.methods { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+.meth {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); padding: 12px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: all .15s;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: .72rem; color: var(--t2); font-weight: 600;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.meth:active { transform: scale(.94); }
+.meth.cam:active  { background: var(--inc-glow); border-color: rgba(0,229,160,.3); color: var(--inc); }
+.meth.up:active   { background: var(--acc-glow); border-color: rgba(79,141,255,.3); color: var(--acc); }
+.meth.cl:active   { background: rgba(155,109,255,.15); border-color: rgba(155,109,255,.3); color: var(--purple); }
+.meth.mic:active  { background: var(--gold-glow); border-color: rgba(255,187,51,.3); color: var(--gold); }
+.meth-icon { font-size: 1.5rem; }
+
+/* TEXT INPUT */
+.txt-wrap { position: relative; margin-bottom: 12px; }
+.txt-area {
+  width: 100%;
+  background: var(--glass);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--r);
+  padding: 13px 50px 13px 16px;
+  color: var(--t1);
+  font-family: 'Noto Sans Thai', sans-serif; font-size: .87rem;
+  resize: none; min-height: 86px; line-height: 1.65;
+  transition: all .2s;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.txt-area::placeholder { color: var(--t3); }
+.txt-area:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-glow); background: rgba(255,255,255,.07); }
+.txt-send {
+  position: absolute; bottom: 11px; right: 11px;
+  width: 36px; height: 36px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, var(--acc), var(--acc2));
+  color: #fff; font-size: .95rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px var(--acc-glow); transition: all .15s;
+}
+.txt-send:active { transform: scale(.9); }
+
+/* AI STATUS BAR */
+.ai-bar {
+  background: var(--gold-glow); border: 1px solid rgba(255,187,51,.2);
+  border-radius: var(--r-sm); padding: 11px 14px; margin-bottom: 12px;
+  display: none; align-items: center; gap: 10px;
+  font-size: .8rem; color: var(--gold);
+}
+.ai-bar.on { display: flex; }
+.ai-spin {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid rgba(255,187,51,.2); border-top-color: var(--gold);
+  animation: spin .65s linear infinite; flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* CONFIRM CARD */
+.confirm {
+  background: var(--glass);
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--r-lg); overflow: hidden;
+  margin-bottom: 12px; display: none;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-lg);
+}
+.confirm.on { display: block; animation: popUp .22s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popUp { from{opacity:0;transform:translateY(12px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+.cf-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; gap: 10px;
+}
+.cf-pill {
+  padding: 4px 12px; border-radius: 20px;
+  font-size: .72rem; font-weight: 800; flex-shrink: 0;
+}
+.cf-pill.i { background: var(--inc-glow); color: var(--inc); border: 1px solid rgba(0,229,160,.2); }
+.cf-pill.e { background: var(--exp-glow); color: var(--exp); border: 1px solid rgba(255,61,107,.2); }
+.cf-name { font-size: .92rem; font-weight: 700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cf-amt { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; font-weight: 700; flex-shrink: 0; }
+.cf-amt.i { color: var(--inc); }
+.cf-amt.e { color: var(--exp); }
+
+.cf-body { padding: 12px 16px; font-size: .8rem; color: var(--t2); line-height: 1.8; }
+.cf-table { width: 100%; border-collapse: collapse; margin: 5px 0; }
+.cf-table td { padding: 4px 4px; border-bottom: 1px solid var(--glass-border); }
+.cf-table td:last-child { text-align: right; font-family: 'JetBrains Mono', monospace; color: var(--t1); font-weight: 600; }
+.cf-multi { padding: 7px 12px; background: var(--gold-glow); border-radius: var(--r-sm); font-size: .76rem; color: var(--gold); font-weight: 700; margin-top: 6px; border: 1px solid rgba(255,187,51,.2); }
+
+.cf-actions { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--glass-border); }
+.cf-btn {
+  flex: 1; padding: 12px; border: none; border-radius: var(--r-sm);
+  font-family: 'Noto Sans Thai', sans-serif; font-size: .87rem; font-weight: 800;
+  cursor: pointer; transition: all .15s; letter-spacing: .2px;
+}
+.cf-btn.save {
+  background: linear-gradient(135deg, var(--inc), var(--inc2));
+  color: #000; box-shadow: 0 4px 16px var(--inc-glow);
+}
+.cf-btn.save:active { transform: scale(.97); }
+.cf-btn.cancel {
+  background: rgba(255,255,255,.06); border: 1.5px solid var(--glass-border);
+  color: var(--t2);
+}
+.cf-btn.cancel:active { background: rgba(255,61,107,.1); color: var(--exp); border-color: rgba(255,61,107,.2); }
+
+/* SYNC BAR */
+.sync-notice {
+  padding: 10px 14px; border-radius: var(--r-sm); margin-bottom: 12px;
+  font-size: .78rem; display: none; align-items: center; gap: 8px;
+}
+.sync-notice.on { display: flex; }
+.sync-notice.ok { background: var(--inc-glow); color: var(--inc); border: 1px solid rgba(0,229,160,.2); }
+.sync-notice.err { background: var(--exp-glow); color: var(--exp); border: 1px solid rgba(255,61,107,.2); }
+
+/* ════════════════════════════════════════
+   RECORDS VIEW
+════════════════════════════════════════ */
+.search-wrap {
+  position: relative; margin-bottom: 10px;
+}
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: .9rem; }
+.search-inp {
+  width: 100%;
+  background: var(--glass); border: 1.5px solid var(--glass-border);
+  border-radius: var(--r); padding: 11px 14px 11px 38px;
+  color: var(--t1); font-family: 'Noto Sans Thai', sans-serif; font-size: .87rem;
+  transition: all .2s;
+}
+.search-inp:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-glow); }
+.search-inp::placeholder { color: var(--t3); }
+
+.filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 3px; margin-bottom: 14px; }
+.filters::-webkit-scrollbar { display: none; }
+.fc {
+  padding: 6px 14px; border-radius: 20px;
+  border: 1.5px solid var(--glass-border);
+  background: var(--glass); color: var(--t2);
+  font-size: .75rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+  font-family: 'Noto Sans Thai', sans-serif;
+  transition: all .15s;
+}
+.fc.on { background: rgba(79,141,255,.15); border-color: rgba(79,141,255,.4); color: var(--acc); }
+
+.day-label {
+  font-size: .68rem; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--t3); padding: 8px 2px 5px;
+  font-family: 'JetBrains Mono', monospace; font-weight: 500;
+}
+
+.rec {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r); margin-bottom: 8px;
+  display: flex; align-items: stretch; overflow: hidden; cursor: pointer;
+  transition: all .15s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.rec:active { transform: scale(.99); background: var(--surface2); }
+
+.rec-thumb {
+  width: 58px; flex-shrink: 0;
+  background: rgba(255,255,255,.04);
+  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  overflow: hidden;
+}
+.rec-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.rec-bar { width: 3px; flex-shrink: 0; }
+.rec-bar.i { background: linear-gradient(180deg, var(--inc), var(--inc2)); }
+.rec-bar.e { background: linear-gradient(180deg, var(--exp), var(--exp2)); }
+
+.rec-info { flex: 1; padding: 11px 12px; min-width: 0; }
+.rec-name { font-size: .88rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-tags { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.rtag {
+  padding: 2px 8px; border-radius: 6px;
+  font-size: .65rem; font-weight: 700;
+}
+.rtag.cat { background: var(--acc-glow); color: var(--acc); }
+.rtag.src { background: rgba(255,255,255,.06); color: var(--t2); }
+.rtag.img { background: var(--inc-glow); color: var(--inc); }
+.rtag.syn { background: rgba(0,229,160,.08); color: var(--inc); border: 1px solid rgba(0,229,160,.15); }
+.rec-note { font-size: .71rem; color: var(--t2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.rec-right { padding: 11px 14px; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 4px; flex-shrink: 0; }
+.rec-amt { font-family: 'JetBrains Mono', monospace; font-size: .88rem; font-weight: 700; white-space: nowrap; }
+.rec-amt.i { color: var(--inc); }
+.rec-amt.e { color: var(--exp); }
+.rec-time { font-size: .65rem; color: var(--t3); font-family: 'JetBrains Mono', monospace; }
+
+.empty { display: flex; flex-direction: column; align-items: center; padding: 52px 20px; gap: 12px; color: var(--t3); }
+.empty-emoji { font-size: 3rem; opacity: .2; }
+
+/* ════════════════════════════════════════
+   REPORT VIEW
+════════════════════════════════════════ */
+.rcard {
+  background: var(--glass); border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg); padding: 18px; margin-bottom: 12px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.rcard-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--t3); margin-bottom: 14px; font-weight: 700; }
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-box {
+  background: rgba(255,255,255,.04); border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 13px;
+}
+.stat-box-lbl { font-size: .67rem; color: var(--t2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .8px; }
+.stat-box-val { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; }
+
+.cat-row { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.cat-name { font-size: .78rem; color: var(--t2); width: 68px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-track { flex: 1; background: rgba(255,255,255,.06); border-radius: 4px; height: 8px; overflow: hidden; }
+.cat-fill { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.cat-amt { font-size: .7rem; font-family: 'JetBrains Mono', monospace; color: var(--t1); width: 62px; text-align: right; flex-shrink: 0; }
+
+.ai-insight-box {
+  background: rgba(255,255,255,.03); border: 1px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 13px;
+  font-size: .8rem; color: var(--t2); line-height: 1.85;
+  white-space: pre-wrap; max-height: 190px; overflow-y: auto;
+}
+.ai-insight-box::-webkit-scrollbar { display: none; }
+
+.report-btn {
+  width: 100%; padding: 14px; border: none; border-radius: var(--r);
+  background: linear-gradient(135deg, var(--acc), var(--purple));
+  color: #fff; font-family: 'Noto Sans Thai', sans-serif;
+  font-weight: 800; font-size: .9rem; cursor: pointer; margin-bottom: 10px;
+  box-shadow: 0 6px 24px var(--acc-glow); transition: all .15s;
+}
+.report-btn:active { transform: scale(.98); }
+.report-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.export-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.export-btn {
+  padding: 12px; border: 1.5px solid var(--glass-border);
+  border-radius: var(--r-sm); background: var(--glass);
+  color: var(--t2); font-family: 'Noto Sans Thai', sans-serif;
+  font-size: .8rem; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.export-btn:active { border-color: var(--acc); color: var(--acc); background: var(--acc-glow); }
+
+/* ════════════════════════════════════════
+   BOTTOM NAV
+════════════════════════════════════════ */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(8,13,26,.85);
+  border-top: 1px solid var(--glass-border);
+  backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+  display: flex; padding-bottom: var(--safe-b);
+  z-index: 50;
+}
+.nav-btn {
+  flex: 1; padding: 10px 8px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; background: none; border: none; color: var(--t3);
+  font-family: 'Noto Sans Thai', sans-serif; font-size: .71rem; font-weight: 700;
+  transition: all .15s; position: relative;
+}
+.nav-btn.on { color: var(--acc); }
+.nav-icon { font-size: 1.25rem; transition: transform .2s; }
+.nav-btn.on .nav-icon { transform: translateY(-1px); }
+.nav-indicator {
+  position: absolute; bottom: calc(100% - 2px); left: 50%; transform: translateX(-50%);
+  width: 20px; height: 3px; border-radius: 2px;
+  background: var(--acc); display: none;
+}
+.nav-btn.on .nav-indicator { display: block; }
+
+/* ════════════════════════════════════════
+   MODALS (bottom sheets)
+════════════════════════════════════════ */
+.sheet-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.6); z-index: 200;
+  align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.sheet-overlay.on { display: flex; }
+
+.sheet {
+  background: #111827;
+  border: 1px solid var(--glass-border);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 540px;
+  padding: 16px 18px calc(18px + var(--safe-b));
+  max-height: 88vh; overflow-y: auto;
+  animation: sheetUp .25s cubic-bezier(.4,0,.2,1);
+}
+.sheet::-webkit-scrollbar { display: none; }
+@keyframes sheetUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.sheet-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--glass-border); margin: 0 auto 18px;
+}
+.sheet-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 18px; }
+
+/* DETAIL SHEET */
+.detail-img { width: 100%; max-height: 230px; object-fit: cover; border-radius: var(--r); margin-bottom: 14px; display: none; }
+.detail-img.on { display: block; }
+.detail-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.detail-pill { padding: 5px 13px; border-radius: 20px; font-size: .75rem; font-weight: 800; flex-shrink: 0; }
+.detail-pill.i { background: var(--inc-glow); color: var(--inc); }
+.detail-pill.e { background: var(--exp-glow); color: var(--exp); }
+.detail-name-wrap { flex: 1; }
+.detail-name { font-size: 1.1rem; font-weight: 800; margin-bottom: 3px; }
+.detail-amt { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; font-weight: 700; }
+.detail-amt.i { color: var(--inc); }
+.detail-amt.e { color: var(--exp); }
+
+.detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
+.detail-row:last-of-type { border-bottom: none; }
+.dr-lbl { font-size: .8rem; color: var(--t2); }
+.dr-val { font-size: .82rem; font-weight: 600; text-align: right; }
+
+.detail-items-label { font-size: .7rem; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; margin: 10px 0 6px; }
+.detail-items-wrap { background: rgba(255,255,255,.03); border: 1px solid var(--glass-border); border-radius: var(--r-sm); overflow: hidden; }
+.di { display: flex; padding: 9px 12px; border-bottom: 1px solid var(--glass-border); font-size: .8rem; }
+.di:last-child { border-bottom: none; }
+.di-name { flex: 1; }
+.di-qty { color: var(--t2); margin: 0 10px; }
+.di-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+.raw-box { background: rgba(255,255,255,.03); border: 1px solid var(--glass-border); border-radius: var(--r-sm); padding: 10px; font-size: .73rem; color: var(--t2); line-height: 1.7; white-space: pre-wrap; margin-top: 10px; max-height: 100px; overflow-y: auto; }
+
+.detail-btns { display: flex; gap: 8px; margin-top: 16px; }
+.d-btn { flex: 1; padding: 12px; border-radius: var(--r-sm); border: none; font-family: 'Noto Sans Thai', sans-serif; font-size: .85rem; font-weight: 800; cursor: pointer; }
+.d-btn.del { background: var(--exp-glow); color: var(--exp); border: 1px solid rgba(255,61,107,.2); }
+.d-btn.close { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #fff; }
+
+/* VOICE SHEET */
+.voice-ring {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: var(--gold-glow); border: 2px solid rgba(255,187,51,.3);
+  display: flex; align-items: center; justify-content: center; font-size: 2.2rem;
+  margin: 0 auto 14px;
+  animation: vRing 1.3s ease-in-out infinite;
+}
+@keyframes vRing {
+  0%,100% { box-shadow: 0 0 0 0 rgba(255,187,51,.3); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 16px rgba(255,187,51,0); transform: scale(1.03); }
+}
+.voice-hint { font-size: .78rem; color: var(--t2); text-align: center; line-height: 1.65; margin-bottom: 12px; }
+.voice-box {
+  background: rgba(255,255,255,.04); border: 1.5px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 13px;
+  font-size: .9rem; line-height: 1.7; min-height: 56px; margin: 12px 0;
+}
+.voice-cta { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--gold), #ff9500); border: none; border-radius: var(--r-sm); color: #000; font-family: 'Noto Sans Thai', sans-serif; font-weight: 800; cursor: pointer; font-size: .9rem; margin-bottom: 8px; }
+.voice-cancel { width: 100%; padding: 11px; background: transparent; border: 1.5px solid var(--glass-border); border-radius: var(--r-sm); color: var(--t2); font-family: 'Noto Sans Thai', sans-serif; cursor: pointer; }
+
+/* SETTINGS SHEET */
+.sett-label { font-size: .78rem; color: var(--t2); font-weight: 600; margin-bottom: 6px; }
+.sett-input {
+  width: 100%; background: rgba(255,255,255,.05); border: 1.5px solid var(--glass-border);
+  border-radius: var(--r-sm); padding: 11px 14px; color: var(--t1);
+  font-family: 'JetBrains Mono', monospace; font-size: .82rem; margin-bottom: 14px;
+  transition: all .2s;
+}
+.sett-input:focus { outline: none; border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-glow); }
+.sett-save { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--inc), var(--acc)); border: none; border-radius: var(--r-sm); color: #fff; font-family: 'Noto Sans Thai', sans-serif; font-weight: 800; cursor: pointer; font-size: .88rem; margin-bottom: 8px; }
+.sett-danger { width: 100%; padding: 11px; background: transparent; border: 1.5px solid rgba(255,61,107,.2); border-radius: var(--r-sm); color: var(--exp); font-family: 'Noto Sans Thai', sans-serif; cursor: pointer; font-size: .83rem; }
+
+/* CAMERA */
+.cam-screen { display: none; position: fixed; inset: 0; background: #000; z-index: 400; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+.cam-screen.on { display: flex; }
+#camVideo { width: 100%; max-height: 72vh; object-fit: cover; }
+.cam-ctrl { display: flex; gap: 18px; align-items: center; }
+.cam-snap { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,.4); font-size: 1.9rem; cursor: pointer; box-shadow: 0 0 0 4px rgba(255,255,255,.15); transition: transform .1s; }
+.cam-snap:active { transform: scale(.92); }
+.cam-close-btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.12); border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: calc(78px + var(--safe-b) + 10px); left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(17,24,39,.95); color: var(--t1);
+  border: 1px solid var(--glass-border);
+  padding: 10px 20px; border-radius: 12px;
+  font-size: .82rem; font-weight: 600;
+  opacity: 0; transition: all .25s; z-index: 500;
+  pointer-events: none; white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══ -->
+<div class="setup" id="setup">
+  <div class="setup-logo-wrap">📊</div>
+  <div class="setup-title">Biz<span>Capture</span></div>
+  <div class="setup-sub">บันทึกรายรับรายจ่ายพร้อมหลักฐาน<br>ข้อมูลเก็บใน Google Sheets ของคุณเอง ปลอดภัย 100%</div>
+  <div class="setup-card">
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-body-title">สร้าง Google Sheet</div>
+        <div class="step-body-desc">สร้างไฟล์ใหม่ใน Google Sheets แล้วคัดลอก URL มาวาง</div>
+        <a class="link-btn" href="https://sheets.new" target="_blank">📄 สร้าง Google Sheet</a>
+        <input class="setup-input" id="s_sheet" placeholder="https://docs.google.com/spreadsheets/d/...">
+      </div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-body-title">ตั้งค่า Apps Script</div>
+        <div class="step-body-desc">Extensions → Apps Script → วางโค้ด → Deploy → Copy URL</div>
+        <button class="link-btn" onclick="copyScript()">📋 คัดลอกโค้ด</button>
+        <input class="setup-input" id="s_api" placeholder="https://script.google.com/macros/s/...">
+      </div>
+    </div>
+  </div>
+  <button class="setup-cta" onclick="doSetup()">✓ เริ่มใช้งาน BizCapture</button>
+  <p style="margin-top:14px;font-size:.73rem;color:var(--t3);text-align:center;max-width:340px;line-height:1.7">🔒 ข้อมูลเก็บใน Google Sheets ของคุณเอง ไม่มีการส่งข้อมูลไปที่อื่น</p>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="app" style="display:none">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="brand-mark">💼</div>
+    <div>
+      <div class="brand-text">Biz<span>Capture</span></div>
+    </div>
+    <div class="sync-pill" id="syncPill">
+      <div class="sync-dot"></div>
+      <span id="syncLabel">ออฟไลน์</span>
+    </div>
+    <div class="topbar-right">
+      <div class="stat-chip i" id="tInc">฿0</div>
+      <div class="stat-chip e" id="tExp">฿0</div>
+      <button class="icon-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body" id="body">
+
+    <!-- CAPTURE -->
+    <div class="view on" id="v-cap">
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-lbl">คงเหลือสุทธิ</div>
+        <div class="balance-val" id="balVal">฿0.00</div>
+        <div class="balance-row">
+          <div class="balance-item">
+            <div class="balance-item-lbl">รายรับ</div>
+            <div class="balance-item-val i" id="balInc">฿0</div>
+          </div>
+          <div class="balance-item">
+            <div class="balance-item-lbl">รายจ่าย</div>
+            <div class="balance-item-val e" id="balExp">฿0</div>
+          </div>
+          <div class="balance-item">
+            <div class="balance-item-lbl">รายการ</div>
+            <div class="balance-item-val" style="color:var(--acc)" id="balCount">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sync-notice" id="syncNotice"></div>
+
+      <!-- Hero Drop Zone -->
+      <div class="hero" id="hero" onclick="heroTap()">
+        <img class="hero-preview" id="heroPrev" alt="">
+        <div class="hero-overlay">
+          <button onclick="clearHero(event)" style="padding:8px 18px;background:rgba(255,255,255,.9);border:none;border-radius:10px;font-weight:800;cursor:pointer;color:#000;font-size:.85rem">🔄 เปลี่ยนรูป</button>
+        </div>
+        <div class="hero-inner">
+          <div class="hero-icon-wrap">📸</div>
+          <div class="hero-title">ถ่าย / โยนไฟล์มาที่นี่</div>
+          <div class="hero-sub">ใบเสร็จ · บิล · แคปแชท · สินค้า<br>AI อ่านและบันทึกให้ทันที พร้อมเก็บรูปหลักฐาน</div>
+          <div class="hero-tags">
+            <span class="hero-tag">🧾 ใบเสร็จ</span>
+            <span class="hero-tag">📋 บิล</span>
+            <span class="hero-tag">💬 แคปแชท</span>
+            <span class="hero-tag">📦 สินค้า</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Methods -->
+      <div class="methods">
+        <button class="meth cam" onclick="openCam()"><span class="meth-icon">📷</span>กล้อง</button>
+        <button class="meth up"  onclick="doUpload()"><span class="meth-icon">🖼️</span>อัปโหลด</button>
+        <button class="meth cl"  onclick="doPaste()"><span class="meth-icon">📋</span>วาง</button>
+        <button class="meth mic" onclick="openVoice()"><span class="meth-icon">🎤</span>เสียง</button>
+      </div>
+
+      <!-- Text input -->
+      <div class="txt-wrap">
+        <textarea class="txt-area" id="txtArea"
+          placeholder="หรือพิมพ์ / วางข้อความ เช่น:&#10;• ซื้อวัตถุดิบ 1,200 บาท&#10;• copy ข้อความจาก Line ทั้งก้อนมาวาง&#10;กด Enter เพื่อส่ง"></textarea>
+        <button class="txt-send" onclick="sendText()">➤</button>
+      </div>
+
+      <!-- AI bar -->
+      <div class="ai-bar" id="aiBar">
+        <div class="ai-spin"></div>
+        <span id="aiMsg">AI กำลังวิเคราะห์...</span>
+      </div>
+
+      <!-- Confirm -->
+      <div class="confirm" id="confirm">
+        <div class="cf-head">
+          <span class="cf-pill" id="cfPill">รายจ่าย</span>
+          <span class="cf-name" id="cfName">—</span>
+          <span class="cf-amt"  id="cfAmt">฿0</span>
+        </div>
+        <div class="cf-body" id="cfBody"></div>
+        <div class="cf-actions">
+          <button class="cf-btn cancel" onclick="dismissConfirm()">✕ ยกเลิก</button>
+          <button class="cf-btn save"   onclick="saveRecord()">✓ บันทึก + Sync</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="view" id="v-rec">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-inp" id="searchInp" placeholder="ค้นหารายการ..." oninput="renderRecords()">
+      </div>
+      <div class="filters">
+        <button class="fc on" onclick="setFilter('all',this)">ทั้งหมด</button>
+        <button class="fc" onclick="setFilter('inc',this)">💚 รายรับ</button>
+        <button class="fc" onclick="setFilter('exp',this)">❤️ รายจ่าย</button>
+        <button class="fc" onclick="setFilter('img',this)">📷 มีรูป</button>
+        <button class="fc" onclick="setFilter('syn',this)">☁️ Synced</button>
+      </div>
+      <div id="recList"></div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="view" id="v-rep">
+      <div class="rcard">
+        <div class="rcard-label">สรุปการเงิน</div>
+        <div class="stat-grid" id="statGrid"></div>
+      </div>
+      <div class="rcard">
+        <div class="rcard-label">รายจ่ายตามหมวด</div>
+        <div id="catChart"></div>
+      </div>
+      <div class="rcard">
+        <div class="rcard-label">วิเคราะห์ธุรกิจโดย AI</div>
+        <div class="ai-insight-box" id="aiInsight">— กดปุ่มด้านล่างเพื่อวิเคราะห์ —</div>
+      </div>
+      <button class="report-btn" id="repBtn" onclick="genReport()">🤖 วิเคราะห์ธุรกิจ</button>
+      <div class="export-row">
+        <button class="export-btn" onclick="doExportCSV()">📊 Export CSV</button>
+        <button class="export-btn" onclick="openSheet()">📋 Google Sheets</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn on" id="nb-cap" onclick="switchView('cap',this)">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">📥</span>บันทึก
+    </button>
+    <button class="nav-btn" id="nb-rec" onclick="switchView('rec',this)">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">🗂️</span>รายการ
+    </button>
+    <button class="nav-btn" id="nb-rep" onclick="switchView('rep',this)">
+      <div class="nav-indicator"></div>
+      <span class="nav-icon">📊</span>รายงาน
+    </button>
+  </nav>
+</div>
+
+<!-- CAMERA -->
+<div class="cam-screen" id="camScreen">
+  <video id="camVid" autoplay playsinline style="width:100%;max-height:72vh;object-fit:cover;"></video>
+  <canvas id="camCvs" style="display:none"></canvas>
+  <div class="cam-ctrl">
+    <button class="cam-close-btn" onclick="closeCam()">✕</button>
+    <button class="cam-snap" onclick="snap()">📸</button>
+  </div>
+</div>
+
+<!-- VOICE SHEET -->
+<div class="sheet-overlay" id="voiceSheet" onclick="closeSheetIfBg(event,'voiceSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="voice-ring">🎤</div>
+    <div class="voice-hint">พูดรายการได้เลย เช่น<br>"ขายสินค้าได้สองพัน" หรือ "ค่าน้ำมัน สี่ร้อยห้าสิบ"</div>
+    <div class="voice-box" id="voiceTxt">กำลังฟัง...</div>
+    <button class="voice-cta" onclick="submitVoice()">✓ วิเคราะห์และบันทึก</button>
+    <button class="voice-cancel" onclick="closeVoice()">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="sheet-overlay" id="detailSheet" onclick="closeSheetIfBg(event,'detailSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <img class="detail-img" id="detImg" alt="">
+    <div id="detContent"></div>
+    <div class="detail-btns">
+      <button class="d-btn del"   onclick="doDelete()">🗑️ ลบ</button>
+      <button class="d-btn close" onclick="closeDetail()">✓ ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet-overlay" id="settSheet" onclick="closeSheetIfBg(event,'settSheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">⚙️ ตั้งค่า</div>
+    <div class="sett-label">Apps Script URL</div>
+    <input class="sett-input" id="sApi" placeholder="https://script.google.com/macros/s/...">
+    <div class="sett-label">Google Sheet URL</div>
+    <input class="sett-input" id="sSheet" placeholder="https://docs.google.com/spreadsheets/d/...">
+    <div class="sett-label">ชื่อธุรกิจ</div>
+    <input class="sett-input" id="sBiz" placeholder="ร้านค้าของฉัน" style="font-family:'Noto Sans Thai',sans-serif">
+    <button class="sett-save" onclick="saveSettings()">💾 บันทึกการตั้งค่า</button>
+    <button class="sett-danger" onclick="resetAll()">⚠️ รีเซ็ตแอปทั้งหมด</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInp" accept="image/*" onchange="onFile(event)">
+<input type="file" id="camInp" accept="image/*" capture="environment" onchange="onFile(event)">
+
+<!-- APPS SCRIPT CODE (hidden) -->
+<script id="asCode" type="text/plain">
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName('รายการ');
+    if (!sheet) {
+      sheet = ss.insertSheet('รายการ');
+      const headers = ['ID','วันที่','เวลา','ประเภท','ชื่อรายการ','หมวดหมู่','จำนวนเงิน','มีรูปหลักฐาน','แหล่งที่มา','หมายเหตุ','รายการสินค้า'];
+      sheet.appendRow(headers);
+      const hRange = sheet.getRange(1,1,1,headers.length);
+      hRange.setFontWeight('bold').setBackground('#1a73e8').setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+    }
+    const d = new Date(data.date);
+    const tz = 'Asia/Bangkok';
+    sheet.appendRow([
+      data.id,
+      Utilities.formatDate(d, tz, 'dd/MM/yyyy'),
+      Utilities.formatDate(d, tz, 'HH:mm'),
+      data.type === 'inc' ? 'รายรับ' : 'รายจ่าย',
+      data.name, data.category, data.amount,
+      data.hasImg ? '✅ มี' : '❌ ไม่มี',
+      data.source, data.note || '',
+      (data.items||[]).map(i=>`${i.name} x${i.qty} ฿${i.price}`).join(', ')
+    ]);
+    updateSummary(ss);
+    return ContentService.createTextOutput(JSON.stringify({ok:true})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ok:false,error:err.message})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function updateSummary(ss) {
+  let s = ss.getSheetByName('สรุป') || ss.insertSheet('สรุป');
+  const rows = ss.getSheetByName('รายการ').getDataRange().getValues().slice(1);
+  let inc=0, exp=0;
+  rows.forEach(r=>{ r[3]==='รายรับ'? inc+=Number(r[6]||0) : exp+=Number(r[6]||0); });
+  s.clearContents();
+  const tz='Asia/Bangkok';
+  s.appendRow(['อัปเดต', Utilities.formatDate(new Date(),tz,'dd/MM/yyyy HH:mm')]);
+  s.appendRow(['รายรับ', inc]); s.appendRow(['รายจ่าย', exp]);
+  s.appendRow(['กำไร', inc-exp]); s.appendRow(['รายการ', rows.length]);
+}
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({ok:true,status:'BizCapture API ready'})).setMimeType(ContentService.MimeType.JSON);
+}
+</script>
+
+<script>
+// ════════════ STATE ════════════
+let recs = JSON.parse(localStorage.getItem('bc2_recs') || '[]');
+let cfg  = JSON.parse(localStorage.getItem('bc2_cfg')  || 'null');
+let fil  = 'all';
+let pend = null;
+let curImg = null;
+let camStream = null;
+let recog = null;
+let vtxt = '';
+let detId = null;
+
+// ════════════ BOOT ════════════
+(function(){
+  if (cfg?.apiUrl) showApp();
+  else document.getElementById('setup').classList.remove('gone');
+
+  // drag-drop
+  document.addEventListener('dragover', e=>e.preventDefault());
+  document.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f?.type.startsWith('image/')) readImg(f); });
+
+  // paste
+  document.addEventListener('paste', e=>{
+    for(const it of e.clipboardData.items)
+      if(it.type.startsWith('image/')){ e.preventDefault(); readImg(it.getAsFile()); return; }
+  });
+
+  // enter to send
+  document.getElementById('txtArea')?.addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendText(); }
+  });
+})();
+
+function showApp(){
+  document.getElementById('setup').classList.add('gone');
+  document.getElementById('app').style.display = 'flex';
+  updateStats(); renderRecords();
+  setSyncUI(recs.some(r=>!r.synced) ? 'pending' : cfg?.apiUrl ? 'ok' : 'off');
+}
+
+// ════════════ SETUP ════════════
+function doSetup(){
+  const api = document.getElementById('s_api').value.trim();
+  const sh  = document.getElementById('s_sheet').value.trim();
+  if(!api){ toast('⚠️ กรุณากรอก Apps Script URL'); return; }
+  cfg = { apiUrl:api, sheetUrl:sh, biz:'ธุรกิจของฉัน' };
+  localStorage.setItem('bc2_cfg', JSON.stringify(cfg));
+  showApp();
+  toast('✅ ตั้งค่าสำเร็จ! เชื่อมต่อ Google Sheets แล้ว');
+}
+
+function copyScript(){
+  const code = document.getElementById('asCode').textContent.trim();
+  navigator.clipboard?.writeText(code).then(()=>toast('📋 คัดลอกโค้ดแล้ว!')).catch(()=>{
+    const t=document.createElement('textarea'); t.value=code;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+    toast('📋 คัดลอกแล้ว!');
+  });
+}
+
+// ════════════ CAMERA ════════════
+async function openCam(){
+  if(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)){ document.getElementById('camInp').click(); return; }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920}}});
+    document.getElementById('camVid').srcObject = camStream;
+    document.getElementById('camScreen').classList.add('on');
+  } catch { document.getElementById('camInp').click(); }
+}
+function snap(){
+  const v=document.getElementById('camVid'), c=document.getElementById('camCvs');
+  c.width=v.videoWidth; c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const url=c.toDataURL('image/jpeg',.88);
+  curImg=url.split(',')[1];
+  setHeroImg(url); closeCam(); analyzeImg(curImg);
+}
+function closeCam(){ if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null;} document.getElementById('camScreen').classList.remove('on'); }
+
+// ════════════ FILE ════════════
+function doUpload(){ document.getElementById('fileInp').click(); }
+function onFile(e){ const f=e.target.files[0]; if(f) readImg(f); e.target.value=''; }
+function readImg(file){
+  const r=new FileReader();
+  r.onload=ev=>{ const b64=ev.target.result.split(',')[1]; curImg=b64; setHeroImg(ev.target.result); switchView('cap',document.getElementById('nb-cap')); analyzeImg(b64); };
+  r.readAsDataURL(file);
+}
+function setHeroImg(src){ document.getElementById('heroPrev').src=src; document.getElementById('hero').classList.add('has-img'); }
+function heroTap(){ if(!curImg) doUpload(); }
+function clearHero(e){ e?.stopPropagation(); curImg=null; document.getElementById('hero').classList.remove('has-img','scanning'); document.getElementById('heroPrev').src=''; dismissConfirm(); }
+
+// ════════════ PASTE ════════════
+async function doPaste(){
+  try {
+    const items=await navigator.clipboard.read();
+    for(const it of items){
+      for(const type of it.types){
+        if(type.startsWith('image/')){ readImg(await it.getType(type)); return; }
+        if(type==='text/plain'){ const t=await(await it.getType(type)).text(); document.getElementById('txtArea').value=t; sendText(); return; }
+      }
+    }
+  } catch { document.getElementById('txtArea').focus(); }
+}
+
+// ════════════ VOICE ════════════
+function openVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toast('กรุณาใช้ Chrome สำหรับฟีเจอร์เสียง'); return; }
+  vtxt='';
+  document.getElementById('voiceTxt').textContent='กำลังฟัง...';
+  document.getElementById('voiceSheet').classList.add('on');
+  recog=new SR(); recog.lang='th-TH'; recog.continuous=true; recog.interimResults=true;
+  recog.onresult=e=>{ let t=''; for(const r of e.results) t+=r[0].transcript; document.getElementById('voiceTxt').textContent=t||'กำลังฟัง...'; if(e.results[e.results.length-1].isFinal) vtxt=t; };
+  recog.start();
+}
+function submitVoice(){ if(recog){recog.stop();recog=null;} closeVoice(); const t=(vtxt||document.getElementById('voiceTxt').textContent).trim(); if(t&&t!=='กำลังฟัง...'){ document.getElementById('txtArea').value=t; sendText(); } }
+function closeVoice(){ if(recog){recog.stop();recog=null;} document.getElementById('voiceSheet').classList.remove('on'); }
+
+// ════════════ TEXT ANALYSIS ════════════
+async function sendText(){
+  const txt=document.getElementById('txtArea').value.trim();
+  if(!txt) return;
+  setAI(true,'AI กำลังอ่านข้อความ...');
+  try {
+    const r=await claude(null,`สกัดรายการรายรับ/รายจ่ายจากข้อความ ตอบ JSON เท่านั้น ห้าม backtick ห้ามข้อความอื่น
+ถ้าหลายรายการส่ง array ถ้าเดียวส่ง object
+{"type":"income|expense","name":"ชื่อ","amount":ตัวเลข,"category":"หมวด","note":"รายละเอียด","items":[{"name":"","qty":1,"price":0}],"source":"chat|text|bill"}
+ข้อความ: ${txt}`);
+    setAI(false); showConfirm(r,null); document.getElementById('txtArea').value='';
+  } catch(e){ setAI(false); toast('❌ '+e.message); }
+}
+
+// ════════════ IMAGE ANALYSIS ════════════
+async function analyzeImg(b64){
+  document.getElementById('hero').classList.add('scanning');
+  setAI(true,'AI กำลังอ่านรูปภาพ...');
+  try {
+    const r=await claude(b64,`วิเคราะห์รูปสกัดข้อมูลการเงิน ตอบ JSON เท่านั้น ห้าม backtick
+{"type":"income|expense","name":"ชื่อหลัก","amount":ยอดรวม,"category":"หมวด","note":"รายละเอียด","items":[{"name":"","qty":1,"price":0}],"source":"receipt|bill|chat|image","raw_text":"ข้อความทั้งหมดในรูป"}
+ถ้าเป็นใบเสร็จแยก items ถ้าไม่พบยอดใส่ 0`);
+    document.getElementById('hero').classList.remove('scanning');
+    setAI(false); showConfirm(r,b64);
+  } catch(e){ document.getElementById('hero').classList.remove('scanning'); setAI(false); toast('❌ '+e.message); }
+}
+
+// ════════════ CLAUDE API ════════════
+async function claude(imgB64, prompt){
+  const content = imgB64
+    ? [{type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},{type:'text',text:prompt}]
+    : prompt;
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content}]})
+  });
+  const d=await res.json();
+  const txt=(d.content?.[0]?.text||'').replace(/```json|```/g,'').trim();
+  try { return JSON.parse(txt); }
+  catch { return {type:'expense',name:'ไม่ทราบ',amount:0,category:'อื่นๆ',note:txt,source:'unknown'}; }
+}
+
+// ════════════ CONFIRM ════════════
+function showConfirm(data, imgB64){
+  const entries=Array.isArray(data)?data:[data];
+  const m=entries[0];
+  pend={entries, imgB64: imgB64||curImg};
+  const isI=m.type==='income';
+  document.getElementById('cfPill').textContent = isI ? '+ รายรับ' : '- รายจ่าย';
+  document.getElementById('cfPill').className = 'cf-pill '+(isI?'i':'e');
+  document.getElementById('cfName').textContent = m.name||'?';
+  document.getElementById('cfAmt').textContent = '฿'+fmt(m.amount);
+  document.getElementById('cfAmt').className = 'cf-amt '+(isI?'i':'e');
+  let html='';
+  if(m.items?.length){ html+='<table class="cf-table">'; m.items.forEach(it=>html+=`<tr><td>${it.name}</td><td style="color:var(--t2)">${it.qty||1}×</td><td>฿${fmt(it.price||0)}</td></tr>`); html+='</table>'; }
+  if(entries.length>1) html+=`<div class="cf-multi">⚡ พบ ${entries.length} รายการ — บันทึกทั้งหมด</div>`;
+  if(m.category) html+=`<div>หมวด: <strong>${m.category}</strong></div>`;
+  if(m.note) html+=`<div style="opacity:.7;margin-top:3px">${m.note.slice(0,100)}</div>`;
+  document.getElementById('cfBody').innerHTML=html;
+  document.getElementById('confirm').classList.add('on');
+}
+function dismissConfirm(){ document.getElementById('confirm').classList.remove('on'); pend=null; }
+
+// ════════════ SAVE + SYNC ════════════
+async function saveRecord(){
+  if(!pend) return;
+  const {entries,imgB64}=pend;
+  const now=new Date().toISOString();
+  entries.forEach(e=>{
+    recs.push({
+      id: Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      type: e.type==='income'?'inc':'exp',
+      name: e.name||'?', amount: parseFloat(e.amount)||0,
+      category: e.category||'ทั่วไป', note: e.note||'',
+      items: e.items||[], raw: e.raw_text||'',
+      source: e.source||'manual',
+      imgB64: imgB64||null, date: now, synced: false
+    });
+  });
+  save(); dismissConfirm(); clearHero();
+  toast(`💾 บันทึก ${entries.length} รายการแล้ว — กำลัง Sync...`);
+  await syncAll();
+}
+
+async function syncAll(){
+  if(!cfg?.apiUrl) return;
+  const us=recs.filter(r=>!r.synced);
+  if(!us.length) return;
+  setSyncUI('syncing');
+  let ok=0;
+  for(const r of us){
+    try {
+      await fetch(cfg.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id:r.id,date:r.date,type:r.type,name:r.name,category:r.category,amount:r.amount,hasImg:!!r.imgB64,source:r.source,note:r.note,items:r.items}),
+        mode:'no-cors'});
+      r.synced=true; ok++;
+    } catch {}
+  }
+  save();
+  if(ok===us.length){ setSyncUI('ok'); showNotice('ok',`☁️ Sync สำเร็จ ${ok} รายการ → Google Sheets`); }
+  else { setSyncUI('err'); showNotice('err',`⚠️ Sync ไม่ได้ ${us.length-ok} รายการ — จะลองใหม่`); }
+}
+
+// ════════════ RENDER RECORDS ════════════
+function renderRecords(){
+  const list=document.getElementById('recList');
+  const q=(document.getElementById('searchInp')?.value||'').toLowerCase();
+  let data=[...recs].reverse();
+  if(fil==='inc') data=data.filter(r=>r.type==='inc');
+  else if(fil==='exp') data=data.filter(r=>r.type==='exp');
+  else if(fil==='img') data=data.filter(r=>r.imgB64);
+  else if(fil==='syn') data=data.filter(r=>r.synced);
+  if(q) data=data.filter(r=>(r.name+r.category+r.note).toLowerCase().includes(q));
+
+  if(!data.length){ list.innerHTML=`<div class="empty"><div class="empty-emoji">📁</div><p style="font-size:.85rem">${q?'ไม่พบรายการ':'ยังไม่มีรายการ<br>ถ่ายรูปหรือโยนไฟล์ด้านบน'}</p></div>`; return; }
+
+  const groups={};
+  data.forEach(r=>{ const d=new Date(r.date).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}); if(!groups[d]) groups[d]=[]; groups[d].push(r); });
+
+  const srcI={receipt:'🧾',bill:'📋',chat:'💬',image:'🖼️',manual:'✏️',text:'📝',unknown:'📄'};
+  list.innerHTML=Object.entries(groups).map(([d,rs])=>
+    `<div class="day-label">${d}</div>`+
+    rs.map(r=>`
+      <div class="rec" onclick="openDetail('${r.id}')">
+        <div class="rec-thumb">${r.imgB64?`<img src="data:image/jpeg;base64,${r.imgB64}" loading="lazy">`:(r.type==='inc'?'💰':'💸')}</div>
+        <div class="rec-bar ${r.type}"></div>
+        <div class="rec-info">
+          <div class="rec-name">${r.name}</div>
+          <div class="rec-tags">
+            <span class="rtag cat">${r.category}</span>
+            <span class="rtag src">${srcI[r.source]||'📄'}</span>
+            ${r.imgB64?'<span class="rtag img">📷</span>':''}
+            ${r.synced?'<span class="rtag syn">☁️</span>':''}
+          </div>
+          ${r.note?`<div class="rec-note">${r.note.slice(0,55)}</div>`:''}
+        </div>
+        <div class="rec-right">
+          <div class="rec-amt ${r.type}">${r.type==='inc'?'+':'−'}฿${fmt(r.amount)}</div>
+          <div class="rec-time">${new Date(r.date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>`).join('')
+  ).join('');
+}
+
+function setFilter(f,el){ fil=f; document.querySelectorAll('.fc').forEach(c=>c.classList.remove('on')); el.classList.add('on'); renderRecords(); }
+
+// ════════════ DETAIL ════════════
+function openDetail(id){
+  const r=recs.find(x=>x.id==id); if(!r) return;
+  detId=id;
+  const di=document.getElementById('detImg');
+  if(r.imgB64){ di.src='data:image/jpeg;base64,'+r.imgB64; di.classList.add('on'); } else di.classList.remove('on');
+  const isI=r.type==='inc';
+  const sl={receipt:'ใบเสร็จ',bill:'บิล',chat:'แชท',image:'รูปภาพ',manual:'กรอกเอง',text:'ข้อความ'};
+  let h=`
+    <div class="detail-head">
+      <span class="detail-pill ${isI?'i':'e'}">${isI?'+ รายรับ':'- รายจ่าย'}</span>
+      <div class="detail-name-wrap">
+        <div class="detail-name">${r.name}</div>
+        <div class="detail-amt ${isI?'i':'e'}">${isI?'+':'−'}฿${fmt(r.amount)}</div>
+      </div>
+    </div>
+    <div class="detail-row"><span class="dr-lbl">วันที่/เวลา</span><span class="dr-val">${new Date(r.date).toLocaleString('th-TH')}</span></div>
+    <div class="detail-row"><span class="dr-lbl">หมวดหมู่</span><span class="dr-val">${r.category}</span></div>
+    <div class="detail-row"><span class="dr-lbl">แหล่งที่มา</span><span class="dr-val">${sl[r.source]||r.source}</span></div>
+    <div class="detail-row"><span class="dr-lbl">รูปหลักฐาน</span><span class="dr-val" style="color:${r.imgB64?'var(--inc)':'var(--t3)'}">${r.imgB64?'✅ มีรูปแนบ':'❌ ไม่มีรูป'}</span></div>
+    <div class="detail-row"><span class="dr-lbl">Google Sheets</span><span class="dr-val" style="color:${r.synced?'var(--inc)':'var(--gold)'}">${r.synced?'☁️ Sync แล้ว':'⏳ รอ Sync'}</span></div>
+    ${r.note?`<div class="detail-row"><span class="dr-lbl">หมายเหตุ</span><span class="dr-val">${r.note}</span></div>`:''}
+  `;
+  if(r.items?.length){ h+=`<div class="detail-items-label">รายการสินค้า</div><div class="detail-items-wrap">`; r.items.forEach(it=>h+=`<div class="di"><span class="di-name">${it.name}</span><span class="di-qty">×${it.qty||1}</span><span class="di-price">฿${fmt(it.price||0)}</span></div>`); h+='</div>'; }
+  if(r.raw) h+=`<div style="font-size:.7rem;color:var(--t3);margin-top:10px;margin-bottom:4px">ข้อความ AI อ่านได้จากรูป</div><div class="raw-box">${r.raw}</div>`;
+  document.getElementById('detContent').innerHTML=h;
+  document.getElementById('detailSheet').classList.add('on');
+}
+function closeDetail(){ document.getElementById('detailSheet').classList.remove('on'); detId=null; }
+function doDelete(){ if(!detId||!confirm('ลบรายการนี้?')) return; recs=recs.filter(r=>r.id!=detId); save(); closeDetail(); toast('ลบแล้ว'); }
+
+// ════════════ REPORT ════════════
+function renderReport(){
+  const inc=recs.filter(r=>r.type==='inc').reduce((s,r)=>s+r.amount,0);
+  const exp=recs.filter(r=>r.type==='exp').reduce((s,r)=>s+r.amount,0);
+  const syn=recs.filter(r=>r.synced).length;
+  const wi=recs.filter(r=>r.imgB64).length;
+  document.getElementById('statGrid').innerHTML=`
+    <div class="stat-box"><div class="stat-box-lbl">รายรับ</div><div class="stat-box-val" style="color:var(--inc)">฿${fmtK(inc)}</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">รายจ่าย</div><div class="stat-box-val" style="color:var(--exp)">฿${fmtK(exp)}</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">กำไร/ขาดทุน</div><div class="stat-box-val" style="color:${inc>=exp?'var(--inc)':'var(--exp)'}">฿${fmtK(inc-exp)}</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">Synced/รวม</div><div class="stat-box-val" style="color:var(--acc)">${syn}/${recs.length}</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">มีรูปหลักฐาน</div><div class="stat-box-val" style="color:var(--gold)">${wi} รายการ</div></div>
+    <div class="stat-box"><div class="stat-box-lbl">รอ Sync</div><div class="stat-box-val" style="color:${recs.length-syn?'var(--gold)':'var(--t3)'}">${recs.length-syn} รายการ</div></div>
+  `;
+  const cm={};
+  recs.filter(r=>r.type==='exp').forEach(r=>cm[r.category]=(cm[r.category]||0)+r.amount);
+  const mx=Math.max(...Object.values(cm),1);
+  const clr=['var(--exp)','var(--acc)','var(--gold)','var(--inc)','var(--purple)','#ec4899'];
+  document.getElementById('catChart').innerHTML=Object.entries(cm).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v],i)=>`
+    <div class="cat-row">
+      <div class="cat-name">${k}</div>
+      <div class="cat-track"><div class="cat-fill" style="width:${(v/mx*100).toFixed(1)}%;background:${clr[i%clr.length]}"></div></div>
+      <div class="cat-amt">฿${fmtK(v)}</div>
+    </div>
+  `).join('')||'<div style="color:var(--t3);font-size:.82rem">ยังไม่มีข้อมูลรายจ่าย</div>';
+}
+
+async function genReport(){
+  const btn=document.getElementById('repBtn');
+  btn.disabled=true; btn.textContent='⏳ กำลังวิเคราะห์...';
+  document.getElementById('aiInsight').textContent='กำลังประมวลผล...';
+  const sum={biz:cfg?.biz||'SME',inc:recs.filter(r=>r.type==='inc').reduce((s,r)=>s+r.amount,0),exp:recs.filter(r=>r.type==='exp').reduce((s,r)=>s+r.amount,0),count:recs.length,withImg:recs.filter(r=>r.imgB64).length,recent:recs.slice(-20).map(r=>({t:r.type,n:r.name,a:r.amount,c:r.category}))};
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:`วิเคราะห์ข้อมูล SME ไทย เป็นภาษาไทยตรงๆ มีประโยชน์จริง ให้คำแนะนำการเงิน การจัดเอกสารภาษี:\n${JSON.stringify(sum)}`}]})});
+    const d=await res.json();
+    document.getElementById('aiInsight').textContent=d.content?.[0]?.text||'—';
+  } catch(e){ document.getElementById('aiInsight').textContent='เกิดข้อผิดพลาด: '+e.message; }
+  btn.disabled=false; btn.textContent='🤖 วิเคราะห์ธุรกิจ';
+}
+
+function doExportCSV(){
+  const rows=[['ID','วันที่','เวลา','ประเภท','ชื่อรายการ','หมวดหมู่','จำนวนเงิน','มีรูป','Synced','แหล่งที่มา','หมายเหตุ']];
+  recs.forEach(r=>rows.push([r.id,new Date(r.date).toLocaleDateString('th-TH'),new Date(r.date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),r.type==='inc'?'รายรับ':'รายจ่าย',r.name,r.category,r.amount,r.imgB64?'มี':'ไม่มี',r.synced?'Yes':'No',r.source,(r.note||'').replace(/,/g,';')]));
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\ufeff'+encodeURIComponent(rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'));
+  a.download=`bizcapture_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  toast('✅ Export CSV สำเร็จ');
+}
+
+function openSheet(){ if(cfg?.sheetUrl) window.open(cfg.sheetUrl,'_blank'); else toast('ยังไม่ได้ตั้งค่า Sheet URL'); }
+
+// ════════════ SETTINGS ════════════
+function openSettings(){
+  document.getElementById('sApi').value=cfg?.apiUrl||'';
+  document.getElementById('sSheet').value=cfg?.sheetUrl||'';
+  document.getElementById('sBiz').value=cfg?.biz||'';
+  document.getElementById('settSheet').classList.add('on');
+}
+function saveSettings(){
+  cfg={apiUrl:document.getElementById('sApi').value.trim(),sheetUrl:document.getElementById('sSheet').value.trim(),biz:document.getElementById('sBiz').value.trim()||'ธุรกิจ'};
+  localStorage.setItem('bc2_cfg',JSON.stringify(cfg));
+  document.getElementById('settSheet').classList.remove('on');
+  toast('✅ บันทึกแล้ว'); if(cfg.apiUrl) syncAll();
+}
+function resetAll(){ if(!confirm('ล้างข้อมูลทั้งหมด?')) return; localStorage.clear(); location.reload(); }
+
+// ════════════ VIEW ════════════
+function switchView(v,el){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('on'));
+  document.getElementById('v-'+v).classList.add('on');
+  el.classList.add('on');
+  if(v==='rec') renderRecords();
+  if(v==='rep') renderReport();
+  document.getElementById('body').scrollTop=0;
+}
+
+// ════════════ UTILS ════════════
+function fmt(n){ return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtK(n){ return n>=10000?(n/1000).toFixed(1)+'K':fmt(n); }
+
+function updateStats(){
+  const inc=recs.filter(r=>r.type==='inc').reduce((s,r)=>s+r.amount,0);
+  const exp=recs.filter(r=>r.type==='exp').reduce((s,r)=>s+r.amount,0);
+  document.getElementById('tInc').textContent='฿'+fmtK(inc);
+  document.getElementById('tExp').textContent='฿'+fmtK(exp);
+  document.getElementById('balVal').textContent='฿'+fmt(inc-exp);
+  document.getElementById('balInc').textContent='฿'+fmtK(inc);
+  document.getElementById('balExp').textContent='฿'+fmtK(exp);
+  document.getElementById('balCount').textContent=recs.length;
+}
+
+function save(){ localStorage.setItem('bc2_recs',JSON.stringify(recs)); updateStats(); renderRecords(); }
+
+function setSyncUI(s){
+  const p=document.getElementById('syncPill');
+  const d=p.querySelector('.sync-dot');
+  const lbl=document.getElementById('syncLabel');
+  p.className='sync-pill';
+  if(s==='ok'){ p.classList.add('ok'); lbl.textContent='Synced'; }
+  else if(s==='syncing'){ p.classList.add('syncing'); lbl.textContent='Syncing...'; }
+  else if(s==='err'){ p.classList.add('err'); lbl.textContent='Sync Error'; }
+  else if(s==='pending'){ lbl.textContent='รอ Sync'; }
+  else { lbl.textContent='ออฟไลน์'; }
+}
+
+function showNotice(type,msg){ const el=document.getElementById('syncNotice'); el.className='sync-notice on '+type; el.textContent=msg; setTimeout(()=>el.classList.remove('on'),4000); }
+
+function closeSheetIfBg(e,id){ if(e.target===document.getElementById(id)) document.getElementById(id).classList.remove('on'); }
+
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),3000); }
+</script>
+</body>
+</html>
+
