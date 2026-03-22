@@ -2409,18 +2409,7 @@ function openCustomerModal(idx) {
   const c = (idx !== null && idx !== undefined && idx !== '') ? customers[idx] : null;
   const isEdit = c !== null;
   const overrideEntries = c ? Object.entries(c.priceOverride||{}) : [];
-  const overrideRowsHTML = overrideEntries.map(([k,v]) => `
-    <div class="po-row" style="display:flex;gap:8px;margin-bottom:8px">
-      <select class="po-name"
-        style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;background:white;cursor:pointer"
-        onchange="autoFillPoPrice(this)">
-        ${buildProductOptions(k)}
-      </select>
-      <input type="number" class="po-price" value="${v}" placeholder="Price ฿" min="0"
-        style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
-      <button onclick="this.parentElement.remove()"
-        style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>
-    </div>`).join('');
+  const overrideRowsHTML = ''; // rows are added via addPriceOverrideRow after modal opens
 
   const el = document.createElement('div');
   el.id = 'customerModal';
@@ -2476,24 +2465,76 @@ function openCustomerModal(idx) {
       </div>
     </div>`;
   document.body.appendChild(el);
+  // Populate existing priceOverride rows
+  overrideEntries.forEach(([k,v]) => addPriceOverrideRow(k, v));
 }
 
-function addPriceOverrideRow() {
+function addPriceOverrideRow(selectedName, selectedPrice) {
   const container = document.getElementById('po-rows');
   if (!container) return;
+  const uid = 'por_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
   const div = document.createElement('div');
   div.className = 'po-row';
-  div.style.cssText = 'display:flex;gap:8px;margin-bottom:8px';
+  div.style.cssText = 'margin-bottom:10px;border:1.5px solid var(--border);border-radius:10px;padding:8px;background:#fafafa;position:relative';
   div.innerHTML = `
-    <select class="po-name"
-      style="flex:2;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;background:white;cursor:pointer"
-      onchange="autoFillPoPrice(this)">
-      ${buildProductOptions('')}
-    </select>
-    <input type="number" class="po-price" placeholder="Price ฿" min="0"
-      style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none">
-    <button onclick="this.parentElement.remove()" style="padding:8px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer">✕</button>`;
+    <div style="display:flex;gap:8px;align-items:center">
+      <div style="flex:2;position:relative">
+        <input type="text" class="po-name po-search-input" 
+          value="${selectedName||''}"
+          placeholder="🔍 พิมพ์ค้นหาสินค้า..."
+          autocomplete="off"
+          style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;box-sizing:border-box"
+          oninput="poSearchProduct(this,'${uid}')"
+          onfocus="poSearchProduct(this,'${uid}')"
+          onblur="setTimeout(()=>poHideDropdown('${uid}'),200)">
+        <div id="pod_${uid}" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:white;border:1.5px solid var(--accent);border-radius:8px;max-height:200px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.12);margin-top:2px"></div>
+      </div>
+      <input type="number" class="po-price" placeholder="฿ ราคา" min="0" value="${selectedPrice||''}"
+        style="width:90px;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:13px;outline:none;text-align:right">
+      <button onclick="this.closest('.po-row').remove()" 
+        style="padding:6px 10px;background:#fff0f0;border:1px solid #ffcccc;color:#c62828;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0">✕</button>
+    </div>`;
   container.appendChild(div);
+}
+
+function poSearchProduct(input, uid) {
+  const q = input.value.toLowerCase().trim();
+  const dropdown = document.getElementById('pod_' + uid);
+  if (!dropdown) return;
+  const filtered = q.length === 0
+    ? products.filter(p => p.status === 'active').slice(0, 20)
+    : products.filter(p => p.status === 'active' && (
+        (p.nameEN||'').toLowerCase().includes(q) ||
+        (p.nameTH||'').toLowerCase().includes(q)
+      )).slice(0, 20);
+  if (!filtered.length) {
+    dropdown.style.display = 'none';
+    return;
+  }
+  dropdown.innerHTML = filtered.map(p => `
+    <div onclick="poSelectProduct(this,'${uid}','${(p.nameEN||'').replace(/'/g,"\\'")}',${p.price||0})"
+      style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #f5e8f5;display:flex;justify-content:space-between;align-items:center;font-size:13px"
+      onmouseover="this.style.background='#fff0f7'" onmouseout="this.style.background='white'">
+      <span style="font-weight:600;color:#1a1a2e">${p.emoji||'📦'} ${p.nameEN||p.nameTH||'-'}</span>
+      <span style="color:var(--accent);font-weight:700">฿${(p.price||0).toLocaleString()}</span>
+    </div>`).join('');
+  dropdown.style.display = 'block';
+}
+
+function poSelectProduct(el, uid, name, price) {
+  const dropdown = document.getElementById('pod_' + uid);
+  const row = dropdown ? dropdown.closest('.po-row') : null;
+  if (!row) return;
+  const input = row.querySelector('.po-search-input');
+  const priceInput = row.querySelector('.po-price');
+  if (input) input.value = name;
+  if (priceInput && (!priceInput.value || parseFloat(priceInput.value) === 0)) priceInput.value = price;
+  if (dropdown) dropdown.style.display = 'none';
+}
+
+function poHideDropdown(uid) {
+  const d = document.getElementById('pod_' + uid);
+  if (d) d.style.display = 'none';
 }
 
 function autoFillPoPrice(select) {
@@ -2539,9 +2580,10 @@ async function saveCustomer() {
 
   const priceOverride = {};
   document.querySelectorAll('.po-row').forEach(row => {
-    const n = row.querySelector('.po-name')?.value?.trim();
+    const nameEl = row.querySelector('.po-name');
+    const n = nameEl ? nameEl.value.trim() : '';
     const p = parseFloat(row.querySelector('.po-price')?.value);
-    if (n && !isNaN(p) && p > 0) priceOverride[n] = p;
+    if (n && n !== '-- เลือกสินค้า --' && !isNaN(p) && p > 0) priceOverride[n] = p;
   });
 
   const saveBtn = document.querySelector('#customerModal button[onclick="saveCustomer()"]');
