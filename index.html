@@ -59,12 +59,23 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 .lang-btn.active { background:var(--teal); color:white; border-color:var(--teal); }
 
 /* ===== LANDING PAGE ===== */
-/* ===== LANDING — White Beauty Theme ===== */
+/* ===== LANDING — Beauty Ecommerce ===== */
 #landing-page {
   min-height:100vh;
-  background:#fff;
-  position:relative; overflow:hidden;
+  background:#fafafa;
+  padding-top:56px;
 }
+
+/* ─── Hero Banner ─── */
+.hero-banner {
+  background: linear-gradient(150deg, #fff0f7 0%, #fce4ec 40%, #f8bbd0 70%, #fff 100%);
+  padding: 60px 24px 50px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(214,51,132,0.1);
+}
+.hero-particles { position:absolute;inset:0;pointer-events:none; }
 
 /* Soft pink blobs background */
 #landing-page::before {
@@ -74,6 +85,108 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
     radial-gradient(ellipse 50% 60% at 90% 80%, rgba(185,29,115,0.10) 0%, transparent 60%),
     radial-gradient(ellipse 40% 40% at 50% 50%, rgba(255,182,230,0.08) 0%, transparent 70%);
 }
+
+.hero-eyebrow {
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--accent); font-weight:700; margin-bottom:12px;
+  animation:fadeUp 0.8s both;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.hero-title {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(64px,15vw,110px); font-weight:700; line-height:0.9;
+  background:linear-gradient(135deg,#e91e8c,#f953c6,#b91d73);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 4px 20px rgba(233,30,140,0.25));
+  animation:fadeUp 0.8s 0.1s both;
+}
+.hero-amp { font-style:italic; }
+.hero-sub {
+  font-size:clamp(11px,2.5vw,14px); letter-spacing:6px; text-transform:uppercase;
+  color:#b91d73; font-weight:600; margin-bottom:16px;
+  animation:fadeUp 0.8s 0.2s both;
+}
+.hero-desc {
+  font-size:14px; color:#666; line-height:1.7; margin-bottom:24px;
+  animation:fadeUp 0.8s 0.3s both;
+}
+.hero-contact {
+  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+  margin-bottom:28px; animation:fadeUp 0.8s 0.4s both;
+}
+.hero-chip {
+  padding:8px 18px; background:white; border:1.5px solid rgba(233,30,140,0.2);
+  border-radius:20px; font-size:13px; color:#b91d73; text-decoration:none;
+  font-weight:600; transition:all 0.2s; box-shadow:0 2px 8px rgba(233,30,140,0.08);
+}
+.hero-chip:hover { background:#fff0f7; transform:translateY(-2px); }
+.hero-cta {
+  display:inline-block; padding:14px 36px;
+  background:linear-gradient(135deg,var(--grad1),var(--grad2));
+  color:white; border:none; border-radius:30px; font-size:15px; font-weight:700;
+  font-family:'Nunito',sans-serif; cursor:pointer; letter-spacing:1px;
+  box-shadow:0 8px 24px rgba(233,30,140,0.35);
+  transition:all 0.3s; animation:fadeUp 0.8s 0.5s both;
+}
+.hero-cta:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(233,30,140,0.45); }
+
+/* Floating beauty icons in hero */
+.hero-float {
+  position:absolute; font-size:32px; opacity:0.15;
+  animation:heroFloat 8s ease-in-out infinite;
+  pointer-events:none; user-select:none;
+}
+.f1{top:10%;left:5%;animation-delay:0s}
+.f2{top:15%;right:8%;animation-delay:1.5s}
+.f3{bottom:20%;left:10%;animation-delay:3s}
+.f4{bottom:15%;right:5%;animation-delay:4.5s}
+.f5{top:50%;right:3%;animation-delay:2s}
+@keyframes heroFloat {
+  0%,100%{transform:translateY(0) rotate(0deg)}
+  50%{transform:translateY(-18px) rotate(10deg)}
+}
+
+/* Landing category chips */
+#landingCatScroll::-webkit-scrollbar{display:none}
+.landing-cat-chip {
+  flex-shrink:0; padding:6px 16px;
+  background:white; border:1.5px solid #e8d0e8;
+  border-radius:20px; color:#888; cursor:pointer; font-size:13px;
+  transition:all 0.2s; font-weight:600; white-space:nowrap;
+  font-family:'Nunito',sans-serif;
+}
+.landing-cat-chip.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+/* Landing product cards */
+.lp-card {
+  background:white; border-radius:16px; overflow:hidden;
+  border:1.5px solid #f0e0f0; cursor:pointer;
+  transition:all 0.25s; position:relative;
+  box-shadow:0 2px 8px rgba(214,51,132,0.06);
+}
+.lp-card:hover { transform:translateY(-4px); box-shadow:0 10px 28px rgba(214,51,132,0.15); border-color:var(--accent); }
+.lp-img { width:100%; aspect-ratio:1; object-fit:cover; background:#fff0f7; display:block; font-size:40px; text-align:center; line-height:1; padding:20px 0; }
+.lp-img-emoji { width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#fff0f7,#fce4ec); font-size:48px; }
+.lp-body { padding:12px; }
+.lp-name { font-size:13px; font-weight:700; color:#1a1a2e; margin-bottom:4px; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lp-weight { font-size:11px; color:#aaa; margin-bottom:8px; }
+.lp-price { font-size:16px; font-weight:700; color:var(--accent); }
+.lp-add { 
+  width:100%; padding:8px; margin-top:8px;
+  background:linear-gradient(135deg,var(--grad1),var(--grad2));
+  border:none; border-radius:10px; color:white; font-size:12px; font-weight:700;
+  font-family:'Nunito',sans-serif; cursor:pointer; transition:all 0.2s;
+}
+.lp-add:hover { opacity:0.9; transform:scale(1.02); }
+.lp-badge {
+  position:absolute; top:8px; left:8px;
+  background:#2e7d32; color:white; font-size:10px; font-weight:700;
+  padding:2px 8px; border-radius:10px;
+}
+
 
 /* Floating beauty icons decoration */
 .landing-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
@@ -876,11 +989,11 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 <body>
 
 <!-- NAV -->
-<nav class="nav" id="mainNav" style="display:none">
+<nav class="nav" id="mainNav">
   <div class="nav-brand" id="navBrand">K&R Thailand Shop</div>
   <div class="nav-menu">
     <button class="nav-btn active" onclick="showPage('landing')" data-th="หน้าแรก" data-en="Home">Home</button>
-    <button class="nav-btn" onclick="requireLogin()" data-th="สั่งสินค้า" data-en="Order">Order</button>
+    <button class="nav-btn" id="cartNavBtn" onclick="showPage('shop')" data-th="ตะกร้า" data-en="Cart" style="position:relative">🛒 Cart <span id="cartNavBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:white;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;align-items:center;justify-content:center">0</span></button>
     <button class="nav-btn" onclick="requireAdmin()" data-th="หลังบ้าน" data-en="Admin">Admin</button>
   </div>
   <div class="lang-switch">
@@ -891,79 +1004,89 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
 <!-- ===== LANDING PAGE ===== -->
 <div id="landing-page" class="page active">
-  <div class="landing-particles" id="particles"></div>
-  <div class="landing-content">
-    <div class="landing-logo" id="heroLogo">K&R</div>
-    <div class="landing-tagline" id="heroTagline">Thailand Shop</div>
-    <div class="landing-divider"></div>
+  <!-- Hero Banner -->
+  <div class="hero-banner" id="heroBanner">
+    <div class="hero-particles" id="particles"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow"><span data-th="✦ สินค้าความงามจากประเทศไทย ✦" data-en="✦ Premium Beauty from Thailand ✦">✦ Premium Beauty from Thailand ✦</span></div>
+      <h1 class="hero-title">K<span class="hero-amp">&</span>R</h1>
+      <div class="hero-sub">THAILAND SHOP</div>
+      <p class="hero-desc"><span data-th="สินค้าความงามคัดพิเศษ ส่งตรงถึงคุณทั่วโลก" data-en="Premium beauty products · Direct from Thailand">สินค้าความงามคัดพิเศษ ส่งตรงถึงคุณทั่วโลก</span><br>
+        <span style="font-size:12px;opacity:0.8">Premium beauty products · Shipped worldwide via DHL</span>
+      </p>
+      <div class="hero-contact">
+        <a class="hero-chip" href="https://line.me/ti/p/@krthailandshop" target="_blank">💬 LINE</a>
+        <a class="hero-chip" href="https://wa.me/66638068809" target="_blank">📱 WhatsApp</a>
+        <a class="hero-chip" href="https://www.facebook.com/share/1DG8MaGKjL/" target="_blank">📘 Facebook</a>
+      </div>
+      <button class="hero-cta" onclick="document.getElementById('landing-products').scrollIntoView({behavior:'smooth'})">
+        <span data-th="ช้อปเลย ↓" data-en="Shop Now ↓">ช้อปเลย ↓</span>
+      </button>
+    </div>
+    <!-- Floating beauty items -->
+    <div class="hero-float f1">💄</div>
+    <div class="hero-float f2">🌸</div>
+    <div class="hero-float f3">✨</div>
+    <div class="hero-float f4">🧴</div>
+    <div class="hero-float f5">💅</div>
+  </div>
 
-    <!-- Beauty Icons Strip -->
-    <div class="beauty-icons-strip">
-      <div class="beauty-icon-item">💄</div>
-      <div class="beauty-icon-item">🧴</div>
-      <div class="beauty-icon-item">✨</div>
-      <div class="beauty-icon-item">🌸</div>
-      <div class="beauty-icon-item">💅</div>
+  <!-- Products Section embedded in landing -->
+  <div id="landing-products" style="background:#fafafa;min-height:60vh">
+    <!-- Search + Filter bar -->
+    <div style="background:white;padding:16px 20px;border-bottom:1px solid #f0e0f0;position:sticky;top:56px;z-index:100;box-shadow:0 2px 8px rgba(214,51,132,0.06)">
+      <div style="max-width:900px;margin:0 auto">
+        <div style="position:relative;margin-bottom:12px">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px">🔍</span>
+          <input id="landingSearch" type="text" id="landingSearchInput" placeholder="ค้นหาสินค้า... / Search products..."
+            oninput="landingFilterProducts(this.value)"
+            id="landingSearchBox"
+            style="width:100%;padding:11px 16px 11px 42px;border:1.5px solid #f0d0e8;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;outline:none;background:#fff8fc;box-sizing:border-box">
+        </div>
+        <div id="landingCatScroll" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px"></div>
+      </div>
     </div>
 
-    <div class="contact-bar">
-      <a class="contact-chip" href="https://line.me/ti/p/@krthailandshop" target="_blank">
-        <span class="contact-icon">💬</span> Line: @krthailandshop
-      </a>
-      <a class="contact-chip" href="https://wa.me/66638068809" target="_blank">
-        <span class="contact-icon">📱</span> WhatsApp: +66638068809
-      </a>
-      <a class="contact-chip" href="https://www.facebook.com/share/1DG8MaGKjL/" target="_blank">
-        <span class="contact-icon">📘</span> Facebook
-      </a>
-    </div>
-    <div class="landing-actions">
-      <div class="action-card" onclick="requireLogin()">
-        <span class="action-icon">🛍️</span>
-        <div class="action-title" data-th="สั่งสินค้า" data-en="Order Now">Order Now</div>
-        <div class="action-sub" data-th="เลือกสินค้าและคำนวณราคา" data-en="Browse & calculate instantly">Browse & calculate instantly</div>
-      </div>
-      <div class="action-card" onclick="scrollToHow()">
-        <span class="action-icon">📋</span>
-        <div class="action-title" data-th="วิธีสั่งสินค้า" data-en="How to Order">How to Order</div>
-        <div class="action-sub" data-th="ขั้นตอนง่ายๆ 4 ขั้นตอน" data-en="Simple 4-step process">Simple 4-step process</div>
-      </div>
+    <!-- Products Grid -->
+    <div style="max-width:900px;margin:0 auto;padding:20px">
+      <div id="landingProductsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px"></div>
+      <!-- Pagination -->
+      <div id="landingPagination" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:24px;padding:16px"></div>
     </div>
   </div>
+
+  <!-- How to Order -->
   <div class="how-section" id="howSection">
     <div class="how-title" data-th="วิธีการสั่งสินค้า" data-en="How to Order">How to Order</div>
     <div class="how-steps">
       <div class="how-step">
         <div class="step-num">1</div>
         <div class="step-text">
-          <h4 data-th="ลงทะเบียน" data-en="Register">Register</h4>
-          <p data-th="กรอกชื่อและเบอร์โทรของคุณ" data-en="Enter your name and phone number">Enter your name and phone number</p>
+          <h4 data-th="เลือกสินค้า" data-en="Browse Products">เลือกสินค้า</h4><p data-th="เพิ่มสินค้าลงตะกร้าได้เลย ไม่ต้องสมัครสมาชิก" data-en="Add items to cart, no registration needed">เพิ่มสินค้าลงตะกร้าได้เลย ไม่ต้องสมัครสมาชิก</p>
         </div>
       </div>
       <div class="how-step">
         <div class="step-num">2</div>
         <div class="step-text">
-          <h4 data-th="เลือกสินค้าและกล่อง DHL" data-en="Select Products & DHL Box">Select Products & DHL Box</h4>
-          <p data-th="ระบบจะคำนวณน้ำหนักและขนาดให้อัตโนมัติ" data-en="System auto-calculates weight & volume">System auto-calculates weight & volume</p>
+          <h4 data-th="กรอกข้อมูลและที่อยู่" data-en="Fill Your Details">กรอกข้อมูลและที่อยู่</h4><p data-th="ใส่ชื่อ เบอร์ และที่อยู่สำหรับจัดส่ง" data-en="Enter your name, phone and shipping address">ใส่ชื่อ เบอร์ และที่อยู่สำหรับจัดส่ง</p>
         </div>
       </div>
       <div class="how-step">
         <div class="step-num">3</div>
         <div class="step-text">
-          <h4 data-th="ตรวจสอบใบสั่งซื้อ" data-en="Review Your Order">Review Your Order</h4>
-          <p data-th="ดูยอดรวมสินค้า + ค่าขนส่ง" data-en="See total price + shipping cost">See total price + shipping cost</p>
+          <h4 data-th="ตรวจสอบ Invoice" data-en="Review Invoice">ตรวจสอบ Invoice</h4><p data-th="ดูสรุปรายการสินค้า + ค่าขนส่ง DHL" data-en="Review items summary + DHL shipping cost">ดูสรุปรายการสินค้า + ค่าขนส่ง DHL</p>
         </div>
       </div>
       <div class="how-step">
         <div class="step-num">4</div>
         <div class="step-text">
-          <h4 data-th="โอนเงินและแจ้งสลิป" data-en="Transfer & Send Slip">Transfer & Send Slip</h4>
-          <p data-th="ส่งสลิปผ่าน Line หรือ WhatsApp" data-en="Send your payment slip via Line or WhatsApp">Send your payment slip via Line or WhatsApp</p>
+          <h4 data-th="โอนและแจ้งสลิป" data-en="Transfer & Send Slip">โอนและแจ้งสลิป</h4><p data-th="ส่งสลิปผ่าน LINE หรือ WhatsApp" data-en="Send payment slip via LINE or WhatsApp">ส่งสลิปผ่าน LINE หรือ WhatsApp</p>
         </div>
       </div>
     </div>
   </div>
 </div>
+
 
 <!-- ===== CLOSED PAGE ===== -->
 <div id="closed-page" class="page">
@@ -1164,7 +1287,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
           <span id="sumTotal">฿0</span>
         </div>
       </div>
-      <button class="checkout-btn" id="checkoutBtn" onclick="openOrderModal()" disabled>
+      <button class="checkout-btn" id="checkoutBtn" onclick="requireLoginForCheckout()" disabled>
         🧾 <span id="checkoutBtnText">View Order Summary</span>
       </button>
     </div>
@@ -1741,6 +1864,92 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 <div class="toast" id="toast"></div>
 
 <script>
+// ===== SECURITY LAYER =====
+
+// 1. XSS Protection - sanitize all user input before rendering
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/\//g, '&#x2F;');
+}
+
+function sanitizeInput(str) {
+  if (!str) return '';
+  return String(str).trim().slice(0, 500); // max 500 chars
+}
+
+// 2. Rate Limiting - prevent spam orders/requests
+const _rateLimits = {};
+function rateLimitCheck(key, maxPerMin = 5) {
+  const now = Date.now();
+  if (!_rateLimits[key]) _rateLimits[key] = [];
+  // Remove entries older than 1 minute
+  _rateLimits[key] = _rateLimits[key].filter(t => now - t < 60000);
+  if (_rateLimits[key].length >= maxPerMin) return false; // blocked
+  _rateLimits[key].push(now);
+  return true; // allowed
+}
+
+// 3. Admin Session - persist login via localStorage with expiry
+const SESSION_KEY = 'kr_admin_session';
+const SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 hours
+
+function saveAdminSession() {
+  const session = { exp: Date.now() + SESSION_DURATION, v: 1 };
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+}
+
+function checkAdminSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const s = JSON.parse(raw);
+    if (Date.now() > s.exp) { localStorage.removeItem(SESSION_KEY); return false; }
+    return true;
+  } catch(e) { return false; }
+}
+
+function clearAdminSession() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
+
+// 4. Input validation helpers
+function isValidPhone(phone) {
+  const clean = phone.replace(/\D/g, '');
+  return clean.length >= 8 && clean.length <= 15;
+}
+
+function isValidName(name) {
+  return name && name.trim().length >= 2 && name.trim().length <= 100;
+}
+
+// 5. Honeypot - detect bots (hidden field check)
+let _honeypotTriggered = false;
+function honeypotCheck() {
+  const hp = document.getElementById('hp_field');
+  if (hp && hp.value !== '') { _honeypotTriggered = true; return false; }
+  return true;
+}
+
+// 6. Order cooldown - prevent duplicate orders
+let _lastOrderTime = 0;
+const ORDER_COOLDOWN = 30000; // 30 seconds between orders
+function canSubmitOrder() {
+  const now = Date.now();
+  if (now - _lastOrderTime < ORDER_COOLDOWN) {
+    const wait = Math.ceil((ORDER_COOLDOWN - (now - _lastOrderTime)) / 1000);
+    showToast('⏳ กรุณารอ ' + wait + ' วินาทีก่อนส่งออร์เดอร์ใหม่');
+    return false;
+  }
+  return true;
+}
+function markOrderSubmitted() { _lastOrderTime = Date.now(); }
+
 // ===== STATE =====
 let lang = 'en';
 let currentUser = null;
@@ -1764,11 +1973,18 @@ function requireAdmin() {
 }
 
 function doAdminLogin() {
+  // Rate limit admin login attempts (max 5 per minute)
+  if(!rateLimitCheck('adminLogin', 5)) {
+    document.getElementById('adminLoginError').style.display = 'block';
+    document.getElementById('adminLoginError').textContent = '⚠️ พยายาม login มากเกินไป กรุณารอสักครู่';
+    return;
+  }
   const u = document.getElementById('adminUsername').value.trim();
   const p = document.getElementById('adminPassword').value;
   const errEl = document.getElementById('adminLoginError');
   if(u === adminCredentials.username && p === adminCredentials.password) {
     isAdminLoggedIn = true;
+    saveAdminSession(); // persist session
     errEl.style.display = 'none';
     document.getElementById('adminUsername').value = '';
     document.getElementById('adminPassword').value = '';
@@ -2060,8 +2276,10 @@ function showPage(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.getElementById(p+'-page').classList.add('active');
   const nav = document.getElementById('mainNav');
-  nav.style.display = (p === 'landing' || p === 'admin-login' || p === 'closed') ? 'none' : 'flex';
+  // Nav visible on all pages except admin-login and closed
+  nav.style.display = (p === 'admin-login' || p === 'closed') ? 'none' : 'flex';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if(p === 'shop') { renderProducts(); renderCart(); }
   if(p==='admin') {
     loadAllFromSheet().then(() => {
       renderAdminProducts(); renderShippingGrid(); renderAdminOrders(); _fillAdminSettingsForm();
@@ -2120,8 +2338,118 @@ function _updateContactBar() {
 
 function requireLogin() {
   if(!shopIsOpen) { showPage('closed'); return; }
-  if(currentUser) showPage('shop');
-  else showPage('login');
+  showPage('shop');
+}
+
+function requireLoginForCheckout() {
+  if(!shopIsOpen) { showPage('closed'); return; }
+  if(currentUser) { openOrderModal(); return; }
+  showGuestCheckoutModal();
+}
+
+function showGuestCheckoutModal() {
+  // Remove existing
+  const existing = document.getElementById('guestModal');
+  if(existing) existing.remove();
+
+  const el = document.createElement('div');
+  el.id = 'guestModal';
+  el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  el.innerHTML = `
+    <div style="background:white;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 60px rgba(214,51,132,0.2)">
+      <div style="background:linear-gradient(135deg,var(--grad1),var(--grad2));padding:24px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;color:white;margin-bottom:4px">ยืนยันตัวตน</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.8)">กรอกข้อมูลเพื่อดำเนินการสั่งซื้อ</div>
+      </div>
+      <div style="padding:24px;display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label style="font-size:11px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Customer Code (ถ้ามี)</label>
+          <input id="gc-code" type="text" placeholder="เช่น KR00101 (ไม่บังคับ)"
+            style="width:100%;padding:12px;border:1.5px solid #f0e0f0;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;outline:none;box-sizing:border-box;text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">ชื่อ *</label>
+          <input id="gc-name" type="text" placeholder="ชื่อของคุณ"
+            style="width:100%;padding:12px;border:1.5px solid #f0e0f0;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:11px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">เบอร์โทรศัพท์ *</label>
+          <input id="gc-phone" type="tel" placeholder="0812345678"
+            style="width:100%;padding:12px;border:1.5px solid #f0e0f0;border-radius:12px;font-family:'Nunito',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+        </div>
+        <div id="gc-error" style="display:none;background:#fce8e8;border:1px solid #e57373;border-radius:8px;padding:10px;font-size:13px;color:#c62828"></div>
+        <input type="text" id="hp_field" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;height:0" aria-hidden="true">
+        <button onclick="doGuestCheckout()" id="gc-btn"
+          style="width:100%;padding:14px;background:linear-gradient(135deg,var(--grad1),var(--grad2));border:none;color:white;border-radius:12px;font-size:15px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer">
+          ✓ ดำเนินการสั่งซื้อ
+        </button>
+        <button onclick="document.getElementById('guestModal').remove()"
+          style="width:100%;padding:10px;background:white;border:1.5px solid #f0e0f0;color:#999;border-radius:12px;font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer">
+          ← กลับไปเลือกสินค้า
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  setTimeout(()=>document.getElementById('gc-name')?.focus(), 100);
+}
+
+async function doGuestCheckout() {
+  const code  = (document.getElementById('gc-code')?.value||'').trim().toUpperCase();
+  const name  = (document.getElementById('gc-name')?.value||'').trim();
+  const phone = (document.getElementById('gc-phone')?.value||'').trim();
+  const errEl = document.getElementById('gc-error');
+  const btn   = document.getElementById('gc-btn');
+
+  // Honeypot check
+  if(!honeypotCheck()) { return; } // bot detected, silently fail
+
+  // Rate limit checkout attempts
+  if(!rateLimitCheck('checkout', 3)) {
+    errEl.style.display='block'; errEl.textContent='⚠️ พยายามบ่อยเกินไป กรุณารอสักครู่';
+    return;
+  }
+
+  // Validate inputs
+  if(!isValidName(name)) {
+    errEl.style.display='block'; errEl.textContent='กรุณากรอกชื่อให้ถูกต้อง (2-100 ตัวอักษร)';
+    return;
+  }
+  if(!isValidPhone(phone)) {
+    errEl.style.display='block'; errEl.textContent='เบอร์โทรไม่ถูกต้อง กรุณาตรวจสอบ';
+    return;
+  }
+
+  errEl.style.display='none';
+  btn.disabled=true; btn.textContent='กำลังตรวจสอบ...';
+
+  // ถ้ามี Customer Code → ตรวจกับ Sheets
+  if(code) {
+    try {
+      const resp = await fetch(`${scriptURL}?type=getCustomer&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phone.replace(/\D/g,''))}&t=${Date.now()}&apiKey=${API_KEY}`);
+      const data = await resp.json();
+      if(data.found) {
+        currentUser = { name:data.name||name, phone:data.phone||phone, customerCode:data.customerCode, discount:data.discount||0, priceOverride:data.priceOverride||{}, country:'', address:'' };
+        showToast(`✅ ยินดีต้อนรับ ${currentUser.name}!`);
+        document.getElementById('guestModal').remove();
+        renderProducts(); renderCart();
+        openOrderModal();
+        return;
+      } else {
+        errEl.style.display='block'; errEl.textContent='ไม่พบ Customer Code นี้ หรือเบอร์ไม่ตรง';
+        btn.disabled=false; btn.textContent='✓ ดำเนินการสั่งซื้อ';
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // ไม่มี code → guest
+  currentUser = { name, phone, customerCode:'', discount:0, priceOverride:{}, country:'', address:'' };
+  document.getElementById('userBadge').textContent = name;
+  showToast(`✅ ยินดีต้อนรับ ${name}!`);
+  document.getElementById('guestModal').remove();
+  renderProducts(); renderCart();
+  openOrderModal();
 }
 function logout() { currentUser=null; showPage('landing'); }
 
@@ -2174,7 +2502,7 @@ async function doLogin() {
   // ── มีโค้ด → ตรวจกับ Sheets ──
   if (code) {
     try {
-      const resp = await fetch(`${scriptURL}?type=getCustomer&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phoneClean)}&t=${Date.now()}`);
+      const resp = await fetch(`${scriptURL}?type=getCustomer&code=${encodeURIComponent(code)}&phone=${encodeURIComponent(phoneClean)}&t=${Date.now()}&apiKey=${API_KEY}`);
       const data = await resp.json();
 
       if (!data.found) {
@@ -3051,6 +3379,9 @@ function closeOrderModal() {
 function confirmAndDownload() {
   const d = window._orderData;
   if(!d) return;
+  // Prevent duplicate orders
+  if(!canSubmitOrder()) return;
+  markOrderSubmitted();
 
   // บันทึกลง orders array (status = pending รอ Admin ยืนยัน)
   orders.push({
@@ -3071,14 +3402,49 @@ function confirmAndDownload() {
   // บันทึกไป Google Sheets
   saveOrderToSheet(d);
 
+  // Build WhatsApp pre-filled message
+  const waNum    = (shopSettings.wa||'+66638068809').replace(/[^0-9]/g,'');
+  const itemsStr = d.items.map(i=>`${i.product.nameEN||i.product.nameTH} x${i.qty}`).join(', ');
+  const waMsg    = encodeURIComponent(
+    (lang==='th'
+      ? `สวัสดีครับ/ค่ะ ขอส่งสลิปโอนเงินสำหรับออร์เดอร์ #${d.orderNum}\nชื่อ: ${d.customer.name}\nสินค้า: ${itemsStr}\nยอดรวม: ฿${d.total.toLocaleString()}\nที่อยู่: ${d.customer.address||'-'}`
+      : `Hello! I'd like to send payment slip for Order #${d.orderNum}\nName: ${d.customer.name}\nItems: ${itemsStr}\nTotal: ฿${d.total.toLocaleString()}\nAddress: ${d.customer.address||'-'}`)
+  );
+  const waURL    = 'https://wa.me/' + waNum + '?text=' + waMsg;
+  const lineURL  = 'https://line.me/ti/p/' + (shopSettings.line||'@krthailandshop').replace('@','%40');
+
   document.getElementById('omActions').innerHTML = `
     <div class="confirmed-dl-box">
-      <div style="font-size:36px;margin-bottom:8px">✅</div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:4px">${lang==='th'?'ยืนยันออร์เดอร์แล้ว!':'Order Confirmed!'}</div>
-      <div style="font-size:13px;color:rgba(46,204,113,0.9);margin-bottom:12px">Order #${d.orderNum}</div>
-      <div style="font-size:13px;margin-bottom:8px">${lang==='th'?'กรุณาส่งสลิปผ่าน:':'Please send payment slip via:'}</div>
-      <div style="font-size:13px">💬 Line: <strong>${shopSettings.line||'@krthailandshop'}</strong></div>
-      <div style="font-size:13px;margin-bottom:12px">📱 WhatsApp: <strong>${shopSettings.wa||'+66638068809'}</strong></div>
+      <div style="font-size:40px;margin-bottom:8px">✅</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:4px;color:#1a1a2e">${lang==='th'?'ยืนยันออร์เดอร์แล้ว!':'Order Confirmed!'}</div>
+      <div style="font-size:13px;color:#2e7d32;margin-bottom:16px;font-weight:600">Order #${d.orderNum}</div>
+
+      <div style="background:#f8f8f8;border-radius:12px;padding:12px 16px;margin-bottom:16px;text-align:left;font-size:13px;color:#555;line-height:1.8">
+        👤 ${d.customer.name} · ${d.customer.phone}<br>
+        📦 ${itemsStr}<br>
+        💰 ฿${d.total.toLocaleString()}
+      </div>
+
+      <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:10px">
+        ${lang==='th'?'📎 ส่งสลิปโอนเงินผ่าน:':'📎 Send payment slip via:'}
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
+        <a href="${waURL}" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#25D366;color:white;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(37,211,102,0.3);transition:all 0.2s">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg>
+          WhatsApp
+        </a>
+        <a href="${lineURL}" target="_blank"
+          style="display:flex;align-items:center;gap:8px;padding:12px 20px;background:#06C755;color:white;border-radius:12px;text-decoration:none;font-weight:700;font-size:14px;font-family:'Nunito',sans-serif;box-shadow:0 4px 12px rgba(6,199,85,0.3)">
+          💬 LINE
+        </a>
+      </div>
+
+      <button onclick="generateInvoicePDF(window._orderData)"
+        style="width:100%;padding:10px;background:white;border:1.5px solid #f0e0f0;border-radius:10px;color:var(--accent);font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;margin-bottom:8px">
+        🧾 ${lang==='th'?'ดาวน์โหลด Invoice PDF':'Download Invoice PDF'}
+      </button>
     </div>
     <button class="btn-cancel-order" onclick="closeOrderModal();cart={};renderCart();">${lang==='th'?'✕ ปิดและล้างตะกร้า':'✕ Close & Clear Cart'}</button>`;
   cart = {};
@@ -3362,7 +3728,7 @@ function saveShippingToSheet() {
   [2,3,4,5,6,7,8].forEach(n => {
     rows.push([n, ...['A','B','C','D','E'].map(z => (zoneShippingRates[z]||{})[n] || 0)]);
   });
-  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'SaveShipping', rows }) });
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ apiKey: API_KEY, type:'SaveShipping', rows }) });
 }
 
 // ============================================================
@@ -3662,7 +4028,7 @@ async function uploadImageToDrive(base64Data, fileName) {
     document.getElementById('imageFileName').textContent = '⏳ กำลังอัปโหลด...';
     const resp = await fetch(scriptURL, {
       method: 'POST',
-      body: JSON.stringify({ type: 'UploadImage', imageData: base64Data, fileName: fileName || 'product.jpg' })
+      body: JSON.stringify({ apiKey: API_KEY, type: 'UploadImage', imageData: base64Data, fileName: fileName || 'product.jpg' })
     });
     const text = await resp.text();
     let result;
@@ -4348,8 +4714,110 @@ applyLangTexts('en');
 // Update rate display on load
 updateRateDisplay();
 
+// ===== LANDING PAGE PRODUCTS =====
+let _landingPage = 0;
+let _landingCat = 'All';
+let _landingSearch = '';
+const _landingPerPage = 12;
+
+function renderLandingProducts() {
+  // Build category chips
+  const catScroll = document.getElementById('landingCatScroll');
+  if(catScroll) {
+    const cats = ['All', ...new Set(products.filter(p=>p.status==='active').map(p=>p.category||'Other'))];
+    catScroll.innerHTML = cats.map(cat =>
+      `<button class="landing-cat-chip ${cat===_landingCat?'active':''}" onclick="setLandingCat('${cat}')">${cat}</button>`
+    ).join('');
+  }
+
+  // Filter products
+  let filtered = products.filter(p => p.status === 'active');
+  if(_landingCat !== 'All') filtered = filtered.filter(p => (p.category||'Other') === _landingCat);
+  if(_landingSearch) {
+    const q = _landingSearch.toLowerCase();
+    filtered = filtered.filter(p =>
+      (p.nameEN||'').toLowerCase().includes(q) ||
+      (p.nameTH||'').toLowerCase().includes(q)
+    );
+  }
+
+  // Pagination
+  const total = filtered.length;
+  const pages = Math.ceil(total / _landingPerPage);
+  if(_landingPage >= pages) _landingPage = Math.max(0, pages-1);
+  const pageItems = filtered.slice(_landingPage * _landingPerPage, (_landingPage+1) * _landingPerPage);
+
+  // Render grid
+  const grid = document.getElementById('landingProductsGrid');
+  if(!grid) return;
+  if(!pageItems.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ccc;font-size:14px">${lang==='th'?'ไม่พบสินค้า':'No products found'}</div>`;
+  } else {
+    grid.innerHTML = pageItems.map(p => {
+      const custPrice = getCustomerPrice(p);
+      const hasSpecial = custPrice !== p.price;
+      const imgHTML = p.imageData
+        ? `<img src="${p.imageData}" class="lp-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : '';
+      return `<div class="lp-card" onclick="">
+        ${p.status==='active'?'<div class="lp-badge">In Stock</div>':''}
+        ${imgHTML}
+        <div class="lp-img-emoji" style="${p.imageData?'display:none':''}">${p.emoji||'📦'}</div>
+        <div class="lp-body">
+          <div class="lp-name">${lang==='th'?(p.nameTH||p.nameEN):(p.nameEN||p.nameTH)}</div>
+          <div class="lp-weight">⚖️ ${p.weight||0}g</div>
+          <div class="lp-price">${fmtPrice(custPrice)}${hasSpecial?'<span style="font-size:11px;text-decoration:line-through;color:#ccc;margin-left:4px">฿'+p.price+'</span>':''} <span style="font-size:11px;font-weight:400;color:#aaa">/ ${lang==='th'?'ชิ้น':'pc'}</span></div>
+          <button class="lp-add" onclick="event.stopPropagation();landingAddToCart('${p.id}')">${lang==='th'?'+ ใส่ตะกร้า':'+ Add to Cart'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Pagination bar
+  const pag = document.getElementById('landingPagination');
+  if(pag && pages > 1) {
+    pag.innerHTML = `
+      <button onclick="_landingPage=Math.max(0,_landingPage-1);renderLandingProducts()" 
+        style="padding:8px 16px;border:1.5px solid #f0e0f0;border-radius:10px;background:white;cursor:pointer;font-size:13px;font-weight:700;color:${_landingPage===0?'#ddd':'var(--accent)'}" ${_landingPage===0?'disabled':''}>${lang==='th'?'◀ ก่อนหน้า':'◀ Prev'}</button>
+      <span style="font-size:13px;color:#888;font-weight:600">${_landingPage+1} / ${pages}</span>
+      <button onclick="_landingPage=Math.min(${pages-1},_landingPage+1);renderLandingProducts()"
+        style="padding:8px 16px;border:1.5px solid #f0e0f0;border-radius:10px;background:white;cursor:pointer;font-size:13px;font-weight:700;color:${_landingPage>=pages-1?'#ddd':'var(--accent)'}" ${_landingPage>=pages-1?'disabled':''}>${lang==='th'?'ถัดไป ▶':'Next ▶'}</button>`;
+  } else if(pag) { pag.innerHTML = ''; }
+}
+
+function setLandingCat(cat) {
+  _landingCat = cat; _landingPage = 0;
+  renderLandingProducts();
+}
+
+function landingFilterProducts(q) {
+  _landingSearch = q; _landingPage = 0;
+  renderLandingProducts();
+}
+
+function landingAddToCart(productId) {
+  const p = products.find(x => x.id == productId);
+  if(!p) return;
+  if(!shopIsOpen) { showToast(lang==='th'?'ร้านปิดอยู่':'Shop is currently closed'); return; }
+  cart[productId] = (cart[productId]||0) + 1;
+  renderCart();
+  renderLandingProducts();
+  showToast(lang==='th'?'✅ เพิ่ม '+(p.nameEN||p.nameTH)+' ลงตะกร้าแล้ว':'✅ Added '+(p.nameEN||p.nameTH)+' to cart');
+  // Show cart badge
+  updateLandingCartBadge();
+  // Jump to shop page to see cart
+  showPage('shop');
+}
+
+function updateLandingCartBadge() {
+  const total = Object.values(cart).reduce((a,b)=>a+b, 0);
+  const badge = document.getElementById('cartNavBadge');
+  if(badge) { badge.textContent = total; badge.style.display = total>0?'inline-flex':'none'; }
+}
+
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwOa_UNXsSp0RxeEehpZ9HIpKzGmmugO1XGRoavCA1SzwzMJj07tlRtX6sU2GdV4xUm/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbyguz4MRncX1PJIKPyzU5zyphr9ATLB_sZiD04SEF8OEo9kvo_Eyl7T6r3tHbtBanV_/exec';
+const API_KEY = 'KR_kr_2026_shop_abc@2626'; // ⚠️ เปลี่ยนให้ตรงกับใน Code_Secured.gs
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
@@ -4372,7 +4840,7 @@ function showLoadingOverlay(show) {
 async function loadProductsFromSheet() {
   try {
     // ดึงข้อมูลสินค้าโดยระบุ type=products
-    const resp = await fetch(scriptURL + '?type=products');
+    const resp = await fetch(scriptURL + '?type=products&apiKey=' + API_KEY);
     const data = await resp.json();
     
     if (data && data.length > 0) {
@@ -4438,11 +4906,11 @@ async function saveOrderToSheet(d) {
 
 async function updateProductToSheet(p) {
   // ส่งข้อมูลสินค้าทั้งหมด (รวมถึง imageData) ไปบันทึกที่ Sheets
-  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'UpdateProduct', ...p }) });
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ apiKey: API_KEY, type:'UpdateProduct', ...p }) });
 }
 
 async function deleteProductFromSheet(id) {
-  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'DeleteProduct', id }) });
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ apiKey: API_KEY, type:'DeleteProduct', id }) });
 }
 
 
@@ -4484,13 +4952,13 @@ function saveSettingsToSheet() {
     grad2: document.getElementById('color2')?.value || '',
     accent: document.getElementById('color3')?.value || '',
   };
-  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ type:'SaveSettings', settings }) });
+  fetch(scriptURL, { method:'POST', mode:'no-cors', body: JSON.stringify({ apiKey: API_KEY, type:'SaveSettings', settings }) });
 }
 
 // ─── SHIPPING RATES ───
 async function loadShippingFromSheet() {
   try {
-    const resp = await fetch(scriptURL + '?type=shipping');
+    const resp = await fetch(scriptURL + '?type=shipping&apiKey=' + API_KEY);
     const data = await resp.json();
     if (!data || Object.keys(data).length === 0) return;
     // data = { 2: { A:500, B:600, ... }, 3: { ... }, ... }
