@@ -3108,7 +3108,7 @@ async function saveCustomer() {
     const resp = await fetch(scriptURL, {
       method: 'POST', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type:'SaveCustomer', customerCode:code, name, phone, discount, priceOverride, note })
+      body: JSON.stringify({ apiKey: API_KEY, type:'SaveCustomer', customerCode:code, name, phone, discount, priceOverride, note })
     });
     const result = await resp.text();
     if (result === 'Customer Saved') {
@@ -3132,7 +3132,7 @@ async function deleteCustomer(code) {
     const resp = await fetch(scriptURL, {
       method: 'POST', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ type:'DeleteCustomer', customerCode: code })
+      body: JSON.stringify({ apiKey: API_KEY, type:'DeleteCustomer', customerCode: code })
     });
     const result = await resp.text();
     if (result === 'Customer Deleted') {
@@ -5010,7 +5010,7 @@ function updateLandingCartBadge() {
 }
 
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbwgRsgzUdUfNEopRTolrfSVeULG8JUDlWL6m9JDxtwMkNDtgyq7SfFdlsMguCybRYGU/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbwM_72VezWu35GpiguMuy2rZ8KTJDmy-kgt8_KVqIwyRnREPb05j0I-sGs9jyjHmy6R/exec';
 const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME@26'; // ⚠️ เปลี่ยนให้ตรงกับใน Code_Secured.gs
 
 // ─── LOADING OVERLAY ───
@@ -5792,7 +5792,7 @@ function exportInvoiceXLSX() {
     method:'POST', redirect:'follow',
     headers:{'Content-Type':'text/plain'},
     body: JSON.stringify({
-      type:'UpdateOrderStatus', orderNum:o.num, status:'confirmed',
+      apiKey: API_KEY, type:'UpdateOrderStatus', orderNum:o.num, status:'confirmed',
       confirmedDate: new Date().toLocaleDateString(),
       discProduct: discProdAmt, discShipping: discShipAmt,
       grandTotal, invoiceNote: note,
@@ -6365,7 +6365,7 @@ async function aibSaveAsOrder() {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain'},
       body: JSON.stringify({
-        type:'Orders', orderNum,
+        apiKey: API_KEY, type:'Orders', orderNum,
         name:    _aibCustomer.name,
         phone:   _aibCustomer.phone,
         country: '', address: '',
