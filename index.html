@@ -2079,7 +2079,8 @@ async function changeAdminPassword() {
 
   try {
     const resp = await fetch(scriptURL, {
-      method: 'POST',
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ apiKey: API_KEY, type: 'ChangeAdminPassword', currentPassword: currentPass, username: u, password: p })
     });
     const text = await resp.text();
@@ -4217,7 +4218,8 @@ async function uploadImageToDrive(base64Data, fileName) {
   try {
     document.getElementById('imageFileName').textContent = '⏳ กำลังอัปโหลด...';
     const resp = await fetch(scriptURL, {
-      method: 'POST',
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ apiKey: API_KEY, type: 'UploadImage', imageData: base64Data, fileName: fileName || 'product.jpg' })
     });
     const text = await resp.text();
@@ -5019,6 +5021,7 @@ async function apiPost(payload) {
     const resp = await fetch(scriptURL, {
       method:   'POST',
       redirect: 'follow',
+      headers:  { 'Content-Type': 'text/plain' },
       body:     JSON.stringify({ apiKey: API_KEY, ...payload })
     });
     const text = await resp.text();
@@ -5042,8 +5045,8 @@ async function apiGet(params) {
   }
 }
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbzcrBY-xZgsof6MWDF4pSs07nqZ7KdfV9uP-5OM5KTJnDPzmXTlsMiMh0ePpRfb5lJp8w/exec';
-const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME'; //  Code_Secured.gs
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzMrWmMVNvqSpT2VE9wK0roPgnSAk5kCo1SwPwnXgpWTlmd2fvsBlQib2lfEHJ4_Vugug/exec';
+const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME'; // ต้องตรงกับ CONFIG.API_KEY ใน Code_Secured.gs
 
 // ─── LOADING OVERLAY ───
 function showLoadingOverlay(show) {
