@@ -46,7 +46,8 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
   display:flex; align-items:center; justify-content:space-between;
   padding:0 12px; height:56px; gap:4px; overflow:hidden;
 }
-.nav-brand { font-family:'Playfair Display',serif; font-size:clamp(13px,3.5vw,18px); color:var(--accent); letter-spacing:0.5px; white-space:nowrap; flex-shrink:0; }
+.nav-brand { display:flex; align-items:center; gap:7px; font-family:'Playfair Display',serif; font-size:clamp(13px,3.5vw,18px); color:var(--accent); letter-spacing:0.5px; white-space:nowrap; flex-shrink:0; }
+.nav-logo { width:clamp(28px,7vw,36px); height:clamp(28px,7vw,36px); border-radius:50%; object-fit:cover; flex-shrink:0; border:1.5px solid rgba(214,51,132,0.2); box-shadow:0 2px 8px rgba(214,51,132,0.15); }
 .nav-menu { display:flex; gap:4px; }
 .nav-btn {
   padding:5px 10px; border:none; background:transparent; color:#666;
@@ -990,7 +991,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
 
 <!-- NAV -->
 <nav class="nav" id="mainNav">
-  <div class="nav-brand" id="navBrand">K&R Thailand Shop</div>
+  <div class="nav-brand" id="navBrand"><img id="navLogoImg" class="nav-logo" src="" alt="K&R Logo" onerror="this.style.display='none'">K&R Thailand Shop</div>
   <div class="nav-menu">
     <button class="nav-btn active" onclick="showPage('landing')" data-th="หน้าแรก" data-en="Home">Home</button>
     <button class="nav-btn" id="cartNavBtn" onclick="showPage('shop')" data-th="ตะกร้า" data-en="Cart" style="position:relative">
@@ -1508,6 +1509,7 @@ body { font-family:'Nunito',sans-serif; background:var(--g1); color:#1a1a2e; min
         <div class="settings-card">
           <h3>🏪 <span data-th="ข้อมูลร้าน" data-en="Shop Info">Shop Info</span></h3>
           <div class="form-group"><label class="form-label" data-th="ชื่อร้าน" data-en="Shop Name">Shop Name</label><input type="text" id="settingName" class="form-input" value="K&R Thailand Shop"></div>
+          <div class="form-group"><label class="form-label" data-th="URL โลโก้ร้าน" data-en="Shop Logo URL">Shop Logo URL</label><input type="text" id="settingLogoURL" class="form-input" placeholder="https://... หรือ Google Drive thumbnail URL"><div style="font-size:11px;color:var(--muted);margin-top:4px">วาง URL รูปโลโก้ (Google Drive thumbnail / Imgur / URL ตรงๆ)</div><div id="logoPreviewWrap" style="margin-top:8px;display:none"><img id="logoPreview" src="" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--accent)"></div></div>
           <div class="form-group"><label class="form-label">Line ID</label><input type="text" id="settingLine" class="form-input" value="@krthailandshop"></div>
           <div class="form-group"><label class="form-label">WhatsApp</label><input type="text" id="settingWA" class="form-input" value="+66638068809"></div>
           <button class="save-settings-btn" onclick="saveSettings()"><span data-th="บันทึก" data-en="Save">Save</span></button>
@@ -2212,7 +2214,14 @@ let products = [
 ];
 
 // ===== SETTINGS =====
-let shopSettings = { name:'K&R Thailand Shop', line:'@krthailandshop', wa:'+66638068809' };
+let shopSettings = { name:'K&R Thailand Shop', line:'@krthailandshop', wa:'+66638068809', logoURL:'' };
+
+// อัปเดตโลโก้ทุกจุด
+function applyLogo(url) {
+  shopSettings.logoURL = url || '';
+  const navLogo = document.getElementById('navLogoImg');
+  if (navLogo) { navLogo.src = url || ''; navLogo.style.display = url ? 'block' : 'none'; }
+}
 
 // ===== LANG =====
 function setLang(l) {
@@ -4371,9 +4380,18 @@ function deleteProduct(id) {
 function saveSettings() {
   shopSettings.name = document.getElementById('settingName').value.trim()||'K&R Thailand Shop';
   shopSettings.line = document.getElementById('settingLine').value.trim();
-  shopSettings.wa = document.getElementById('settingWA').value.trim();
+  shopSettings.wa   = document.getElementById('settingWA').value.trim();
+  const logoURL = (document.getElementById('settingLogoURL')?.value||'').trim();
+  applyLogo(logoURL);
+  // แก้ navBrand ให้ไม่ทับโลโก้
+  const navBrand = document.getElementById('navBrand');
+  if (navBrand) {
+    const img = navBrand.querySelector('img');
+    navBrand.innerHTML = '';
+    if (img) navBrand.appendChild(img);
+    navBrand.appendChild(document.createTextNode(shopSettings.name));
+  }
   document.getElementById('heroLogo').textContent = shopSettings.name.split(' ')[0]||'K&R';
-  document.getElementById('navBrand').textContent = shopSettings.name;
   document.getElementById('orderShopName').textContent = shopSettings.name;
   showToast(lang==='th'?'บันทึกแล้ว ✓':'Settings saved ✓');
 }
@@ -5075,7 +5093,7 @@ async function apiGet(params) {
   }
 }
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = '';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxyAhAUGTmBr5fe65B6sWUcstrui88qz3Hq2ztFDNRfabltTd5emOHjngnnsO7_AWevKA/exec';
 const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME'; // ต้องตรงกับ CONFIG.API_KEY ใน Code_Secured.gs
 
 // ── แปลง Google Drive URL ทุกรูปแบบให้เป็น thumbnail URL ที่แสดงได้ใน <img> ──
@@ -5194,9 +5212,21 @@ async function loadSettingsFromSheet() {
     if (!data || Object.keys(data).length === 0) return;
     if (data.shopName) {
       shopSettings.name = data.shopName;
-      document.getElementById('navBrand').textContent = data.shopName;
+      // แก้ navBrand ให้ไม่ทับโลโก้
+      const navBrand = document.getElementById('navBrand');
+      if (navBrand) {
+        const img = navBrand.querySelector('img');
+        navBrand.innerHTML = '';
+        if (img) navBrand.appendChild(img);
+        navBrand.appendChild(document.createTextNode(data.shopName));
+      }
       const hl = document.getElementById('heroLogo');
       if (hl) hl.textContent = data.shopName.split(' ')[0] || 'K&R';
+    }
+    if (data.shopLogoURL) {
+      applyLogo(data.shopLogoURL);
+      const el = document.getElementById('settingLogoURL');
+      if (el) el.value = data.shopLogoURL;
     }
     if (data.shopLine) shopSettings.line = data.shopLine;
     if (data.shopWA)   shopSettings.wa   = data.shopWA;
@@ -5218,6 +5248,7 @@ function saveSettingsToSheet() {
     shopName: shopSettings.name,
     shopLine: shopSettings.line,
     shopWA: shopSettings.wa,
+    shopLogoURL: shopSettings.logoURL || '',
     usdRate: usdRate.toString(),
     shopIsOpen: shopIsOpen.toString(),
     grad1: document.getElementById('color1')?.value || '',
@@ -5621,6 +5652,144 @@ function openInvoiceModal(i) {
   recalcInvoice();
 }
 
+// ══════════════════════════════════════════════════════
+// generateInvoicePDF — สำหรับลูกค้ากด Download Invoice
+// ══════════════════════════════════════════════════════
+function generateInvoicePDF(d) {
+  if (!d) { showToast('⚠️ ไม่มีข้อมูล Order'); return; }
+  const fmt  = n => '฿' + Math.round(n).toLocaleString();
+  const fmtU = n => '$' + Number(n).toFixed(2);
+  const usdR = usdRate || 35.5;
+  const now  = new Date();
+  const invNum  = 'KR-INV-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(Math.random()*900+100);
+  const invDate = now.toISOString().split('T')[0];
+  const logoURL = shopSettings.logoURL || '';
+  const logoHTML = logoURL
+    ? `<img src="${logoURL}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.5);margin-right:14px" onerror="this.style.display='none'">`
+    : '';
+  const watermarkHTML = logoURL
+    ? `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);opacity:0.07;pointer-events:none;z-index:0">
+        <img src="${logoURL}" style="width:320px;height:320px;object-fit:cover;border-radius:50%">
+       </div>`
+    : '';
+
+  const items = d.items || [];
+  const productTotal = items.reduce((s, i) => s + (i.qty * (i.custPrice || i.product?.price || 0)), 0);
+  const shipping     = d.shipping || 0;
+  const grandTotal   = productTotal + shipping;
+  const grandUSD     = (grandTotal / usdR).toFixed(2);
+  const customer     = d.customer || {};
+
+  const itemRows = items.map((item, i) => {
+    const name  = item.product?.nameEN || item.product?.nameTH || item.name || '';
+    const emoji = item.product?.emoji || '';
+    const qty   = item.qty || 1;
+    const price = item.custPrice || item.product?.price || 0;
+    const sub   = qty * price;
+    return `<tr style="background:${i%2===0?'#fff':'#fff8fc'}">
+      <td style="padding:8px 10px;text-align:center;color:#888">${i+1}</td>
+      <td style="padding:8px 10px;font-weight:600">${emoji} ${name}</td>
+      <td style="padding:8px 10px;text-align:center">${qty}</td>
+      <td style="padding:8px 10px;text-align:right">${fmt(price)}</td>
+      <td style="padding:8px 10px;text-align:right;font-weight:700;color:#c2185b">${fmt(sub)}</td>
+      <td style="padding:8px 10px;text-align:right;color:#888">${fmtU(price/usdR)}</td>
+      <td style="padding:8px 10px;text-align:right;color:#0070c0;font-weight:600">${fmtU(sub/usdR)}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Invoice ${invNum}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a2e;background:#f5f5f5;position:relative}
+  .page{max-width:780px;margin:20px auto;background:white;box-shadow:0 4px 20px rgba(0,0,0,0.1);position:relative;overflow:hidden}
+  @media print{body{background:white}.page{margin:0;box-shadow:none}.no-print{display:none}}
+  table{width:100%;border-collapse:collapse}
+  th{background:#fff0f7;color:#ad1457;font-size:11px;padding:8px 10px;text-align:left;border-bottom:2px solid #f0c0d0}
+</style></head><body>
+<div class="page">
+  ${watermarkHTML}
+  <div style="background:linear-gradient(135deg,#c2185b,#880e4f);color:white;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1">
+    <div style="display:flex;align-items:center">
+      ${logoHTML}
+      <div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:2px">${shopSettings.name||'K&R Thailand Shop'}</div>
+        <div style="font-size:12px;opacity:0.7;margin-top:4px">COMMERCIAL INVOICE</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;opacity:0.7">Invoice No.</div>
+      <div style="font-size:15px;font-weight:700;color:#f8bbd0">${invNum}</div>
+      <div style="font-size:11px;opacity:0.7;margin-top:4px">Date: ${invDate}</div>
+      <div style="font-size:10px;opacity:0.6;margin-top:2px">1 USD = ฿${usdR}</div>
+    </div>
+  </div>
+  <div style="padding:24px 32px;position:relative;z-index:1">
+    <div style="background:#fff8fc;border:1px solid #f0c0d0;border-radius:8px;padding:16px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;color:#c2185b;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Bill To</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><span style="color:#888;font-size:10px">NAME</span><br><strong>${customer.name||''}</strong></div>
+        <div><span style="color:#888;font-size:10px">PHONE</span><br><strong>${customer.phone||''}</strong></div>
+        <div><span style="color:#888;font-size:10px">CODE</span><br><strong style="color:#c2185b">${customer.customerCode||''}</strong></div>
+        ${customer.address?`<div><span style="color:#888;font-size:10px">ADDRESS</span><br>${customer.address}</div>`:''}
+      </div>
+    </div>
+    <table style="margin-bottom:0;border:1px solid #f0c0d0;border-radius:8px;overflow:hidden">
+      <thead><tr>
+        <th style="width:40px;text-align:center">#</th><th>Product</th>
+        <th style="width:50px;text-align:center">Qty</th>
+        <th style="text-align:right">Unit (฿)</th><th style="text-align:right">Sub (฿)</th>
+        <th style="text-align:right">Unit ($)</th><th style="text-align:right">Sub ($)</th>
+      </tr></thead>
+      <tbody>${itemRows}</tbody>
+      <tfoot style="border-top:1px solid #f0c0d0">
+        <tr><td colspan="4" style="padding:6px 10px;text-align:right;color:#555">Products Subtotal</td>
+          <td style="padding:6px 10px;text-align:right;font-weight:600">${fmt(productTotal)}</td>
+          <td colspan="2" style="padding:6px 10px;text-align:right;color:#0070c0">${fmtU(productTotal/usdR)}</td></tr>
+        <tr><td colspan="4" style="padding:6px 10px;text-align:right;color:#555">Shipping Fee</td>
+          <td style="padding:6px 10px;text-align:right;font-weight:600">${fmt(shipping)}</td>
+          <td colspan="2" style="padding:6px 10px;text-align:right;color:#0070c0">${fmtU(shipping/usdR)}</td></tr>
+        <tr style="background:#fff0f7;border-top:2px solid #c2185b">
+          <td colspan="4" style="padding:10px;text-align:right;font-weight:700;font-size:15px;color:#c2185b">GRAND TOTAL</td>
+          <td style="padding:10px;text-align:right;font-weight:700;font-size:16px;color:#c2185b">${fmt(grandTotal)}</td>
+          <td colspan="2" style="padding:10px;text-align:right;font-weight:700;font-size:14px;color:#0070c0">${fmtU(grandUSD)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px">
+      <div style="background:#f8f8ff;border:1px solid #e0e0ff;border-radius:8px;padding:16px">
+        <div style="font-size:10px;font-weight:700;color:#c2185b;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Payment Details</div>
+        <table style="font-size:11px">
+          <tr><td style="color:#888;padding:2px 8px 2px 0">Bank</td><td><strong>KASIKORN BANK</strong></td></tr>
+          <tr><td style="color:#888;padding:2px 8px 2px 0">Account</td><td><strong style="color:#c62828;font-size:13px">564-24-553-05</strong></td></tr>
+          <tr><td style="color:#888;padding:2px 8px 2px 0">Name</td><td>KHONGKHA BUMRUNGKHET</td></tr>
+          <tr><td style="color:#888;padding:2px 8px 2px 0">Swift</td><td><strong>KASITHBK</strong></td></tr>
+          <tr><td style="color:#888;padding:2px 8px 2px 0">Line</td><td style="color:#00b900"><strong>${shopSettings.line||'@krthailandshop'}</strong></td></tr>
+          <tr><td style="color:#888;padding:2px 8px 2px 0">WhatsApp</td><td style="color:#25d366"><strong>${shopSettings.wa||'+66638068809'}</strong></td></tr>
+        </table>
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end">
+        <div style="border-top:1px dashed #ddd;padding-top:10px;text-align:center">
+          <div style="font-size:10px;color:#888;margin-bottom:20px">Authorized Signature</div>
+          <div style="border-top:1px solid #999;padding-top:6px;font-size:11px;font-weight:700;color:#c2185b">${shopSettings.name||'K&R Thailand Shop'}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="no-print" style="text-align:center;padding:16px">
+  <button onclick="window.print()" style="padding:12px 32px;background:#c2185b;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700;margin-right:8px">🖨 Print / Save PDF</button>
+  <button onclick="window.close()" style="padding:12px 24px;background:#eee;border:none;border-radius:8px;cursor:pointer;font-size:13px">✕ Close</button>
+</div>
+<\/body><\/html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, '_blank');
+  if (win) setTimeout(() => URL.revokeObjectURL(url), 30000);
+  showToast('🖨 Invoice opened!');
+}
+
 function closeInvoiceModal() {
   const el = document.getElementById('invoiceModal');
   if (el) el.remove();
@@ -5774,24 +5943,32 @@ function exportInvoiceXLSX() {
       <td colspan="2" style="padding:10px;text-align:right;font-weight:700;font-size:14px;color:#0070c0">${fmtU(grandUSD)}</td>
     </tr>`;
 
+  const logoURL2   = shopSettings.logoURL || '';
+  const logoHTML2  = logoURL2 ? `<img src="${logoURL2}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.5);margin-right:14px" onerror="this.style.display='none'">` : '';
+  const watermark2 = logoURL2 ? `<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);opacity:0.07;pointer-events:none;z-index:0"><img src="${logoURL2}" style="width:320px;height:320px;object-fit:cover;border-radius:50%"></div>` : '';
+
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <title>Invoice ${o.num}</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:Arial,sans-serif; font-size:12px; color:#1a1a2e; background:#f5f5f5; }
-  .page { max-width:780px; margin:20px auto; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+  .page { max-width:780px; margin:20px auto; background:white; box-shadow:0 4px 20px rgba(0,0,0,0.1); position:relative; overflow:hidden; }
   @media print { body{background:white} .page{margin:0;box-shadow:none} .no-print{display:none} }
   table { width:100%; border-collapse:collapse; }
   th { background:#fff0f7; color:#ad1457; font-size:11px; padding:8px 10px; text-align:left; border-bottom:2px solid #f0c0d0; }
 </style>
 </head><body>
 <div class="page">
+  ${watermark2}
   <!-- Header -->
-  <div style="background:linear-gradient(135deg,#c2185b,#880e4f);color:white;padding:28px 32px;display:flex;justify-content:space-between;align-items:flex-start">
-    <div>
-      <div style="font-size:24px;font-weight:700;letter-spacing:2px">${shopSettings.name||'K&R Thailand Shop'}</div>
-      <div style="font-size:12px;opacity:0.7;margin-top:4px">COMMERCIAL INVOICE</div>
+  <div style="background:linear-gradient(135deg,#c2185b,#880e4f);color:white;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1">
+    <div style="display:flex;align-items:center">
+      ${logoHTML2}
+      <div>
+        <div style="font-size:24px;font-weight:700;letter-spacing:2px">${shopSettings.name||'K&R Thailand Shop'}</div>
+        <div style="font-size:12px;opacity:0.7;margin-top:4px">COMMERCIAL INVOICE</div>
+      </div>
     </div>
     <div style="text-align:right">
       <div style="font-size:11px;opacity:0.7">Invoice No.</div>
