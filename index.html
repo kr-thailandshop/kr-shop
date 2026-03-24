@@ -4393,7 +4393,7 @@ function saveSettings() {
   }
   document.getElementById('heroLogo').textContent = shopSettings.name.split(' ')[0]||'K&R';
   document.getElementById('orderShopName').textContent = shopSettings.name;
-  showToast(lang==='th'?'บันทึกแล้ว ✓':'Settings saved ✓');
+  // ไม่ showToast ที่นี่ — ให้ saveSettingsToSheet() แสดงผลหลัง API ตอบกลับ
 }
 
 function applyColors() {
@@ -5093,7 +5093,7 @@ async function apiGet(params) {
   }
 }
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxyAhAUGTmBr5fe65B6sWUcstrui88qz3Hq2ztFDNRfabltTd5emOHjngnnsO7_AWevKA/exec';
+const scriptURL = 'https://script.google.com/macros/s/AKfycbzToRtgjPL-4ktXRYS9DINRSizfZbMPVE7XJpN3heO_SyGvxie6i5agOSiaoGJMBdPrFA/exec';
 const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME'; // ต้องตรงกับ CONFIG.API_KEY ใน Code_Secured.gs
 
 // ── แปลง Google Drive URL ทุกรูปแบบให้เป็น thumbnail URL ที่แสดงได้ใน <img> ──
@@ -5244,6 +5244,8 @@ async function loadSettingsFromSheet() {
 }
 
 function saveSettingsToSheet() {
+  // แสดง toast ทันทีเพื่อบอกว่ากำลัง save
+  showToast(lang==='th'?'⏳ กำลังบันทึก...':'⏳ Saving...');
   const settings = {
     shopName: shopSettings.name,
     shopLine: shopSettings.line,
@@ -5256,7 +5258,15 @@ function saveSettingsToSheet() {
     accent: document.getElementById('color3')?.value || '',
   };
   apiPost({ type:'SaveSettings', settings }).then(r => {
-    if(r) showToast('✅ ' + (lang==='th'?'บันทึก Settings แล้ว':'Settings saved'));
+    if(r === 'Settings Saved') {
+      showToast('✅ ' + (lang==='th'?'บันทึกแล้ว':'Settings saved'));
+    } else if(r) {
+      showToast('⚠️ ' + r);
+    } else {
+      showToast('❌ ' + (lang==='th'?'บันทึกไม่สำเร็จ ลองใหม่':'Save failed, try again'));
+    }
+  }).catch(() => {
+    showToast('❌ ' + (lang==='th'?'เชื่อมต่อไม่ได้':'Connection error'));
   });
 }
 
