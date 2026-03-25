@@ -5094,7 +5094,7 @@ async function apiGet(params) {
   }
 }
 // GOOGLE SHEETS INTEGRATION v2 — Full Persistence
-const scriptURL = '';
+const scriptURL = 'https://kr-shop-api.krtshop7053.workers.dev';
 const API_KEY = 'KR_SHOP_2026_SECRET_KEY_CHANGE_ME'; // ต้องตรงกับ CONFIG.API_KEY ใน Code_Secured.gs
 
 // ── แปลง Google Drive URL ทุกรูปแบบให้เป็น thumbnail URL ที่แสดงได้ใน <img> ──
@@ -5266,17 +5266,35 @@ async function loadShippingFromSheet() {
   try {
     const resp = await fetch(`${scriptURL}?type=shipping&apiKey=${API_KEY}&t=${Date.now()}`);
     const data = await resp.json();
-    if (!data || Object.keys(data).length === 0) return;
-    // data = { 2: { A:500, B:600, ... }, 3: { ... }, ... }
+    console.log('Shipping raw data:', JSON.stringify(data));
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return;
+    if (data.error) { console.error('Shipping error:', data.error); return; }
+    if (Object.keys(data).length === 0) return;
+
+    // ZONE_MAP: รองรับทั้ง 'A','B','C','D','E' และ header ตัวเลข fallback
+    const ZONE_KEYS = ['A','B','C','D','E'];
+
     Object.keys(data).forEach(boxNum => {
       const n = parseInt(boxNum);
-      if (zoneShippingRates) {
-        ['A','B','C','D','E'].forEach(z => {
-          if (!zoneShippingRates[z]) zoneShippingRates[z] = {};
-          zoneShippingRates[z][n] = data[boxNum][z] || 0;
-        });
-      }
+      if (isNaN(n)) return;
+      const boxData = data[boxNum];
+      if (!boxData || typeof boxData !== 'object') return;
+
+      const dataKeys = Object.keys(boxData);
+      ZONE_KEYS.forEach((z, idx) => {
+        if (!zoneShippingRates[z]) zoneShippingRates[z] = {};
+        // ลอง key ตรง เช่น 'A' ก่อน ถ้าไม่มีลอง index fallback
+        let val = 0;
+        if (boxData[z] !== undefined) {
+          val = Number(boxData[z]) || 0;
+        } else if (dataKeys[idx] !== undefined) {
+          val = Number(boxData[dataKeys[idx]]) || 0;
+        }
+        zoneShippingRates[z][n] = val;
+      });
     });
+
+    console.log('zoneShippingRates loaded:', JSON.stringify(zoneShippingRates));
     if (isAdminLoggedIn) renderShippingGrid();
   } catch(e) { console.error('Shipping load failed:', e); }
 }
